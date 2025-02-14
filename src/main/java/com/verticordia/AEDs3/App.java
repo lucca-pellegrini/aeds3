@@ -1,4 +1,4 @@
-package com.verticordia;
+package com.verticordia.AEDs3;
 
 /**
  * Hello world!

@@ -2,7 +2,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.verticordia</groupId>
+    <groupId>com.verticordia.AEDs3</groupId>
     <artifactId>AEDs3</artifactId>
     <packaging>jar</packaging>
     <version>1.0-SNAPSHOT</version>
@@ -32,7 +32,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.verticordia.App</mainClass>
+                            <mainClass>com.verticordia.AEDs3.App</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -42,7 +42,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <configuration>
-                    <mainClass>com.verticordia.App</mainClass>
+                    <mainClass>com.verticordia.AEDs3.App</mainClass>
                 </configuration>
             </plugin>
         </plugins>
