@@ -1,0 +1,7 @@
+# Artefatos
+target/
+
+# Itens gerados pelos servidores LSP
+.classpath
+.project
+.settings/
