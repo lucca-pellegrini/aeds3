@@ -53,6 +53,10 @@
                     <source>1.8</source>
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
+                    <compilerArgs>
+                        <arg>-Xlint</arg>
+                        <arg>-Xdiags:verbose</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
