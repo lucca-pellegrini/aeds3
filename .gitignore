@@ -5,3 +5,6 @@ target/
 .classpath
 .project
 .settings/
+
+# Base de dados inicial
+dataset.csv
