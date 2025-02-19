@@ -4,7 +4,7 @@ import java.io.IOException;
 
 public class App {
 	public static void main(String[] args) throws IOException {
-		CSVManager csv = new CSVManager("dataset.csv");
+		CSVManager csv = new CSVManager("dataset-clean.csv");
 		TrackDB db = new TrackDB("tracks.db");
 
 		for (Track track : csv)

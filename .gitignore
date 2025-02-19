@@ -7,7 +7,7 @@ target/
 .settings/
 
 # Base de dados inicial
-dataset.csv
+*.csv
 
 # Base de dados binária
 tracks.db
