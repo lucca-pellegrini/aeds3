@@ -11,6 +11,7 @@ public class TrackDB {
 	protected RandomAccessFile file;
 	protected int lastId;
 
+	//Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
 		file = new RandomAccessFile(fileName, "rw");
 
@@ -47,6 +48,7 @@ class BinaryTrackWriter {
 	protected boolean valid;
 	protected int size;
 
+	//Função para escrever no arquivo as tracks.
 	public BinaryTrackWriter(Track track) throws IOException {
 		stream = new ByteArrayOutputStream();
 		DataOutputStream dataStream = new DataOutputStream(stream);
