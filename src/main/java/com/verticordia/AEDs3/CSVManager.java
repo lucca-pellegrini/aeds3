@@ -20,9 +20,8 @@ public class CSVManager implements Iterable<Track> {
 	protected CSVParser parser;
 
 	public CSVManager(String fileName) throws FileNotFoundException, IOException {
-		FileInputStream fis = new FileInputStream(new File(fileName));
-		parser = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(
-				new InputStreamReader(fis, StandardCharsets.UTF_8));
+		parser = CSVFormat.RFC4180.builder().setHeader().setSkipHeaderRecord(true).get().parse(
+				new InputStreamReader(new FileInputStream(new File(fileName)), StandardCharsets.UTF_8));
 	}
 
 	/*
