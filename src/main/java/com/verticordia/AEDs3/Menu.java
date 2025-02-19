@@ -13,18 +13,13 @@ public class Menu {
 			System.out.println("1. Create\n2. Read\n3. Update\n4. Delete\n0. Parar o programa.");
 			acao = sc.nextInt();
 
-			if (acao == 1) {
-				// codigo do create
-			} else if (acao == 2) {
-				// codigo do read
-			} else if (acao == 3) {
-				// codigo do update
-			} else if (acao == 4) {
-				// codigo do delete
-			} else if (acao == 0) {
-				System.out.println("Programa finalizado!");
-			} else {
-				System.out.println("Tente outro número.");
+			switch (acao) {
+				case 1 -> System.err.println("Create não implementado");
+				case 2 -> System.err.println("Read não implementado");
+				case 3 -> System.err.println("Update não implementado");
+				case 4 -> System.err.println("Delete não implementado");
+				case 0 -> System.out.println("Programa finalizado");
+				default -> System.out.println("Tente outro número.");
 			}
 		}
 
