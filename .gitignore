@@ -8,3 +8,6 @@ target/
 
 # Base de dados inicial
 dataset.csv
+
+# Base de dados binária
+tracks.db
