@@ -1,5 +1,6 @@
 package com.verticordia.AEDs3;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -11,12 +12,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.stream.Collectors;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-
-import java.io.File;
 
 public class CSVManager implements Iterable<Track> {
 	protected CSVParser parser;
@@ -27,7 +25,11 @@ public class CSVManager implements Iterable<Track> {
 				new InputStreamReader(fis, StandardCharsets.UTF_8));
 	}
 
-	/*Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o iterador da classe CSVRecord.*/
+	/*
+	 * Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o
+	 * iterador da classe
+	 * CSVRecord.
+	 */
 	@Override
 	public Iterator<Track> iterator() {
 		return new Iterator<Track>() {
@@ -44,8 +46,8 @@ public class CSVManager implements Iterable<Track> {
 				Date releaseDate;
 				String releaseDateRecord = record.get("album_release_date");
 
-				//Metodo para quando tiver só o ano, forçar a data completa.
-				try { 
+				// Metodo para quando tiver só o ano, forçar a data completa.
+				try {
 					releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateRecord);
 				} catch (ParseException e) {
 					int year, month;
@@ -61,7 +63,7 @@ public class CSVManager implements Iterable<Track> {
 					releaseDate = new Date(year - 1900, month, 01);
 				}
 
-				//Pegando as informações da track.
+				// Pegando as informações da track.
 				return new Track(releaseDate,
 						Arrays.stream(record.get("genres").split(","))
 								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
@@ -69,16 +71,12 @@ public class CSVManager implements Iterable<Track> {
 						Arrays.stream(record.get("track_artists").split(","))
 								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
 								.collect(Collectors.toList()),
-						record.get("album_name"), record.get("album_type"),
-						record.get("name"),
+						record.get("album_name"), record.get("album_type"), record.get("name"),
 						Boolean.parseBoolean(record.get("explicit")),
-						record.get("track_id").toCharArray(),
-						Float.parseFloat(record.get("loudness")),
+						record.get("track_id").toCharArray(), Float.parseFloat(record.get("loudness")),
 						Float.parseFloat(record.get("danceability")),
-						Float.parseFloat(record.get("energy")),
-						Float.parseFloat(record.get("valence")),
-						Float.parseFloat(record.get("tempo")),
-						Integer.parseInt(record.get("key")),
+						Float.parseFloat(record.get("energy")), Float.parseFloat(record.get("valence")),
+						Float.parseFloat(record.get("tempo")), Integer.parseInt(record.get("key")),
 						Integer.parseInt(record.get("popularity")),
 						Integer.MIN_VALUE // Índice nulo
 				);
