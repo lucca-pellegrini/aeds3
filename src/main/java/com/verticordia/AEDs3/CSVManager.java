@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -26,8 +27,10 @@ public class CSVManager implements Iterable<Track> {
 				new InputStreamReader(fis, StandardCharsets.UTF_8));
 	}
 
-	/* Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o iterador da classe
-	 * CSVRecord. */
+	/*
+	 * Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o
+	 * iterador da classe CSVRecord.
+	 */
 	@Override
 	public Iterator<Track> iterator() {
 		return new Iterator<Track>() {
@@ -47,14 +50,26 @@ public class CSVManager implements Iterable<Track> {
 				try {
 					releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateRecord);
 				} catch (ParseException e) {
-					int year = Integer.parseInt(releaseDateRecord);
-					releaseDate = new Date(year - 1900, 01, 01);
+					int year, month;
+					if (releaseDateRecord.contains("-")) {
+						String[] list = releaseDateRecord.split("-");
+						year = Integer.parseInt(list[0]);
+						month = Integer.parseInt(list[1]);
+					} else {
+						year = Integer.parseInt(releaseDateRecord);
+						month = 01;
+					}
+
+					releaseDate = new Date(year - 1900, month, 01);
 				}
 
-				return new Track(
-						releaseDate,
-						Arrays.asList(record.get("genres").split(",")),
-						Arrays.asList(record.get("track_artists").split(",")),
+				return new Track(releaseDate,
+						Arrays.stream(record.get("genres").split(","))
+								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
+								.collect(Collectors.toList()),
+						Arrays.stream(record.get("track_artists").split(","))
+								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
+								.collect(Collectors.toList()),
 						record.get("album_name"), record.get("album_type"),
 						record.get("name"),
 						Boolean.parseBoolean(record.get("explicit")),
