@@ -90,6 +90,35 @@ serão disponibilizadas ao usuário.
   formatador de código
   [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html).
 
+## Aviso sobre o uso de LLMs
+
+Conforme as orientações dadas em sala de aula sobre o uso de Modelos de
+Linguagem de Grande Escala (LLMs) neste trabalho, a seguir está uma visão geral
+das partes deste repositório que foram desenvolvidas com a ajuda de LLMs:
+
+- Sugestão de quais ferramentas e bibliotecas utilizar para a implementação das
+  diversas partes, como a esclha do [Maven](https://maven.apache.org/) no lugar
+  do [Gradle](https://gradle.org/), devido à relativa simplicidade do projeto, a
+  escolha da versão do Java, e a escolha da biblioteca
+  [Apache Commons CSV](https://commons.apache.org/proper/commons-csv/index.html)
+  para ler os registros da base de dados que usamos como ponto de partida.
+- Correção de uma variedade de erros relacionados a problemas de permissão
+  encontrados na execução dos _workflows_ em `.github/`.
+- Correção de problemas nas definições do Maven em `pom.xml`, especialmente no
+  que diz respeito à configuração das versões do Java e das dependências.
+- Escrita dos arquivos de formatação `.clang-format` e `.editorconfig`.
+- Ajuda com alguns dos métodos da biblioteca
+  [pandas](https://pandas.pydata.org/) que optamos por usar no lugar do Excel
+  para o pré-processamento dos dados em `dataset/`
+- Este aviso que você está lendo, adicionalmente, foi escrito com a ajuda do
+  ChatGPT.
+
+Gostaríamos de ressaltar que, consoante às diretrizes da disciplina, todos os
+detalhes específicos onde LLMs foram empregados no código do programa principal
+(nos arquivos `.java` no diretório `src/main`) estão devidamente documentados.
+Cada método, classe, ou interface que foi parcial ou integralmente assistida por
+LLMs contém comentários explicativos, de modo a garantir total transparência.
+
 ## Licença
 
 Este projeto está licenciado sob a licensa [Apache-2.0](LICENSE).
