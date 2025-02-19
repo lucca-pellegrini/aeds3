@@ -27,10 +27,7 @@ public class CSVManager implements Iterable<Track> {
 				new InputStreamReader(fis, StandardCharsets.UTF_8));
 	}
 
-	/*
-	 * Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o
-	 * iterador da classe CSVRecord.
-	 */
+	/*Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o iterador da classe CSVRecord.*/
 	@Override
 	public Iterator<Track> iterator() {
 		return new Iterator<Track>() {
@@ -47,7 +44,8 @@ public class CSVManager implements Iterable<Track> {
 				Date releaseDate;
 				String releaseDateRecord = record.get("album_release_date");
 
-				try {
+				//Metodo para quando tiver só o ano, forçar a data completa.
+				try { 
 					releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateRecord);
 				} catch (ParseException e) {
 					int year, month;
@@ -63,6 +61,7 @@ public class CSVManager implements Iterable<Track> {
 					releaseDate = new Date(year - 1900, month, 01);
 				}
 
+				//Pegando as informações da track.
 				return new Track(releaseDate,
 						Arrays.stream(record.get("genres").split(","))
 								.map(s -> s.replaceAll("[\\[\\]']", "").trim())

@@ -3,7 +3,9 @@ package com.verticordia.AEDs3;
 import java.util.Date;
 import java.util.List;
 
+//Criação da classe track.
 public class Track {
+	//Atributos
 	protected Date albumReleaseDate;
 	protected List<String> genres; // Sujeito a futura revisão.
 	protected List<String> trackArtists;
@@ -21,6 +23,7 @@ public class Track {
 	protected int key;
 	protected int popularity;
 
+	//Construtor
 	public Track(Date albumReleaseDate, List<String> genres, List<String> trackArtists, String albumName,
 			String albumType, String name, boolean explicit, char[] trackId, float loudness,
 			float danceability, float energy, float valence, float tempo, int key, int popularity,
@@ -44,7 +47,6 @@ public class Track {
 	}
 
 	// Getters e setters.
-
 	public Date getAlbumReleaseDate() {
 		return albumReleaseDate;
 	}
