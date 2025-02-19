@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.csv.CSVFormat;
@@ -39,29 +40,34 @@ public class CSVManager implements Iterable<Track> {
 
 			@Override
 			public Track next() {
+				CSVRecord record = csvIterator.next();
+				Date releaseDate;
+				String releaseDateRecord = record.get("album_release_date");
+
 				try {
-					CSVRecord record = csvIterator.next();
-					return new Track(
-							new SimpleDateFormat("yyyy-MM-dd")
-									.parse(record.get("album_release_date")),
-							Arrays.asList(record.get("genres").split(",")),
-							Arrays.asList(record.get("track_artists").split(",")),
-							record.get("album_name"), record.get("album_type"),
-							record.get("name"),
-							Boolean.parseBoolean(record.get("explicit")),
-							record.get("track_id").toCharArray(),
-							Float.parseFloat(record.get("loudness")),
-							Float.parseFloat(record.get("danceability")),
-							Float.parseFloat(record.get("energy")),
-							Float.parseFloat(record.get("valence")),
-							Float.parseFloat(record.get("tempo")),
-							Integer.parseInt(record.get("key")),
-							Integer.parseInt(record.get("popularity")),
-							Integer.MIN_VALUE // Índice nulo
-					);
+					releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateRecord);
 				} catch (ParseException e) {
-					throw new RuntimeException("Error parsing date", e);
+					int year = Integer.parseInt(releaseDateRecord);
+					releaseDate = new Date(year - 1900, 01, 01);
 				}
+
+				return new Track(
+						releaseDate,
+						Arrays.asList(record.get("genres").split(",")),
+						Arrays.asList(record.get("track_artists").split(",")),
+						record.get("album_name"), record.get("album_type"),
+						record.get("name"),
+						Boolean.parseBoolean(record.get("explicit")),
+						record.get("track_id").toCharArray(),
+						Float.parseFloat(record.get("loudness")),
+						Float.parseFloat(record.get("danceability")),
+						Float.parseFloat(record.get("energy")),
+						Float.parseFloat(record.get("valence")),
+						Float.parseFloat(record.get("tempo")),
+						Integer.parseInt(record.get("key")),
+						Integer.parseInt(record.get("popularity")),
+						Integer.MIN_VALUE // Índice nulo
+				);
 			}
 		};
 	}
