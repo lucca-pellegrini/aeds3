@@ -6,10 +6,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
@@ -43,13 +43,13 @@ public class CSVManager implements Iterable<Track> {
 			@Override
 			public Track next() {
 				CSVRecord record = csvIterator.next();
-				Date releaseDate;
+				LocalDate releaseDate;
 				String releaseDateRecord = record.get("album_release_date");
 
 				// Metodo para quando tiver só o ano, forçar a data completa.
 				try {
-					releaseDate = new SimpleDateFormat("yyyy-MM-dd").parse(releaseDateRecord);
-				} catch (ParseException e) {
+					releaseDate = LocalDate.parse(releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				} catch (DateTimeParseException e) {
 					int year, month;
 					if (releaseDateRecord.contains("-")) {
 						String[] list = releaseDateRecord.split("-");
@@ -60,7 +60,7 @@ public class CSVManager implements Iterable<Track> {
 						month = 01;
 					}
 
-					releaseDate = new Date(year - 1900, month, 01);
+					releaseDate = LocalDate.of(year, month, 01);
 				}
 
 				// Pegando as informações da track.

@@ -61,9 +61,9 @@ class BinaryTrackWriter {
 		for (String s : track.getTrackArtists())
 			dataStream.writeUTF(s);
 		dataStream.writeUTF(track.getAlbumName());
-		dataStream.writeShort(track.getAlbumReleaseDate().getYear() + 1900);
-		dataStream.writeByte(track.getAlbumReleaseDate().getMonth());
-		dataStream.writeByte(track.getAlbumReleaseDate().getDay());
+		dataStream.writeShort(track.getAlbumReleaseDate().getYear());
+		dataStream.writeByte(track.getAlbumReleaseDate().getMonthValue());
+		dataStream.writeByte(track.getAlbumReleaseDate().getDayOfMonth());
 		dataStream.writeUTF(track.getAlbumType());
 		dataStream.writeByte(track.getGenres().size());
 		for (String s : track.getGenres())
