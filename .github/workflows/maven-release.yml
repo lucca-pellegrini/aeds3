@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Java CI with Maven
+name: "Java CI with Maven: Development Release"
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    - name: Make development build
+    - name: Make release build
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
