@@ -31,8 +31,8 @@ public class TrackDB {
 
 		BinaryTrackWriter btw = new BinaryTrackWriter(track);
 		file.seek(file.length());
-		file.writeInt(btw.getSize());
 		file.writeBoolean(btw.isValid());
+		file.writeInt(btw.getSize());
 		file.write(btw.getStream().toByteArray());
 
 		updateLastId();
