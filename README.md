@@ -1,7 +1,7 @@
 # Trabalho Prático de Algoritmos e Estruturas de Dados III
 
-[![Build Status](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-build.yml/badge.svg)](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-build.yml)
 [![Release Status](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-release.yml/badge.svg)](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-release.yml)
+[![Build Status](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-build.yml/badge.svg)](https://github.com/lucca-pellegrini/aeds3/actions/workflows/maven-build.yml)
 
 Este repositório contém o Trabalho Prático de Algoritmos e Estruturas de Dados
 III (AEDs3) do primeiro semestre de 2025. Ele consiste em um programa, escrito
