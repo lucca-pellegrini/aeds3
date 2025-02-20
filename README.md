@@ -110,7 +110,9 @@ auxiliar na escrita do código, utilizei os seguintes plugins:
   para formatação do código.
 
 ### [Pedro Vitor](https://github.com/Pedro0826)
-
+Desenvolvo no Windows e MacOS utilizando o 
+[VSCode](https://code.visualstudio.com/) e
+[OpenJDK Java 23 development kit](https://openjdk.java.net/). Uso o Source Control do VSCode para comittar e fazer o Push dos arquivos do git. 
 ### Aviso sobre o uso de LLMs
 
 Conforme as orientações dadas em sala de aula sobre o uso de Modelos de
