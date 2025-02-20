@@ -2,6 +2,12 @@
 
 set -e
 
+# Check if any staged .java files exist
+if ! git diff --cached --name-only | grep -qE '\.java$'; then
+    echo "No Java files staged for commit. Skipping version bump."
+    exit 0
+fi
+
 # Get the current version and revision number.
 VERSION="$(git describe --tags | sed 's/^v\([0-9]*\.[0-9]*\.[0-9]*\)-\([0-9]*\)-g.*/v\1-r\2/')"
 
