@@ -93,7 +93,26 @@ serão disponibilizadas ao usuário.
   formatador de código
   [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html).
 
-## Aviso sobre o uso de LLMs
+## Ferramentas utilizadas
+
+### [Lucca](https://github.com/lucca-pellegrini)
+
+Faço todo o meu desenvolvimento num computador
+[Arch Linux](https://archlinux.org/) utilizando o editor de texto
+[NeoVim](https://neovim.io/) com uma
+[framework customizada](https://nvchad.com/) e o
+[OpenJDK Java 23 development kit](https://openjdk.java.net/). Minha edição de
+código e meu uso do Git são feitos exclusivamente pela linha de comando.
+
+### [Pedro Vitor](https://github.com/Pedro0826)
+
+Desenvolvo no Windows e no MacOS utilizando o
+[VSCode](https://code.visualstudio.com/) e
+[OpenJDK Java 23 development kit](https://openjdk.java.net/). Uso o
+[Source Control](https://code.visualstudio.com/docs/sourcecontrol/overview) do
+VSCode para commitar e fazer o push dos arquivos do GitHub.
+
+### Aviso sobre o uso de LLMs
 
 Conforme as orientações dadas em sala de aula sobre o uso de Modelos de
 Linguagem de Grande Escala (LLMs) neste trabalho, a seguir está uma visão geral
