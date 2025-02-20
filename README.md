@@ -102,12 +102,7 @@ Faço todo o meu desenvolvimento num computador
 [NeoVim](https://neovim.io/) com uma
 [framework customizada](https://nvchad.com/) e o
 [OpenJDK Java 23 development kit](https://openjdk.java.net/). Minha edição de
-código e meu uso do Git são feitos exclusivamente pela linha de comando. Para
-auxiliar na escrita do código, utilizei os seguintes plugins:
-
-- [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html) e
-  [null-ls](https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/MAIN.md)
-  para formatação do código.
+código e meu uso do Git são feitos exclusivamente pela linha de comando.
 
 ### [Pedro Vitor](https://github.com/Pedro0826)
 
