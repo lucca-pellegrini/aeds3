@@ -113,8 +113,9 @@ auxiliar na escrita do código, utilizei os seguintes plugins:
 
 Desenvolvo no Windows e no MacOS utilizando o
 [VSCode](https://code.visualstudio.com/) e
-[OpenJDK Java 23 development kit](https://openjdk.java.net/). Uso o Source
-Control do VSCode para commitar e fazer o push dos arquivos do GitHub.
+[OpenJDK Java 23 development kit](https://openjdk.java.net/). Uso o
+[Source Control](https://code.visualstudio.com/docs/sourcecontrol/overview) do
+VSCode para commitar e fazer o push dos arquivos do GitHub.
 
 ### Aviso sobre o uso de LLMs
 
