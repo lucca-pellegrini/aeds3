@@ -14,6 +14,7 @@ public class TrackDB {
 	// Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
 		file = new RandomAccessFile(fileName, "rw");
+		file.seek(0);
 
 		try {
 			lastId = file.readInt();
@@ -29,6 +30,7 @@ public class TrackDB {
 		track.id = lastId;
 
 		BinaryTrackWriter btw = new BinaryTrackWriter(track);
+		file.seek(file.length());
 		file.writeInt(btw.getSize());
 		file.writeBoolean(btw.isValid());
 		file.write(btw.getStream().toByteArray());
