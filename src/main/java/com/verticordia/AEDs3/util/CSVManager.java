@@ -1,5 +1,6 @@
-package com.verticordia.AEDs3;
+package com.verticordia.AEDs3.util;
 
+import com.verticordia.AEDs3.Track;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,8 +27,7 @@ public class CSVManager implements Iterable<Track> {
 
 	/*
 	 * Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o
-	 * iterador da classe
-	 * CSVRecord.
+	 * iterador da classe CSVRecord.
 	 */
 	@Override
 	public Iterator<Track> iterator() {
