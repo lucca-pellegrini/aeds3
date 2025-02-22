@@ -11,6 +11,9 @@ public class TrackDB {
 	protected RandomAccessFile file;
 	protected int lastId;
 
+	// Tamanho do cabeçalho com os metadados do BD.
+	private static final short HEADER_SIZE = Integer.SIZE / 8;
+
 	// Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
 		file = new RandomAccessFile(fileName, "rw");
