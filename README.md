@@ -30,7 +30,7 @@ Antes de começar, certifique-se de ter o seguinte:
   ```sh
   git clone --recursive https://github.com/lucca-pellegrini/aeds3
   cd aeds3
-  mvn install
+  mvn package
   ```
   O arquivo JAR resultante se encontrará na pasta `targets/`
 
