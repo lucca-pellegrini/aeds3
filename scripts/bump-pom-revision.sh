@@ -9,7 +9,7 @@ if ! git diff --cached --name-only | grep -qE '\.java$'; then
 fi
 
 # Get the current version and revision number.
-VERSION="$(git describe --tags | sed 's/^v\([0-9]*\.[0-9]*\.[0-9]*\)-\([0-9]*\)-g.*/v\1-r\2/')"
+VERSION="$(git describe --tags --long | sed 's/^v\([0-9]*\.[0-9]*\.[0-9]*\)-\([0-9]*\)-g.*/v\1-r\2/')"
 
 # Ensure tag name is not empty.
 if [ -z "$VERSION" ]; then
