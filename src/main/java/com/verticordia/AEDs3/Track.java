@@ -48,6 +48,12 @@ public class Track {
 		this.id = id;
 	}
 
+	@Override
+	public String toString() {
+		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id + ", getName()="
+				+ getName() + "]";
+	}
+
 	// Getters e setters.
 	public LocalDate getAlbumReleaseDate() {
 		return albumReleaseDate;
