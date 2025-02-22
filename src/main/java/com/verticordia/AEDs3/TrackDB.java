@@ -25,7 +25,7 @@ public class TrackDB {
 	}
 
 	// Função para adicionar uma linha no arquivo.
-	public void add(Track track) throws IOException {
+	public void create(Track track) throws IOException {
 		lastId += 1;
 		track.id = lastId;
 
