@@ -46,11 +46,30 @@ public class TrackDB {
 	}
 }
 
-// Classe de escrita para o arquivo.
-class BinaryTrackWriter {
-	protected ByteArrayOutputStream stream;
+abstract class BinaryTrack {
 	protected boolean valid;
 	protected int size;
+
+	public boolean isValid() {
+		return valid;
+	}
+
+	public void setValid(boolean valid) {
+		this.valid = valid;
+	}
+
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
+	}
+}
+
+// Classe de escrita para o arquivo.
+class BinaryTrackWriter extends BinaryTrack {
+	protected ByteArrayOutputStream stream;
 
 	// Função para escrever no arquivo as tracks.
 	public BinaryTrackWriter(Track track) throws IOException {
@@ -88,21 +107,5 @@ class BinaryTrackWriter {
 
 	public void setStream(ByteArrayOutputStream stream) {
 		this.stream = stream;
-	}
-
-	public boolean isValid() {
-		return valid;
-	}
-
-	public void setValid(boolean valid) {
-		this.valid = valid;
-	}
-
-	public int getSize() {
-		return size;
-	}
-
-	public void setSize(int size) {
-		this.size = size;
 	}
 }
