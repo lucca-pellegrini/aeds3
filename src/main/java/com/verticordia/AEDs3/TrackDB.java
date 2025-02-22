@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class TrackDB {
+public class TrackDB implements Iterable<Track> {
 	protected RandomAccessFile file;
 	protected int lastId;
 
@@ -98,6 +98,44 @@ public class TrackDB {
 		file.seek(0);
 		file.writeInt(lastId);
 		file.seek(pos);
+	}
+
+	@Override
+	public Iterator<Track> iterator() throws RuntimeException {
+		try {
+			file.seek(HEADER_SIZE);
+		} catch (IOException e) {
+			throw new RuntimeException("Erro ao posicionar cursor no primeiro registro");
+		}
+
+		return new Iterator<Track>() {
+			private BinaryTrackReader currentReader = null;
+
+			@Override
+			public boolean hasNext() {
+				try {
+					// Tenta ler a próxima Track. Se for válida, retorna true.
+					currentReader = nextValidBinaryTrackReader();
+					return currentReader != null;
+				} catch (IOException e) {
+					return false;
+				}
+			}
+
+			@Override
+			public Track next() throws RuntimeException {
+				if (currentReader == null)
+					throw new NoSuchElementException("TrackDB chegou ao fim");
+
+				try {
+					Track track = currentReader.getTrack();
+					currentReader = null; // Reset para null até o próximo hasNext()
+					return track;
+				} catch (IOException e) {
+					throw new RuntimeException("Falha ao obter próxima Track");
+				}
+			}
+		};
 	}
 }
 
