@@ -51,6 +51,48 @@ public class TrackDB {
 		updateLastId();
 	}
 
+	public Track read(int id) throws IOException {
+		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
+
+		for (Track t : this)
+			if (t.getId() == id)
+				return t;
+
+		return null;
+	}
+
+	public Track next() throws NoSuchElementException, IOException {
+		try {
+			return nextValidBinaryTrackReader().getTrack();
+		} catch (EOFException e) {
+			throw new NoSuchElementException("TrackDB chegou ao fim");
+		}
+	}
+
+	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
+		BinaryTrackReader result = null;
+
+		do
+			result = nextBinaryTrackReader();
+		while (result == null);
+
+		return result;
+	}
+
+	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+		boolean valid = file.readBoolean();
+		int size = file.readInt();
+
+		if (valid) {
+			byte[] buf = new byte[size];
+			file.read(buf);
+			return new BinaryTrackReader(valid, size, new ByteArrayInputStream(buf));
+		} else {
+			file.skipBytes(size);
+			return null;
+		}
+	}
+
 	private void updateLastId() throws IOException {
 		long pos = file.getFilePointer();
 		file.seek(0);
