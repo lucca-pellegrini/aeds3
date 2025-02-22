@@ -238,13 +238,14 @@ class BinaryTrackWriter extends BinaryTrack {
 		for (String s : track.getTrackArtists())
 			dataStream.writeUTF(s);
 		dataStream.writeUTF(track.getAlbumName());
-		dataStream.writeLong(track.getAlbumReleaseDate().toEpochDay());
+		dataStream.writeLong(track.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
 		dataStream.writeUTF(track.getAlbumType());
 		dataStream.writeByte(track.getGenres().size());
 		for (String s : track.getGenres())
 			dataStream.writeUTF(s);
 		dataStream.writeBoolean(track.isExplicit());
-		dataStream.writeChars(track.getTrackId().toString());
+		byte[] trackIdBytes = new String(track.getTrackId()).getBytes(StandardCharsets.US_ASCII);
+		dataStream.write(trackIdBytes);
 		dataStream.writeByte(track.getPopularity());
 		dataStream.writeByte(track.getKey());
 		dataStream.writeFloat(track.getDanceability());
