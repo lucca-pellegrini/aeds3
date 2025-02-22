@@ -23,6 +23,8 @@ public class Track {
 	protected int key;
 	protected int popularity;
 
+	private static final int trackIdNumChars = 22;
+
 	// Construtor
 	public Track(LocalDate albumReleaseDate, List<String> genres, List<String> trackArtists,
 			String albumName, String albumType, String name, boolean explicit, char[] trackId,
@@ -165,6 +167,10 @@ public class Track {
 
 	public void setTempo(float tempo) {
 		this.tempo = tempo;
+	}
+
+	public static int getTrackIdNumChars() {
+		return trackIdNumChars;
 	}
 
 	public int getId() {
