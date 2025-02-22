@@ -34,9 +34,9 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
 
-    # Make release build step only runs if the repo matches the specified one
+    # Make release build step only runs if the PAT is non-empty
     - name: Make release build
-      if: github.repository == 'lucca-pellegrini/aeds3'
+      if: secrets.PERSONAL_ACCESS_TOKEN != ''
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
