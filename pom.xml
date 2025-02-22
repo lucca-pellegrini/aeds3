@@ -4,7 +4,7 @@
     <groupId>com.verticordia.AEDs3</groupId>
     <artifactId>AEDs3</artifactId>
     <packaging>jar</packaging>
-    <version>latest-9-g48e9b63.r-8</version>
+    <version>latest-10-g5d8371b.r-9</version>
     <name>AEDs3</name>
     <url>http://maven.apache.org</url>
     <properties>

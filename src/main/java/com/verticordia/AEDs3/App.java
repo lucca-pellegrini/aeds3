@@ -8,6 +8,6 @@ public class App {
 		TrackDB db = new TrackDB("tracks.db");
 
 		for (Track track : csv)
-			db.add(track);
+			db.create(track);
 	}
 }
