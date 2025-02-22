@@ -20,7 +20,7 @@ resultando num total de 99890 registros. Veja como os dados são processados
 Antes de começar, certifique-se de ter o seguinte:
 
 - Uma instalação recente de Java, no mínimo Java 17.
-- O arquivo JAR, baixado
+- O arquivo JAR com terminação `-full.jar`, baixado
   [daqui](https://github.com/lucca-pellegrini/aeds3/releases), ou, se preferir
   compilar você mesmo:
   - Instale o [Maven](https://maven.apache.org/)
