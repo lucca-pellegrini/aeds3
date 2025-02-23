@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -77,10 +76,12 @@ class CSVManagerTest {
 		} while (!new String(track.getTrackId()).equals("3WJRXxlZWFgt2G2O97maED"));
 
 		// Check if genre list matches
-		List<String> expectedGenres = Arrays.asList("classical", "french opera", "french romanticism","late romantic era");
+		List<String> expectedGenres = Arrays.asList("classical", "french opera", "french romanticism",
+				"late romantic era");
 		List<String> actualGenres = track.getGenres();
 
-		assertTrue(actualGenres.containsAll(expectedGenres) && expectedGenres.containsAll(actualGenres));
+		assertTrue(
+				actualGenres.containsAll(expectedGenres) && expectedGenres.containsAll(actualGenres));
 	}
 
 	@Test
