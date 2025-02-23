@@ -48,8 +48,7 @@ class CSVManagerTest {
 
 	@Test
 	void testDateParsing() {
-		// Check how the CSVManager parses date strings, especially edge cases like
-		// "1993"
+		// Check how the CSVManager parses date strings.
 		Track track;
 
 		do {
@@ -57,6 +56,7 @@ class CSVManagerTest {
 			track = trackIterator.next();
 		} while (!new String(track.getTrackId()).equals("0x14eCwSx7kgoboLUmG2ik"));
 
+		// Check normal date format is handled
 		assertEquals(track.getAlbumReleaseDate(), LocalDate.of(2022, 12, 17));
 
 		do {
@@ -65,9 +65,15 @@ class CSVManagerTest {
 		} while (!new String(track.getTrackId()).equals("3N3t4yMGy1PCF7ZbizvZbK"));
 
 		// Check year-only date format is handled
-		assertEquals(1993, track.getAlbumReleaseDate().getYear());
-		assertEquals(1, track.getAlbumReleaseDate().getMonthValue()); // Month defaults to 01
-		assertEquals(1, track.getAlbumReleaseDate().getDayOfMonth()); // Day defaults to 01
+		assertEquals(track.getAlbumReleaseDate(), LocalDate.of(1993, 1, 1));
+
+		do {
+			assertTrue(trackIterator.hasNext());
+			track = trackIterator.next();
+		} while (!new String(track.getTrackId()).equals("3u7jQn9a8xrplb4wqFQIZL"));
+
+		// Check year and month only date format is handled
+		assertEquals(track.getAlbumReleaseDate(), LocalDate.of(1958, 9, 1));
 	}
 
 	@Test
