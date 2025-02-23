@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: "Java CI with Maven: Tagged Release"
+name: "Maven Automatic Release"
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
       run: mvn -B package --file pom.xml
 
     # Make release build step only runs if the repo matches the specified one
-    - name: Make release build
+    - name: Release tagged build
       if: github.repository == 'lucca-pellegrini/aeds3'
       uses: "marvinpinto/action-automatic-releases@latest"
       with:

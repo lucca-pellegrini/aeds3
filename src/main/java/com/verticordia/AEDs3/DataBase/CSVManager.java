@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3;
+package com.verticordia.AEDs3.DataBase;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,8 +26,7 @@ public class CSVManager implements Iterable<Track> {
 
 	/*
 	 * Usamos o GPT para fazer os métodos hasNext() e next() para abstrair o
-	 * iterador da classe
-	 * CSVRecord.
+	 * iterador da classe CSVRecord.
 	 */
 	@Override
 	public Iterator<Track> iterator() {
@@ -47,7 +46,8 @@ public class CSVManager implements Iterable<Track> {
 
 				// Metodo para quando tiver só o ano, forçar a data completa.
 				try {
-					releaseDate = LocalDate.parse(releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+					releaseDate = LocalDate.parse(
+							releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 				} catch (DateTimeParseException e) {
 					int year, month;
 					if (releaseDateRecord.contains("-")) {

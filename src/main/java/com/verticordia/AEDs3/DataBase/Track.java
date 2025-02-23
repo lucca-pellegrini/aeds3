@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3;
+package com.verticordia.AEDs3.DataBase;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +23,8 @@ public class Track {
 	protected int key;
 	protected int popularity;
 
+	private static final int trackIdNumChars = 22;
+
 	// Construtor
 	public Track(LocalDate albumReleaseDate, List<String> genres, List<String> trackArtists,
 			String albumName, String albumType, String name, boolean explicit, char[] trackId,
@@ -44,6 +46,12 @@ public class Track {
 		this.popularity = popularity;
 		this.tempo = tempo;
 		this.id = id;
+	}
+
+	@Override
+	public String toString() {
+		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id
+				+ ", getName()=" + getName() + "]";
 	}
 
 	// Getters e setters.
@@ -165,6 +173,10 @@ public class Track {
 
 	public void setTempo(float tempo) {
 		this.tempo = tempo;
+	}
+
+	public static int getTrackIdNumChars() {
+		return trackIdNumChars;
 	}
 
 	public int getId() {
