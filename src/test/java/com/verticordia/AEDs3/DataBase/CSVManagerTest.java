@@ -3,6 +3,7 @@ package com.verticordia.AEDs3.DataBase;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +51,13 @@ class CSVManagerTest {
 		// Check how the CSVManager parses date strings, especially edge cases like
 		// "1993"
 		Track track;
+
+		do {
+			assertTrue(trackIterator.hasNext());
+			track = trackIterator.next();
+		} while (!new String(track.getTrackId()).equals("0x14eCwSx7kgoboLUmG2ik"));
+
+		assertEquals(track.getAlbumReleaseDate(), LocalDate.of(2022, 12, 17));
 
 		do {
 			assertTrue(trackIterator.hasNext());
