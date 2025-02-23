@@ -1,6 +1,5 @@
-package com.verticordia.AEDs3.util;
+package com.verticordia.AEDs3.DataBase;
 
-import com.verticordia.AEDs3.Track;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -47,7 +46,8 @@ public class CSVManager implements Iterable<Track> {
 
 				// Metodo para quando tiver só o ano, forçar a data completa.
 				try {
-					releaseDate = LocalDate.parse(releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+					releaseDate = LocalDate.parse(
+							releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 				} catch (DateTimeParseException e) {
 					int year, month;
 					if (releaseDateRecord.contains("-")) {

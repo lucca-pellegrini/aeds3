@@ -1,6 +1,6 @@
-package com.verticordia.AEDs3;
+package com.verticordia.AEDs3.DataBase;
 
-import com.verticordia.AEDs3.util.Range;
+import com.verticordia.AEDs3.Util.Range;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -238,7 +238,8 @@ class BinaryTrackWriter extends BinaryTrack {
 		for (String s : track.getTrackArtists())
 			dataStream.writeUTF(s);
 		dataStream.writeUTF(track.getAlbumName());
-		dataStream.writeLong(track.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
+		dataStream.writeLong(
+				track.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
 		dataStream.writeUTF(track.getAlbumType());
 		dataStream.writeByte(track.getGenres().size());
 		for (String s : track.getGenres())

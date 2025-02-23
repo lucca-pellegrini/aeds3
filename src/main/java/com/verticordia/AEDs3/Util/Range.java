@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3.util;
+package com.verticordia.AEDs3.Util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -37,7 +37,8 @@ public class Range implements Iterable<Integer> {
 
 			@Override
 			public void remove() {
-				throw new UnsupportedOperationException("Não é possível remover valores de um Range");
+				throw new UnsupportedOperationException(
+						"Não é possível remover valores de um Range");
 			}
 		};
 	}

@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3;
+package com.verticordia.AEDs3.DataBase;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -50,8 +50,8 @@ public class Track {
 
 	@Override
 	public String toString() {
-		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id + ", getName()="
-				+ getName() + "]";
+		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id
+				+ ", getName()=" + getName() + "]";
 	}
 
 	// Getters e setters.
