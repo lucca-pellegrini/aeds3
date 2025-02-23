@@ -1,0 +1,33 @@
+track_id,genres,track_artists,explicit,tempo,album_release_date,energy,key,popularity,album_type,album_name,danceability,valence,acousticness,loudness,name
+2Si4DFYRGEdNDRKcgccXbO,['anime'],['TRUE'],False,166.03,2020-09-16,0.459,1,39,single,WILL,0.24,0.147,0.782,-6.472,WILL
+1hUbzE0VgZnTo5eA7Elg8f,['deep dnb'],['Nemy'],False,173.98,2024-02-28,0.724,11,5,single,Feel It,0.743,0.367,0.00504,-4.563,Feel It
+5yzCrxlfPweY0ZK8jSPdf1,"['brostep', 'complextro', 'edm', 'electro', 'pop dance']",['Skrillex'],False,129.981,2023-05-19,0.906,11,40,compilation,FAST X (Original Motion Picture Soundtrack),0.891,0.503,0.0148,-3.01,"Vai Sentando (feat. Skrillex, Ludmilla, King Doudou & DUKI)"
+6V4hFx9LFVXf9GV4DpvRKd,"['darksynth', 'synthwave']",['Hollywood Burns'],False,141.019,2018-04-13,0.924,7,33,album,Invaders,0.428,0.4,8.9e-06,-3.755,Black Saucers
+5eGyqH6AKw71NgNRcvh6Z5,[''],['James Burton'],False,70.143,2015-04-05,0.102,9,0,compilation,Guitar Heroes,0.568,0.449,0.866,-21.627,Interview with James Burton and Albert Lee by Holger Petersen
+26EmfZNKpifX9a6KFb8JQo,[''],['Oliver Riot'],False,77.969,2016-12-16,0.371,10,39,single,Neurosis,0.452,0.22,0.91,-13.827,Neurosis
+5M36ipUqX480z9uJJSaTAj,['bachata dominicana'],['Jiory'],False,110.002,2022-05-06,0.649,0,31,single,Tu Sin Mi,0.81,0.714,0.0891,-5.231,Tu Sin Mi
+0x14eCwSx7kgoboLUmG2ik,[''],['Cloud Division'],False,125.94,2022-12-17,0.556,8,2,single,Missing,0.863,0.61,0.06,-8.164,Missing
+0WsreZD6aR4NCpZoBHA9Wv,"['chill abstract hip hop', 'indie hip hop']",['redveil'],True,91.502,2022-04-20,0.773,6,37,album,learn 2 swim,0.442,0.697,0.235,-6.537,diving board
+4y9J0Sr2oF6SzNNTdT6sQe,['chill lounge'],['Thomas Lemmer'],False,135.989,2022-11-25,0.246,7,2,album,Hope,0.743,0.182,0.899,-15.91,Never Lose Hope - Instrumental
+3f49c2ZsXqKwvbVchiUngB,"['emo', 'neon pop punk', 'pop punk']",['Motion City Soundtrack'],False,132.994,2008-04-29,0.731,6,25,album,Even If It Kills Me,0.466,0.126,0.0073,-4.529,Hello Helicopter
+3b9LXroaGfTBEmtPbkW7Pk,[''],['Basskez'],False,174.035,2020-04-21,0.777,0,0,compilation,Architextures II,0.704,0.0645,0.00315,-5.77,Sanctuary
+30xEYhdJT0W9VVuTZo8Sty,['calming instrumental'],['Wandering River'],False,96.83,2023-06-11,0.0424,4,35,single,Rockabye Baby,0.686,0.63,0.978,-24.95,Rockabye Baby
+7uAzV4c5jjwXfLzKeX5EgO,"['french romanticism', 'harp']",['Alphonse Hasselmans'],False,88.801,2002-07-21,0.0749,5,5,album,Harp Showpieces,0.255,0.036,0.979,-23.527,La Source
+3k4CvGekPCof4fRyLaAd47,['pop rap'],['Diddy - Dirty Money'],True,83.264,2009-01-01,0.893,5,18,single,Angels (featuring The Notorious B.I.G.),0.684,0.833,0.0623,-4.928,Angels (Featuring The Notorious B.I.G.)
+6emgtKJm8lkTA0jQiQsbIR,"['k-pop', 'k-rap', 'korean old school hip hop']",['Epik High'],False,95.187,2021-01-18,0.459,10,0,album,Epik High Is Here 上 (Part 1),0.64,0.0663,0.712,-13.052,Lesson Zero
+7qZQikVR1TOewAAEo9ylVL,"['italian adult pop', 'italian pop']",['Fred De Palma'],False,129.979,2023-07-07,0.907,0,56,single,MELODIA CRIMINAL,0.773,0.939,0.0412,-3.612,MELODIA CRIMINAL
+5QjRzIrVQXZlqptOQEKE76,[''],['whxtt'],True,159.539,2023-07-07,0.349,5,15,single,Both Ways,0.717,0.521,0.24,-13.856,Both Ways
+5R1Z79HMCIpHdUUCVERpHW,"['axe', 'pagode']",['É O Tchan'],False,99.662,1995-01-16,0.737,2,39,album,É O Tchan,0.749,0.612,0.531,-11.375,Paquerei
+0yiM9VDEC3ib1LdupAKZQh,[''],['Good Lee'],False,119.997,2021-03-12,0.493,9,0,single,Panda Journey (Blockhead Remix),0.684,0.152,0.0562,-8.886,Panda Journey - Blockhead Remix
+4OGhqENXneIdSfMPHRb1Og,"['dancehall', 'jamaican hip hop', 'reggae fusion', 'traphall']",['Popcaan'],True,96.725,2022-03-04,0.82,2,0,single,Skeleton Cartier,0.549,0.357,0.314,-4.433,Skeleton Cartier
+3WJRXxlZWFgt2G2O97maED,"['classical', 'french opera', 'french romanticism', 'late romantic era']",['Georges Bizet'],False,92.002,1987-06-10,0.216,2,2,album,Bizet: Jeux d'enfants / Fauré: Dolly Suite / Ravel: Ma mère l'Oye,0.405,0.157,0.995,-24.69,"Jeux d'enfants, Op. 22: No. 8, Les quatre coins"
+1TZYCUbmZv8RDAwgiX41cZ,['italian trance'],['Luigi Lusini'],False,132.022,2013-04-12,0.704,8,0,compilation,Global Trance Party,0.649,0.304,0.000985,-5.326,All I Want - Sourcee Remix
+202I32o9vIrckOuVBSlFQj,['classic anime'],['Geinoh Yamashirogumi'],False,119.906,2017-09-15,0.691,7,0,single,"Kaneda (from ""AKIRA Symphonic Suite"")",0.702,0.184,0.128,-14.441,"Kaneda (from ""AKIRA Symphonic Suite"")"
+6DQCbi09B8DwVQKPhNuU0B,"['nightrun', 'popwave']",['The Midnight'],False,101.975,2020-10-08,0.628,7,28,album,Monsters (The Instrumentals),0.631,0.0397,0.0147,-11.44,America Online - Instrumental
+3N3t4yMGy1PCF7ZbizvZbK,"['eurodance', 'europop', 'german techno', 'hip house']",['Culture Beat'],False,132.872,1993,0.997,9,0,single,Mr. Vain,0.703,0.391,0.0726,-7.666,Mr. Vain - Radio Edit
+3cdXF4ciHh2l97FjH6nq3B,[''],['Rebecca Mardal'],False,129.905,2022-11-11,0.105,4,29,single,Rain,0.6,0.225,0.924,-25.92,Rain
+0sfs8U4743dBlUKKxN7pye,"['banda', 'musica mexicana', 'norteno']",['Banda MS de Sergio Lizárraga'],False,125.985,2011-01-01,0.45,4,66,album,Amor Enfermo,0.802,0.777,0.331,-4.893,Mi Olvido
+4DCduA96NOLSp7sIYKW0u2,"['progressive metal', 'progressive rock']",['Porcupine Tree'],False,125.03,2000-05-22,0.798,7,0,album,Lightbulb Sun,0.566,0.548,0.0107,-8.116,Four Chords That Made A Million
+3NrnOw2OFZcZ5C4vdhRjJ2,[''],['Milton Jones Rhythm Syndicate'],False,116.479,2011-07-11,0.933,8,4,compilation,Black Feeling: Volume Two,0.369,0.914,0.00795,-4.747,Upstairs On Boston Road
+3QypZklnCTUkVuEU2n9tPj,"['candy pop', 'new wave pop', 'permanent wave', 'power pop', 'rock', 'synthpop']",['Blondie'],False,91.754,1978-02-01,0.608,7,21,album,Plastic Letters,0.556,0.511,0.113,-8.303,No Imagination - Remastered
+3A8KnSSRXQJotIU0FRkmMu,[''],['Data Rebel'],False,200.023,2018-07-24,0.448,11,8,compilation,Of Tree,0.418,0.058,0.395,-16.073,Zawn
