@@ -10,24 +10,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class CSVManagerTest {
-	private CSVManager csvManager;
+	private Iterator<Track> trackIterator;
 
 	@BeforeEach
 	void setUp() throws IOException {
-		csvManager = new CSVManager(
-				getClass().getClassLoader().getResource("CSVManagerTestDataset.csv").getPath());
+		trackIterator = new CSVManager(
+				getClass().getClassLoader().getResource("CSVManagerTestDataset.csv").getPath())
+				.iterator();
 	}
 
 	@Test
 	void testIterator() {
-		Iterator<Track> trackIterator = csvManager.iterator();
 		assertNotNull(trackIterator);
 	}
 
 	@Test
 	void testTrackParsing() {
-		Iterator<Track> trackIterator = csvManager.iterator();
-
 		// Check the first record
 		assertTrue(trackIterator.hasNext());
 		Track firstTrack = trackIterator.next();
@@ -51,7 +49,6 @@ class CSVManagerTest {
 	void testDateParsing() {
 		// Check how the CSVManager parses date strings, especially edge cases like
 		// "1993"
-		Iterator<Track> trackIterator = csvManager.iterator();
 		Track track;
 
 		do {
@@ -67,7 +64,6 @@ class CSVManagerTest {
 
 	@Test
 	void testGenreList() {
-		Iterator<Track> trackIterator = csvManager.iterator();
 		Track track;
 
 		do {
@@ -86,7 +82,6 @@ class CSVManagerTest {
 
 	@Test
 	void testEmptyGenreList() {
-		Iterator<Track> trackIterator = csvManager.iterator();
 		Track track;
 
 		do {
@@ -100,7 +95,6 @@ class CSVManagerTest {
 
 	@Test
 	void testTrackDataParsing() {
-		Iterator<Track> trackIterator = csvManager.iterator();
 		assertTrue(trackIterator.hasNext());
 
 		// Check specific attributes of the first track
