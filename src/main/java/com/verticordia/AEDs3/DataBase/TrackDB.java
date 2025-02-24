@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 public class TrackDB implements Iterable<Track> {
 	protected RandomAccessFile file;
 	protected int lastId;
+	private long lastBinaryTrackPos;
 
 	// Tamanho do cabeçalho com os metadados do BD.
 	private static final short HEADER_SIZE = Integer.SIZE / 8;
@@ -61,6 +62,42 @@ public class TrackDB implements Iterable<Track> {
 		return null;
 	}
 
+	public void update(int id, Track updated) throws IOException {
+		if (this.read(id) == null)
+			throw new NoSuchElementException("Não há elemento com ID " + id);
+
+		updated.setId(id);
+
+		file.skipBytes(1); // Pula a lápide, pois .read() já validou o registro.
+		int oldSize = file.readInt();
+		BinaryTrackWriter writer = new BinaryTrackWriter(updated);
+
+		// Verifica se o registro atualizado é menor ou igual ao anterior
+		if (writer.getSize() <= oldSize) {
+			// Volta para o começo do registro para sobrescrevê-lo
+			file.seek(lastBinaryTrackPos);
+		} else {
+			// Seta a lápide do registro
+			file.seek(lastBinaryTrackPos);
+			file.writeBoolean(false);
+
+			// Pula para o final do arquivo, para inserir registro no final
+			file.seek(file.length());
+		}
+
+		file.writeBoolean(writer.isValid());
+		file.writeInt(writer.getSize());
+		file.write(writer.getStream().toByteArray());
+	}
+
+	public void delete(int id) throws IOException {
+		if (this.read(id) == null)
+			throw new NoSuchElementException("Não há elemento com ID " + id);
+
+		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
+		file.writeBoolean(false); // Seta a lápide
+	}
+
 	public Track next() throws NoSuchElementException, IOException {
 		try {
 			return nextValidBinaryTrackReader().getTrack();
@@ -80,6 +117,7 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+		lastBinaryTrackPos = file.getFilePointer();
 		boolean valid = file.readBoolean();
 		int size = file.readInt();
 
