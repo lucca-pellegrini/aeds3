@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 public class TrackDB implements Iterable<Track> {
 	protected RandomAccessFile file;
 	protected int lastId;
+	private long lastBinaryTrackPos;
 
 	// Tamanho do cabeçalho com os metadados do BD.
 	private static final short HEADER_SIZE = Integer.SIZE / 8;
@@ -61,6 +62,14 @@ public class TrackDB implements Iterable<Track> {
 		return null;
 	}
 
+	public void delete(int id) throws IOException {
+		if (this.read(id) == null)
+			throw new NoSuchElementException("Não há elemento com ID " + id);
+
+		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
+		file.writeBoolean(false); // Seta a lápide
+	}
+
 	public Track next() throws NoSuchElementException, IOException {
 		try {
 			return nextValidBinaryTrackReader().getTrack();
@@ -80,6 +89,7 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+		lastBinaryTrackPos = file.getFilePointer();
 		boolean valid = file.readBoolean();
 		int size = file.readInt();
 
