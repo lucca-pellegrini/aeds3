@@ -59,6 +59,7 @@ serão disponibilizadas ao usuário.
       [arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset).
     - **Menu.java**: implementação dos menus apresentados ao usuário, e
       responsável por intermediar a interação entre o usuário e o programa.
+    - **Range.java**: classe auxiliar para gerar sequencias numéricas iteráveis.
   - **test/<...>/AEDs3/**: contém todos os testes necessários durante a
     compilação para garantir que o programa se comporta conforme o esperado.
 - **dataset/**: é um
