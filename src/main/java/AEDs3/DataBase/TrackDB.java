@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3.DataBase;
+package AEDs3.DataBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

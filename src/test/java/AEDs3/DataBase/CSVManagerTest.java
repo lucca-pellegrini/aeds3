@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3.DataBase;
+package AEDs3.DataBase;
 
 import static org.junit.jupiter.api.Assertions.*;
 

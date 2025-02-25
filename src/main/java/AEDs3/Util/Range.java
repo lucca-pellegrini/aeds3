@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3.Util;
+package AEDs3.Util;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;

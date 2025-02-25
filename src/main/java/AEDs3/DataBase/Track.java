@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3.DataBase;
+package AEDs3.DataBase;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -10,7 +10,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.verticordia.AEDs3.Util.Range;
+import AEDs3.Util.Range;
 
 // Criação da classe track.
 public class Track implements Externalizable {

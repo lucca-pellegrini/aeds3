@@ -1,8 +1,8 @@
-package com.verticordia.AEDs3;
+package AEDs3;
 
-import com.verticordia.AEDs3.DataBase.CSVManager;
-import com.verticordia.AEDs3.DataBase.Track;
-import com.verticordia.AEDs3.DataBase.TrackDB;
+import AEDs3.DataBase.CSVManager;
+import AEDs3.DataBase.Track;
+import AEDs3.DataBase.TrackDB;
 import java.io.IOException;
 import java.util.concurrent.ThreadLocalRandom;
 

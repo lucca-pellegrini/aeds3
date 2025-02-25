@@ -1,4 +1,4 @@
-package com.verticordia.AEDs3;
+package AEDs3;
 
 import java.time.LocalDate;
 import java.util.Arrays;
