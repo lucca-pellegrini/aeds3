@@ -60,6 +60,7 @@ public class Track implements Externalizable {
 	public Track() {
 	}
 
+	//Escrita dos dados em binário.
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeInt(getId());
@@ -86,6 +87,8 @@ public class Track implements Externalizable {
 		out.writeFloat(getValence());
 	}
 
+
+	//Leitura dos dados em binário.
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		id = in.readInt();
