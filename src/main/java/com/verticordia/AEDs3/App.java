@@ -4,7 +4,6 @@ import com.verticordia.AEDs3.DataBase.CSVManager;
 import com.verticordia.AEDs3.DataBase.Track;
 import com.verticordia.AEDs3.DataBase.TrackDB;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class App {
@@ -20,11 +19,9 @@ public class App {
 		System.out.println(db.read(ID));
 		db.delete(ID);
 
-		try {
-			db.read(ID);
-			throw new RuntimeException("Erro: ID " + ID + " deveria ter sido deletado!");
-		} catch (NoSuchElementException e) {
+		if (db.read(ID) == null)
 			System.out.println("ID " + ID + " deletado com sucesso");
-		}
+		else
+			throw new RuntimeException("Erro: ID " + ID + " deveria ter sido deletado!");
 	}
 }
