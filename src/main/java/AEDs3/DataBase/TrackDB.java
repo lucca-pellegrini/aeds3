@@ -62,6 +62,7 @@ public class TrackDB implements Iterable<Track> {
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		updated.setId(id);
+		file.seek(lastBinaryTrackPos);
 
 		file.skipBytes(1); // Pula a lápide, pois .read() já validou o registro.
 		int oldSize = file.readInt();
