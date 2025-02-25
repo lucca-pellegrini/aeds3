@@ -57,7 +57,7 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	public void update(int id, Track updated) throws IOException {
-		if (this.read(id) == null)
+		if (read(id) == null)
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		updated.setId(id);
@@ -85,7 +85,7 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	public void delete(int id) throws IOException {
-		if (this.read(id) == null)
+		if (read(id) == null)
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
@@ -204,8 +204,8 @@ class BinaryTrackReader extends BinaryTrack {
 	}
 
 	private void readTrack() throws IOException, ClassNotFoundException {
-		this.track = new Track();
-		this.track.readExternal(new ObjectInputStream(stream));
+		track = new Track();
+		track.readExternal(new ObjectInputStream(stream));
 	}
 
 	public ByteArrayInputStream getStream() {
@@ -218,9 +218,9 @@ class BinaryTrackReader extends BinaryTrack {
 
 	public Track getTrack() throws IOException, ClassNotFoundException {
 		if (track == null)
-			this.readTrack();
+			readTrack();
 
-		this.stream = null;
+		stream = null;
 		return track;
 	}
 

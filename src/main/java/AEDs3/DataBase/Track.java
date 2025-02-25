@@ -62,28 +62,28 @@ public class Track implements Externalizable {
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeInt(this.getId());
-		out.writeUTF(this.getName());
-		out.writeByte(this.getTrackArtists().size());
-		for (String s : this.getTrackArtists())
+		out.writeInt(getId());
+		out.writeUTF(getName());
+		out.writeByte(getTrackArtists().size());
+		for (String s : getTrackArtists())
 			out.writeUTF(s);
-		out.writeUTF(this.getAlbumName());
+		out.writeUTF(getAlbumName());
 		out.writeLong(
-				this.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
-		out.writeUTF(this.getAlbumType());
-		out.writeByte(this.getGenres().size());
-		for (String s : this.getGenres())
+				getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
+		out.writeUTF(getAlbumType());
+		out.writeByte(getGenres().size());
+		for (String s : getGenres())
 			out.writeUTF(s);
-		out.writeBoolean(this.isExplicit());
-		byte[] trackIdBytes = new String(this.getTrackId()).getBytes(StandardCharsets.US_ASCII);
+		out.writeBoolean(isExplicit());
+		byte[] trackIdBytes = new String(getTrackId()).getBytes(StandardCharsets.US_ASCII);
 		out.write(trackIdBytes);
-		out.writeByte(this.getPopularity());
-		out.writeByte(this.getKey());
-		out.writeFloat(this.getDanceability());
-		out.writeFloat(this.getEnergy());
-		out.writeFloat(this.getLoudness());
-		out.writeFloat(this.getTempo());
-		out.writeFloat(this.getValence());
+		out.writeByte(getPopularity());
+		out.writeByte(getKey());
+		out.writeFloat(getDanceability());
+		out.writeFloat(getEnergy());
+		out.writeFloat(getLoudness());
+		out.writeFloat(getTempo());
+		out.writeFloat(getValence());
 	}
 
 	@Override
