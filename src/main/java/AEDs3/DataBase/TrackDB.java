@@ -71,17 +71,19 @@ public class TrackDB implements Iterable<Track> {
 		if (writer.getSize() <= oldSize) {
 			// Volta para o começo do registro para sobrescrevê-lo
 			file.seek(lastBinaryTrackPos);
+			file.writeBoolean(writer.isValid());
+			file.writeInt(oldSize);
 		} else {
 			// Seta a lápide do registro
 			file.seek(lastBinaryTrackPos);
 			file.writeBoolean(false);
-
 			// Pula para o final do arquivo, para inserir registro no final
 			file.seek(file.length());
+			file.writeBoolean(writer.isValid());
+			file.writeInt(writer.getSize());
 		}
 
-		file.writeBoolean(writer.isValid());
-		file.writeInt(writer.getSize());//ARRUMAR POIS ESTA MUDANDO O NUMERO DE BYTES E NAO É PARA MUDAR.
+		//Escrevendo o rregistro.
 		file.write(writer.getStream().toByteArray());
 	}
 
