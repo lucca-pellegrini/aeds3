@@ -1,20 +1,14 @@
 package com.verticordia.AEDs3.DataBase;
 
-import com.verticordia.AEDs3.Util.Range;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 public class TrackDB implements Iterable<Track> {
@@ -98,7 +92,7 @@ public class TrackDB implements Iterable<Track> {
 		file.writeBoolean(false); // Seta a lápide
 	}
 
-	public Track next() throws NoSuchElementException, IOException {
+	public Track next() throws NoSuchElementException, IOException, ClassNotFoundException {
 		try {
 			return nextValidBinaryTrackReader().getTrack();
 		} catch (EOFException e) {
@@ -169,7 +163,7 @@ public class TrackDB implements Iterable<Track> {
 					Track track = currentReader.getTrack();
 					currentReader = null; // Reset para null até o próximo hasNext()
 					return track;
-				} catch (IOException e) {
+				} catch (IOException | ClassNotFoundException e) {
 					throw new RuntimeException("Falha ao obter próxima Track");
 				}
 			}
@@ -209,35 +203,9 @@ class BinaryTrackReader extends BinaryTrack {
 		this.stream = stream;
 	}
 
-	private void readTrack() throws IOException {
-		DataInputStream dataStream = new DataInputStream(stream);
-
-		int id = dataStream.readInt();
-		String name = dataStream.readUTF();
-		int numArtists = dataStream.readByte();
-		List<String> trackArtists = new ArrayList<String>(numArtists);
-		for (int i : new Range(numArtists))
-			trackArtists.add(dataStream.readUTF());
-		String albumName = dataStream.readUTF();
-		LocalDate albumReleaseDate = LocalDate.ofEpochDay(dataStream.readLong() / 86400);
-		String albumType = dataStream.readUTF();
-		int numGenres = dataStream.readByte();
-		List<String> genres = new ArrayList<String>(numGenres);
-		for (int i : new Range(numGenres))
-			genres.add(dataStream.readUTF());
-		boolean explicit = dataStream.readBoolean();
-		byte[] trackIdBytes = dataStream.readNBytes(Track.getTrackIdNumChars());
-		char[] trackId = new String(trackIdBytes, StandardCharsets.US_ASCII).toCharArray();
-		byte popularity = dataStream.readByte();
-		byte key = dataStream.readByte();
-		float danceability = dataStream.readFloat();
-		float energy = dataStream.readFloat();
-		float loudness = dataStream.readFloat();
-		float tempo = dataStream.readFloat();
-		float valence = dataStream.readFloat();
-
-		this.track = new Track(albumReleaseDate, genres, trackArtists, albumName, albumType, name,
-				explicit, trackId, loudness, danceability, energy, valence, tempo, key, popularity, id);
+	private void readTrack() throws IOException, ClassNotFoundException {
+		this.track = new Track();
+		this.track.readExternal(new ObjectInputStream(stream));
 	}
 
 	public ByteArrayInputStream getStream() {
@@ -248,7 +216,7 @@ class BinaryTrackReader extends BinaryTrack {
 		this.stream = stream;
 	}
 
-	public Track getTrack() throws IOException {
+	public Track getTrack() throws IOException, ClassNotFoundException {
 		if (track == null)
 			this.readTrack();
 
@@ -268,30 +236,10 @@ class BinaryTrackWriter extends BinaryTrack {
 	// Função para escrever no arquivo as tracks.
 	public BinaryTrackWriter(Track track) throws IOException {
 		stream = new ByteArrayOutputStream();
-		DataOutputStream dataStream = new DataOutputStream(stream);
 
-		dataStream.writeInt(track.getId());
-		dataStream.writeUTF(track.getName());
-		dataStream.writeByte(track.getTrackArtists().size());
-		for (String s : track.getTrackArtists())
-			dataStream.writeUTF(s);
-		dataStream.writeUTF(track.getAlbumName());
-		dataStream.writeLong(
-				track.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
-		dataStream.writeUTF(track.getAlbumType());
-		dataStream.writeByte(track.getGenres().size());
-		for (String s : track.getGenres())
-			dataStream.writeUTF(s);
-		dataStream.writeBoolean(track.isExplicit());
-		byte[] trackIdBytes = new String(track.getTrackId()).getBytes(StandardCharsets.US_ASCII);
-		dataStream.write(trackIdBytes);
-		dataStream.writeByte(track.getPopularity());
-		dataStream.writeByte(track.getKey());
-		dataStream.writeFloat(track.getDanceability());
-		dataStream.writeFloat(track.getEnergy());
-		dataStream.writeFloat(track.getLoudness());
-		dataStream.writeFloat(track.getTempo());
-		dataStream.writeFloat(track.getValence());
+		try (ObjectOutputStream objOutStream = new ObjectOutputStream(stream)) {
+			track.writeExternal(objOutStream);
+		}
 
 		valid = true;
 		size = stream.size();

@@ -1,10 +1,19 @@
 package com.verticordia.AEDs3.DataBase;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.verticordia.AEDs3.Util.Range;
+
 // Criação da classe track.
-public class Track {
+public class Track implements Externalizable {
 	// Atributos
 	protected LocalDate albumReleaseDate;
 	protected List<String> genres; // Sujeito a futura revisão.
@@ -46,6 +55,63 @@ public class Track {
 		this.popularity = popularity;
 		this.tempo = tempo;
 		this.id = id;
+	}
+
+	public Track() {
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeInt(this.getId());
+		out.writeUTF(this.getName());
+		out.writeByte(this.getTrackArtists().size());
+		for (String s : this.getTrackArtists())
+			out.writeUTF(s);
+		out.writeUTF(this.getAlbumName());
+		out.writeLong(
+				this.getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
+		out.writeUTF(this.getAlbumType());
+		out.writeByte(this.getGenres().size());
+		for (String s : this.getGenres())
+			out.writeUTF(s);
+		out.writeBoolean(this.isExplicit());
+		byte[] trackIdBytes = new String(this.getTrackId()).getBytes(StandardCharsets.US_ASCII);
+		out.write(trackIdBytes);
+		out.writeByte(this.getPopularity());
+		out.writeByte(this.getKey());
+		out.writeFloat(this.getDanceability());
+		out.writeFloat(this.getEnergy());
+		out.writeFloat(this.getLoudness());
+		out.writeFloat(this.getTempo());
+		out.writeFloat(this.getValence());
+	}
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		id = in.readInt();
+		name = in.readUTF();
+		int numArtists = in.readByte();
+		trackArtists = new ArrayList<String>(numArtists);
+		for (int i : new Range(numArtists))
+			trackArtists.add(in.readUTF());
+		albumName = in.readUTF();
+		albumReleaseDate = LocalDate.ofEpochDay(in.readLong() / 86400);
+		albumType = in.readUTF();
+		int numGenres = in.readByte();
+		genres = new ArrayList<String>(numGenres);
+		for (int i : new Range(numGenres))
+			genres.add(in.readUTF());
+		explicit = in.readBoolean();
+		byte[] trackIdBytes = new byte[Track.getTrackIdNumChars()];
+		in.readFully(trackIdBytes);
+		trackId = new String(trackIdBytes, StandardCharsets.US_ASCII).toCharArray();
+		popularity = in.readByte();
+		key = in.readByte();
+		danceability = in.readFloat();
+		energy = in.readFloat();
+		loudness = in.readFloat();
+		tempo = in.readFloat();
+		valence = in.readFloat();
 	}
 
 	@Override
