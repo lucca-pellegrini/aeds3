@@ -1,6 +1,5 @@
 package AEDs3.DataBase;
 
-import AEDs3.Util.Range;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -94,14 +93,14 @@ public class Track implements Externalizable {
 		name = in.readUTF();
 		int numArtists = in.readByte();
 		trackArtists = new ArrayList<String>(numArtists);
-		for (int i : new Range(numArtists))
+		for (int i = 0; i < numArtists; ++i)
 			trackArtists.add(in.readUTF());
 		albumName = in.readUTF();
 		albumReleaseDate = LocalDate.ofEpochDay(in.readLong() / 86400);
 		albumType = in.readUTF();
 		int numGenres = in.readByte();
 		genres = new ArrayList<String>(numGenres);
-		for (int i : new Range(numGenres))
+		for (int i = 0; i < numGenres; ++i)
 			genres.add(in.readUTF());
 		explicit = in.readBoolean();
 		byte[] trackIdBytes = new byte[Track.getTrackIdNumChars()];
