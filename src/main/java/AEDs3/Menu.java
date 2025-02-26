@@ -116,7 +116,6 @@ public class Menu {
 			nova.setTempo(lerFloat("Tempo: "));
 			nova.setValence(lerFloat("Valence: "));
 
-			nova.setId(lerInt("ID: "));
 			nova.setKey(lerInt("Key: "));
 			nova.setPopularity(lerInt("Popularity: "));
 
@@ -139,7 +138,7 @@ public class Menu {
 	 * println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. "
 	 * + "AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. " +
 	 * "Energy\n11.
-	 * Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. " + "Popularity\n0.
+	 * Loudness\n12. Tempo\n13. Valence\n14. Key\n15. " + "Popularity\n0.
 	 * Sair");
 	 *
 	 * acao3 = sc.nextInt();
@@ -206,7 +205,6 @@ public class Menu {
 	 * case 11 -> track = db.read(TrackField.LOUDNESS, lerFloat("Loudness:"));
 	 * case 12 -> track = db.read(TrackField.TEMPO, lerFloat("Tempo:"));
 	 * case 13 -> track = db.read(TrackField.VALENCE, lerFloat("Valence:"));
-	 * case 14 -> track = db.read(TrackField.ID, lerInt("ID:"));
 	 * case 15 -> track = db.read(TrackField.KEY, lerInt("Key:"));
 	 * case 16 -> track = db.read(TrackField.POPULARITY, lerInt("Popularity:"));
 	 * default -> System.out.println("Opção inválida. Tente novamente.");
@@ -234,7 +232,7 @@ public class Menu {
 			System.out.println(
 					"1. Album Release Date\n2. Genres\n3. Track Artists\n4. Album Name\n5. "
 							+ "Album Type\n6. Name\n7. Explicit\n8. Track ID\n9. Danceability\n10. "
-							+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. "
+							+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. Key\n15. "
 							+ "Popularity\n0. Sair");
 			acao3 = sc.nextInt();
 			sc.nextLine(); // Consumir quebra de linha
@@ -310,12 +308,9 @@ public class Menu {
 					t.setValence(lerFloat("Valence: "));
 				}
 				case 14 -> {
-					t.setId(lerInt("ID: "));
-				}
-				case 15 -> {
 					t.setKey(lerInt("Key: "));
 				}
-				case 16 -> {
+				case 15 -> {
 					t.setPopularity(lerInt("Popularity: "));
 				}
 				case 0 -> System.out.println("Saindo da atualização...");
