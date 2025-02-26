@@ -24,6 +24,7 @@ public class TrackDB implements Iterable<Track> {
 		file = new RandomAccessFile(fileName, "rw");
 		file.seek(0);
 
+		//Ve se o arquivo já tem algum ID inserido.
 		try {
 			lastId = file.readInt();
 		} catch (EOFException e) {
@@ -61,6 +62,7 @@ public class TrackDB implements Iterable<Track> {
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		updated.setId(id);
+		file.seek(lastBinaryTrackPos);
 
 		file.skipBytes(1); // Pula a lápide, pois .read() já validou o registro.
 		int oldSize = file.readInt();
@@ -70,17 +72,19 @@ public class TrackDB implements Iterable<Track> {
 		if (writer.getSize() <= oldSize) {
 			// Volta para o começo do registro para sobrescrevê-lo
 			file.seek(lastBinaryTrackPos);
+			file.writeBoolean(writer.isValid());
+			file.writeInt(oldSize);
 		} else {
 			// Seta a lápide do registro
 			file.seek(lastBinaryTrackPos);
 			file.writeBoolean(false);
-
 			// Pula para o final do arquivo, para inserir registro no final
 			file.seek(file.length());
+			file.writeBoolean(writer.isValid());
+			file.writeInt(writer.getSize());
 		}
 
-		file.writeBoolean(writer.isValid());
-		file.writeInt(writer.getSize());
+		//Escrevendo o rregistro.
 		file.write(writer.getStream().toByteArray());
 	}
 
