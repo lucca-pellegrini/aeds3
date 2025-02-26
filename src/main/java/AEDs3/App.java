@@ -24,5 +24,12 @@ public class App {
 			System.out.println("ID " + ID + " deletado com sucesso");
 		else
 			throw new RuntimeException("Erro: ID " + ID + " deveria ter sido deletado!");
+
+		ArrayList<String> artist = new ArrayList<>();
+		artist.add("Frank Sinatra");
+		db.setFilter(Track.Field.TRACK_ARTISTS, artist);
+
+		for (Track track : db)
+			System.out.println(track);
 	}
 }
