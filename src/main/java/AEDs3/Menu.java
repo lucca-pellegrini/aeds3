@@ -126,163 +126,89 @@ public class Menu {
 		}
 	}
 	
-
 	/*public static void read() throws Exception {
-		System.out.println("Por qual caracterísca voce irá querer para fazer a leitura?");
-		
+		System.out.println("Por qual característica você irá querer para fazer a leitura?");
 		int acao3 = 20;
-
+	
 		while (acao3 != 0) {
-			System.out.println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. "
-					+ "AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. "
-					+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. "
-					+ "Popularity\n0. Sair");
+			System.out.println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. " +
+					"AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. " +
+					"Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. " +
+					"Popularity\n0. Sair");
+			
 			acao3 = sc.nextInt();
-
+			if (acao3 == 0) break;
+	
+			Track track = null;
+	
 			switch (acao3) {
 				case 1 -> {
 					LocalDate releaseDate = null;
-
 					while (releaseDate == null) {
-    				System.out.print("Album Release Date (YYYY-MM-DD): ");
-    				String dataEntrada = sc.nextLine();
-    
-    				try {
-       				releaseDate = LocalDate.parse(dataEntrada);
-    				} catch (DateTimeParseException e) {
-       				System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
-    				}
-				}
-					Track track = db.read(TrackField.ALBUM_RELEASE_DATE, releaseDate);
-					break;
-				}
-				case 2 -> {
-					System.out.print("Genres (separados por vírgula): ");
-					sc.nextLine();
-					String generos = sc.nextLine();
-
-					String[] arrayGeneros = generos.split(",");
-					List<String> genres = new ArrayList<>();
-
-					for (String genero : arrayGeneros) {
-    				genres.add(genero.trim()); 
+						System.out.print("Album Release Date (YYYY-MM-DD): ");
+						String dataEntrada = sc.nextLine();
+						try {
+							releaseDate = LocalDate.parse(dataEntrada);
+						} catch (DateTimeParseException e) {
+							System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
+						}
 					}
-
-					Track track = db.read(TrackField.GENRES, genres);
-					break;
+					track = db.read(TrackField.ALBUM_RELEASE_DATE, releaseDate);
 				}
-				case 3 -> {
-					System.out.print("Track Artists (separados por vírgula): ");
-					sc.nextLine();
-					String artistas = sc.nextLine();
-
-					String[] arrayArtistas = artistas.split(",");
-					List<String> artists = new ArrayList<>();
-
-					for (String artista : arrayArtistas) {
-					artists.add(artista.trim()); 
-					}
-
-					Track track = db.read(TrackField.ARTISTS, artists);
-					break;
-				}
+				case 2 -> track = db.read(TrackField.GENRES, lerLista("Genres (separados por vírgula):"));
+				case 3 -> track = db.read(TrackField.ARTISTS, lerLista("Track Artists (separados por vírgula):"));
 				case 4 -> {
 					System.out.print("Album Name: ");
-					sc.nextLine();
 					String albumName = sc.nextLine();
-					Track track = db.read(TrackField.ALBUM_NAME, albumName);
-					break;
+					track = db.read(TrackField.ALBUM_NAME, albumName);
 				}
 				case 5 -> {
 					System.out.print("Album Type: ");
-					sc.nextLine();
 					String albumType = sc.nextLine();
-					Track track = db.read(TrackField.ALBUM_TYPE, albumType);
-					break;
+					track = db.read(TrackField.ALBUM_TYPE, albumType);
 				}
 				case 6 -> {
 					System.out.print("Track Name: ");
-					sc.nextLine();
 					String trackName = sc.nextLine();
-					Track track = db.read(TrackField.TRACK_NAME, trackName);
-					break;
+					track = db.read(TrackField.TRACK_NAME, trackName);
 				}
 				case 7 -> {
-					System.out.print("Explicit (true/false): ");
-					String input = sc.next();
-					Boolean explicit = Boolean.parseBoolean(input);
-					Track track = db.read(TrackField.EXPLICIT, explicit);
-					break;
+					Boolean explicit = null;
+					while (explicit == null) {
+						System.out.print("Explicit (true/false): ");
+						String input = sc.next().trim().toLowerCase();
+						if (input.equals("true") || input.equals("false")) {
+							explicit = Boolean.parseBoolean(input);
+						} else {
+							System.out.println("Entrada inválida! Digite 'true' ou 'false'.");
+						}
+					}
+					track = db.read(TrackField.EXPLICIT, explicit);
+					sc.nextLine();
 				}
 				case 8 -> {
-					System.out.print("Track ID: ");
-					sc.nextLine();
-					char[] trackId = sc.nextLine().toCharArray();
-					if (trackId.length == Track.getTrackIdNumChars()) {
-						Track track = db.read(TrackField.TRACK_ID, trackId);;
-						break;
+					char[] id = sc.nextLine().toCharArray();
+					if (id.length == Track.getTrackIdNumChars()) {
+						track = db.read(TrackField.TRACK_ID, id);
 					} else {
-						System.out.println("Tamanho do track ID incorrreto!!");
+						System.out.println("Tamanho do track ID incorreto!");
 					}
 				}
-				case 9 -> {
-					System.out.print("Danceability: ");
-					sc.nextLine();
-					Float trackDance = sc.nextFloat();
-					Track track = db.read(TrackField.DANCEABILITY, trackDance);
-					break;
-				}
-				case 10 -> {
-					System.out.print("Energy: ");
-					sc.nextLine();
-					Float trackEnergy = sc.nextFloat();
-					Track track = db.read(TrackField.ENERGY, trackEnergy);
-					break;
-				}
-				case 11 -> {
-					System.out.print("Loudness: ");
-					sc.nextLine();
-					Float loudness = sc.nextFloat();
-					Track track = db.read(TrackField.LOUDNESS, loudness);
-					break;
-				}
-				case 12 -> {
-					System.out.print("Tempo: ");
-					sc.nextLine();
-					Float trackTempo = sc.nextFloat();
-					Track track = db.read(TrackField.TEMPO, trackTempo);
-					break;
-				}
-				case 13 -> {
-					System.out.print("Valence: ");
-					sc.nextLine();
-					Float trackValence = sc.nextFloat();
-					Track track = db.read(TrackField.VALENCE, trackValence);
-					break;
-				}
-				case 14 -> {
-					System.out.print("ID: ");
-					sc.nextLine();
-					int trackId = sc.nextInt();
-					Track track = db.read(TrackField.ID, trackId);
-					break;
-				}
-				case 15 -> {
-					System.out.print("Key: ");
-					sc.nextLine();
-					int trackKey = sc.nextInt();
-					Track track = db.read(TrackField.KEY, trackKey);
-					break;
-				}
-				case 16 -> {
-					System.out.print("Popularity: ");
-					sc.nextLine();
-					int trackPopularity = sc.nextInt();
-					Track track = db.read(TrackField.POPULARITY, trackPopularity);
-					break;
-				}
-
-				default -> System.out.println("Tente outro número.");
+				case 9 -> track = db.read(TrackField.DANCEABILITY, lerFloat("Danceability:"));
+				case 10 -> track = db.read(TrackField.ENERGY, lerFloat("Energy:"));
+				case 11 -> track = db.read(TrackField.LOUDNESS, lerFloat("Loudness:"));
+				case 12 -> track = db.read(TrackField.TEMPO, lerFloat("Tempo:"));
+				case 13 -> track = db.read(TrackField.VALENCE, lerFloat("Valence:"));
+				case 14 -> track = db.read(TrackField.ID, lerInt("ID:"));
+				case 15 -> track = db.read(TrackField.KEY, lerInt("Key:"));
+				case 16 -> track = db.read(TrackField.POPULARITY, lerInt("Popularity:"));
+				default -> System.out.println("Opção inválida. Tente novamente.");
+			}
+	
+			if (track != null) {
+				System.out.println("Track encontrada: " + track);
+			} else {
+				System.out.println("Nenhuma track encontrada com o critério informado.");
 			}
 		}
 	}*/
@@ -391,7 +317,7 @@ public class Menu {
 		// Atualiza os dados no banco de dados apenas uma vez, no final
 		db.update(idUpdt, t);
 	}
-	
+
 	public static void delete() throws Exception{
 		
 		int acao4 = 20;
