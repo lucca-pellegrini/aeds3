@@ -6,6 +6,7 @@ import AEDs3.DataBase.TrackDB;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 public class App {
 	public static void main(String[] args) throws IOException {
@@ -45,8 +46,10 @@ public class App {
 
 		System.out.println("Testando busca de álbum por RegEx:\n");
 		db.setFilter(Track.Field.ALBUM_NAME,
-				"((Catholic Classics, Vol\\.\\s\\d+:?|The Art of Gregorian|Masters of Chant( "
-						+ "[IVXLCDM]+)?: (The .*|Chapter [IVXLCDM]+)))");
+				Pattern.compile(
+						"((Catholic Classics, Vol\\.\\s\\d+:?|The Art of Gregorian|Masters of Chant( "
+								+ "[IVXLCDM]+)?: (The .*|Chapter [IVXLCDM]+)))",
+						Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
 		db.printAll();
 		System.out.println("\n\n");
 

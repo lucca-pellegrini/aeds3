@@ -141,19 +141,21 @@ public class Track implements Externalizable {
 
 			// Strings são comparadas por regex.
 			case NAME -> {
-				if (!(value instanceof String))
-					throw new InvalidParameterException("Tipo inválido. Esperava String.");
-
-				Pattern pattern = Pattern.compile((String) value, Pattern.CASE_INSENSITIVE);
-				yield pattern.matcher(getName()).find();
+				if (value instanceof String)
+					yield getName().equals(value);
+				else if (value instanceof Pattern)
+					yield ((Pattern) value).matcher(getName()).find();
+				else
+					throw new InvalidParameterException("Tipo inválido. Esperava String ou Pattern.");
 			}
 
 			case ALBUM_NAME -> {
-				if (!(value instanceof String))
-					throw new InvalidParameterException("Tipo inválido. Esperava String.");
-
-				Pattern pattern = Pattern.compile((String) value, Pattern.CASE_INSENSITIVE);
-				yield pattern.matcher(getAlbumName()).find();
+				if (value instanceof String)
+					yield getAlbumName().equals(value);
+				else if (value instanceof Pattern)
+					yield ((Pattern) value).matcher(getAlbumName()).find();
+				else
+					throw new InvalidParameterException("Tipo inválido. Esperava String ou Pattern.");
 			}
 
 			// Listas exigem muito mais cuidado para tratar de forma segura.
