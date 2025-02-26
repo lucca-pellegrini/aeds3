@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidParameterException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -182,6 +183,10 @@ public class Track implements Externalizable {
 	}
 
 	public void setTrackId(char[] trackId) {
+		if (trackId.length != Track.getTrackIdNumChars())
+			throw new InvalidParameterException(
+					"trackId deve ter exatamente " + Track.getTrackIdNumChars() + " caracteres");
+
 		this.trackId = trackId;
 	}
 
