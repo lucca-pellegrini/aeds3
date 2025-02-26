@@ -17,19 +17,27 @@ public class App {
 
 		final int ID = ThreadLocalRandom.current().nextInt(1, db.getLastId());
 
-		System.out.println(db.read(ID));
+		System.out.println("Deletando:\n\t" + db.read(ID) + "\n");
 		db.delete(ID);
 
 		if (db.read(ID) == null)
-			System.out.println("ID " + ID + " deletado com sucesso");
+			System.out.println("ID " + ID + " deletado com sucesso\n\n");
 		else
 			throw new RuntimeException("Erro: ID " + ID + " deveria ter sido deletado!");
 
 		ArrayList<String> artist = new ArrayList<>();
-		artist.add("Frank Sinatra");
+		artist.add("Cole Porter");
 		db.setFilter(Track.Field.TRACK_ARTISTS, artist);
-
+		System.out.println("Exibindo músicas de " + artist.get(0) + ":\n");
 		for (Track track : db)
 			System.out.println(track);
+		System.out.println("\n\n");
+
+		ArrayList<String> genres = new ArrayList<>();
+		System.out.println("Exibindo músicas “adult standards” e “easy listening”:\n");
+		genres.add("adult standards");
+		genres.add("easy listening");
+		db.setFilter(Track.Field.GENRES, genres);
+		db.printAll();
 	}
 }
