@@ -12,8 +12,10 @@ public class App {
 		CSVManager csv = new CSVManager("dataset-clean.csv");
 		TrackDB db = new TrackDB("tracks.db");
 
-		for (Track track : csv)
-			db.create(track);
+		if (db.getLastId() == 0) {
+			for (Track track : csv)
+				db.create(track);
+		}
 
 		final int ID = ThreadLocalRandom.current().nextInt(1, db.getLastId());
 
