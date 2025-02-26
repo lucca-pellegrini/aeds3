@@ -48,10 +48,14 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	public Track read(int id) throws IOException {
+		return read(Track.Field.ID, id);
+	}
+
+	public Track read(Track.Field field, Object value) throws IOException {
 		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
 
 		for (Track t : this)
-			if (t.getId() == id)
+			if (t.matchesField(field, value))
 				return t;
 
 		return null;
