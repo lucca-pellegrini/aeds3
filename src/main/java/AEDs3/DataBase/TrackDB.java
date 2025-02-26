@@ -24,7 +24,7 @@ public class TrackDB implements Iterable<Track> {
 		file = new RandomAccessFile(fileName, "rw");
 		file.seek(0);
 
-		//Ve se o arquivo já tem algum ID inserido.
+		// Vê se o arquivo já tem algum ID inserido.
 		try {
 			lastId = file.readInt();
 		} catch (EOFException e) {
@@ -84,7 +84,7 @@ public class TrackDB implements Iterable<Track> {
 			file.writeInt(writer.getSize());
 		}
 
-		//Escrevendo o rregistro.
+		// Escrevendo o registro.
 		file.write(writer.getStream().toByteArray());
 	}
 

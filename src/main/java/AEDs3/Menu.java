@@ -1,18 +1,17 @@
 package AEDs3;
 
+import AEDs3.DataBase.Track;
+import AEDs3.DataBase.TrackDB;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Scanner;
-
-import AEDs3.DataBase.Track;
-import AEDs3.DataBase.TrackDB;
 
 public class Menu {
 	static Scanner sc = new Scanner(System.in);
 
 	static TrackDB db;
 
-	public static void main(String[] args) throws Exception { 
+	public static void main(String[] args) throws Exception {
 		int acao = 10;
 		db = new TrackDB("tracks.db");
 
@@ -204,12 +203,11 @@ public class Menu {
 					System.out.print("Track ID: ");
 					sc.nextLine();
 					char[] trackId = sc.nextLine().toCharArray();
-					if(trackId.length == Track.getTrackIdNumChars()){
+					if (trackId.length == Track.getTrackIdNumChars()) {
 						t.setTrackId(trackId);
 						db.update(idUpdt, t);
 						break;
-					}
-					else {
+					} else {
 						System.out.println("Tamanho do track ID incorrreto!!");
 					}
 				}
@@ -280,8 +278,6 @@ public class Menu {
 				default -> System.out.println("Tente outro número.");
 			}
 		}
-
-		
 	}
 
 	public static void delete() {

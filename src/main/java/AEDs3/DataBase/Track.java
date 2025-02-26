@@ -1,5 +1,6 @@
 package AEDs3.DataBase;
 
+import AEDs3.Util.Range;
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -9,8 +10,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-
-import AEDs3.Util.Range;
 
 // Criação da classe track.
 public class Track implements Externalizable {
@@ -60,7 +59,7 @@ public class Track implements Externalizable {
 	public Track() {
 	}
 
-	//Escrita dos dados em binário.
+	// Escrita dos dados em binário.
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeInt(getId());
@@ -69,8 +68,7 @@ public class Track implements Externalizable {
 		for (String s : getTrackArtists())
 			out.writeUTF(s);
 		out.writeUTF(getAlbumName());
-		out.writeLong(
-				getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
+		out.writeLong(getAlbumReleaseDate().atStartOfDay().toEpochSecond(ZoneOffset.UTC));
 		out.writeUTF(getAlbumType());
 		out.writeByte(getGenres().size());
 		for (String s : getGenres())
@@ -87,8 +85,7 @@ public class Track implements Externalizable {
 		out.writeFloat(getValence());
 	}
 
-
-	//Leitura dos dados em binário.
+	// Leitura dos dados em binário.
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		id = in.readInt();
