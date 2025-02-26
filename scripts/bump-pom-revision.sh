@@ -3,7 +3,7 @@
 set -e
 
 # Check if any staged .java files exist
-if ! git diff --cached --name-only | grep -qE '\.java$'; then
+if ! git diff --cached --name-only | grep -qE '\.java$' && [ -z "$FORCE" ]; then
     echo "No Java files staged for commit. Skipping version bump."
     exit 0
 fi
