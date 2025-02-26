@@ -6,9 +6,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
+//GPT foi usado para formatação e otimização do código.
 public class Menu {
 	static Scanner sc = new Scanner(System.in);
 
@@ -18,155 +21,113 @@ public class Menu {
 		int acao = 10;
 		db = new TrackDB("tracks.db");
 
-		System.out.println(
-				"Bem vindo ao menu do CRUD!!! Digite o seguintes números para a ação que desejar:");
+		System.out.println("\n\033[1;34m" +
+            "========================================\n" +
+            "      BEM-VINDO AO CRUD DE MÚSICAS!     \n" +
+            "========================================\033[0m");
 
 		while (acao != 0) {
-			System.out.println(
-					"1. Create\n2. Read\n3. Update\n4. Delete\n5. Ordenação\n0. Parar o programa.");
-			acao = sc.nextInt();
+			System.out.println("\n\033[1;36m" +
+                "Escolha uma ação:\n" +
+                "----------------------------------------\033[0m");
+        System.out.println("\033[1;33m" + 
+                "1. Criar uma nova música\n" +
+                "2. Ler músicas cadastradas\n" +
+                "3. Atualizar uma música\n" +
+                "4. Deletar uma música\n" +
+                "5. Ordenação externa\n" +
+                "0. Sair do programa\033[0m");
+
+        System.out.print("\n\033[1;32mDigite sua opção: \033[0m");
+        acao = sc.nextInt();
 
 			switch (acao) {
 				case 1 -> create();
-				case 2 -> read();
+				//case 2 -> read();
 				case 3 -> update();
 				case 4 -> delete();
-				case 5 -> System.err.println("Ordenação externa não implementado");
-				case 0 -> System.out.println("Programa finalizado");
-				default -> System.out.println("Tente outro número.");
+				case 5 -> System.err.println("\033[1;31mOrdenação externa não implementada\033[0m\"");
+				case 0 -> System.out.println("\033[1;32mPrograma finalizado. Até logo!\033[0m");
+				default -> System.out.println("\033[1;31mOpção inválida! Tente novamente.\033[0m");
 			}
 		}
 
 		sc.close();
 	}
 
-	public static void create() throws Exception  {
+	public static void create() throws Exception {
 		int cont = 1;
-		while(cont == 1){
-
-			Track nova = new Track();
-
-			System.out.println("Vamos começar a criar a nossa track:");
 		
+		while (cont == 1) {
+			sc.nextLine(); // Evita problemas com buffer
+			Track nova = new Track();
+			System.out.println("\n\033[1;34m=== Criando uma Nova Track ===\033[0m");
+	
 			LocalDate releaseDate = null;
-
 			while (releaseDate == null) {
-    			System.out.print("Album Release Date (YYYY-MM-DD): ");
-    			String dataEntrada = sc.nextLine();
-    
-    		try {
-       			releaseDate = LocalDate.parse(dataEntrada);
-    		} catch (DateTimeParseException e) {
-       			System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
-    		}
-
-			nova.setAlbumReleaseDate(releaseDate);
-
-			System.out.print("Genres (separados por vírgula): ");
-				sc.nextLine();
-				String generos = sc.nextLine();
-
-				String[] arrayGeneros = generos.split(",");
-				List<String> genres = new ArrayList<>();
-
-				for (String genero : arrayGeneros) {
-    			genres.add(genero.trim()); 
+				System.out.print("Album Release Date (YYYY-MM-DD): ");
+				String dataEntrada = sc.nextLine();
+				try {
+					releaseDate = LocalDate.parse(dataEntrada);
+				} catch (DateTimeParseException e) {
+					System.out.println("Formato inválido! Use YYYY-MM-DD.");
 				}
-
-				nova.setGenres(genres);
-				
-			System.out.print("Track Artists (separados por vírgula): ");
-				sc.nextLine();
-				String artistas = sc.nextLine();
-
-				String[] arrayArtistas = artistas.split(",");
-				List<String> artists = new ArrayList<>();
-
-				for (String artista : arrayArtistas) {
-				artists.add(artista.trim()); 
-				}
-
-				nova.setTrackArtists(artists);
-
-			nova.setGenres(genres);
-			System.out.print("Album Name: ");
-				sc.nextLine();
-				String albumName = sc.nextLine();
-				nova.setAlbumName(albumName);
-				
-			System.out.print("Album Type: ");
-				sc.nextLine();
-				String albumType = sc.nextLine();
-				nova.setAlbumType(albumType);
-				
-			System.out.print("Track Name: ");
-				sc.nextLine();
-				String trackName = sc.nextLine();
-				nova.setName(trackName);
-				
-			System.out.print("Explicit (true/false): ");
-				sc.nextLine();
-				Boolean explicit = sc.nextBoolean();
-				nova.setExplicit(explicit);
-				
-			System.out.print("Track ID: ");
-				sc.nextLine();
-				char[] trackI = sc.nextLine().toCharArray();
-					if (trackI.length == Track.getTrackIdNumChars()) {
-						nova.setTrackId(trackI);
-						break;
-					} else {
-						System.out.println("Tamanho do track ID incorrreto!!");
-					}
-				
-			System.out.print("Danceability: ");
-				sc.nextLine();
-				Float dance = sc.nextFloat();
-				nova.setDanceability(dance);
-					
-			System.out.print("Energy: ");
-				sc.nextLine();
-				Float energy = sc.nextFloat();
-				nova.setEnergy(energy);
-				
-			System.out.print("Loudness: ");
-				sc.nextLine();
-				Float loud = sc.nextFloat();
-				nova.setLoudness(loud);
-				
-			System.out.print("Tempo: ");
-				sc.nextLine();
-				Float tempo = sc.nextFloat();
-				nova.setTempo(tempo);
-				
-			System.out.print("Valence: ");
-				sc.nextLine();
-				Float valence = sc.nextFloat();
-				nova.setValence(valence);
-				
-			System.out.print("ID: ");
-				sc.nextLine();
-				int id = sc.nextInt();
-				nova.setId(id);
-				
-			System.out.print("Key: ");
-				sc.nextLine();
-				int key = sc.nextInt();
-				nova.setKey(key);
-				
-			System.out.print("Popularity: ");
-				sc.nextLine();
-				int popul = sc.nextInt();
-				nova.setPopularity(popul);
-			
-			db.create(nova);
-
-			System.out.print("Digite 1 para adicionar outra track: ");
-			cont = sc.nextInt();
 			}
+			nova.setAlbumReleaseDate(releaseDate);
+	
+			nova.setGenres(lerLista("Genres (separados por vírgula): "));
+			nova.setTrackArtists(lerLista("Track Artists (separados por vírgula): "));
+	
+			System.out.print("Album Name: ");
+			nova.setAlbumName(sc.nextLine());
+	
+			System.out.print("Album Type: ");
+			nova.setAlbumType(sc.nextLine());
+	
+			System.out.print("Track Name: ");
+			nova.setName(sc.nextLine());
+	
+			Boolean explicit = null;
+			while (explicit == null) {
+				System.out.print("Explicit (true/false): ");
+				String input = sc.next().trim().toLowerCase();
+				if (input.equals("true") || input.equals("false")) {
+					explicit = Boolean.parseBoolean(input);
+				} else {
+					System.out.println("Entrada inválida! Digite 'true' ou 'false'.");
+				}
+			}
+			nova.setExplicit(explicit);
+			sc.nextLine(); 
+	
+			System.out.print("Track ID: ");
+			char[] trackI = sc.nextLine().toCharArray();
+			while (trackI.length != Track.getTrackIdNumChars()) {
+				System.out.println("Tamanho do track ID incorreto!");
+				System.out.print("Track ID: ");
+				trackI = sc.nextLine().toCharArray();
+			}
+			nova.setTrackId(trackI);
+	
+			nova.setDanceability(lerFloat("Danceability: "));
+			nova.setEnergy(lerFloat("Energy: "));
+			nova.setLoudness(lerFloat("Loudness: "));
+			nova.setTempo(lerFloat("Tempo: "));
+			nova.setValence(lerFloat("Valence: "));
+	
+			nova.setId(lerInt("ID: "));
+			nova.setKey(lerInt("Key: "));
+			nova.setPopularity(lerInt("Popularity: "));
+	
+			db.create(nova);
+	
+			System.out.print("Digite 1 para adicionar outra track ou outro qualquer número para parar: ");
+			cont = sc.nextInt();
 		}
+	}
+	
 
-	public static void read() throws Exception {
+	/*public static void read() throws Exception {
 		System.out.println("Por qual caracterísca voce irá querer para fazer a leitura?");
 		
 		int acao3 = 20;
@@ -248,8 +209,8 @@ public class Menu {
 				}
 				case 7 -> {
 					System.out.print("Explicit (true/false): ");
-					sc.nextLine();
-					Boolean explicit = sc.nextBoolean();
+					String input = sc.next();
+					Boolean explicit = Boolean.parseBoolean(input);
 					Track track = db.read(TrackField.EXPLICIT, explicit);
 					break;
 				}
@@ -324,181 +285,113 @@ public class Menu {
 				default -> System.out.println("Tente outro número.");
 			}
 		}
-	}
+	}*/
 
 	public static void update() throws Exception {
-		System.out.println("Qual ID voce deseja atualizar?");
+		System.out.println("Qual ID você deseja atualizar?");
 		int idUpdt = sc.nextInt();
+		sc.nextLine(); // Consumir quebra de linha
+	
 		Track t = db.read(idUpdt);
-
+	
 		int acao3 = 20;
-
+	
 		while (acao3 != 0) {
-			System.out.println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. "
-					+ "AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. "
+			System.out.println("1. Album Release Date\n2. Genres\n3. Track Artists\n4. Album Name\n5. "
+					+ "Album Type\n6. Name\n7. Explicit\n8. Track ID\n9. Danceability\n10. "
 					+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. "
 					+ "Popularity\n0. Sair");
 			acao3 = sc.nextInt();
-
+			sc.nextLine(); // Consumir quebra de linha
+	
 			switch (acao3) {
 				case 1 -> {
 					LocalDate releaseDate = null;
-
 					while (releaseDate == null) {
-    				System.out.print("Album Release Date (YYYY-MM-DD): ");
-    				String dataEntrada = sc.nextLine();
-    
-    				try {
-       				releaseDate = LocalDate.parse(dataEntrada);
-    				} catch (DateTimeParseException e) {
-       				System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
-    				}
-				}
+						System.out.print("Album Release Date (YYYY-MM-DD): ");
+						String dataEntrada = sc.nextLine();
+						try {
+							releaseDate = LocalDate.parse(dataEntrada);
+						} catch (DateTimeParseException e) {
+							System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
+						}
+					}
 					t.setAlbumReleaseDate(releaseDate);
-					break;
 				}
 				case 2 -> {
-					System.out.print("Genres (separados por vírgula): ");
-					sc.nextLine();
-					String generos = sc.nextLine();
-
-					String[] arrayGeneros = generos.split(",");
-					List<String> genres = new ArrayList<>();
-
-					for (String genero : arrayGeneros) {
-    				genres.add(genero.trim()); 
-					}
-
-					t.setGenres(genres);
-					break;
+					t.setGenres(lerLista("Genres (separados por vírgula): "));
 				}
 				case 3 -> {
-					System.out.print("Track Artists (separados por vírgula): ");
-					sc.nextLine();
-					String artistas = sc.nextLine();
-
-					String[] arrayArtistas = artistas.split(",");
-					List<String> artists = new ArrayList<>();
-
-					for (String artista : arrayArtistas) {
-					artists.add(artista.trim()); 
-					}
-
-					t.setTrackArtists(artists);
-					break;
+					t.setTrackArtists(lerLista("Track Artists (separados por vírgula): "));
 				}
 				case 4 -> {
 					System.out.print("Album Name: ");
-					sc.nextLine();
-					String albumName = sc.nextLine();
-					t.setAlbumName(albumName);
-					break;
+					t.setAlbumName(sc.nextLine());
 				}
 				case 5 -> {
 					System.out.print("Album Type: ");
-					sc.nextLine();
-					String albumType = sc.nextLine();
-					t.setAlbumType(albumType);
-					db.update(idUpdt, t);
-					break;
+					t.setAlbumType(sc.nextLine());
 				}
 				case 6 -> {
 					System.out.print("Track Name: ");
-					sc.nextLine();
-					String trackName = sc.nextLine();
-					t.setName(trackName);
-					db.update(idUpdt, t);
-					break;
+					t.setName(sc.nextLine());
 				}
 				case 7 -> {
+					Boolean explicit = null;
+					while (explicit == null) {
 					System.out.print("Explicit (true/false): ");
-					sc.nextLine();
-					Boolean explicit = sc.nextBoolean();
+					String input = sc.next().trim().toLowerCase();
+					if (input.equals("true") || input.equals("false")) {
+					explicit = Boolean.parseBoolean(input);
+					} else {
+					System.out.println("Entrada inválida! Digite 'true' ou 'false'.");
+					}
+					}
 					t.setExplicit(explicit);
-					db.update(idUpdt, t);
-					break;
+					sc.nextLine();
 				}
 				case 8 -> {
 					System.out.print("Track ID: ");
-					sc.nextLine();
 					char[] trackId = sc.nextLine().toCharArray();
 					if (trackId.length == Track.getTrackIdNumChars()) {
 						t.setTrackId(trackId);
-						db.update(idUpdt, t);
-						break;
 					} else {
-						System.out.println("Tamanho do track ID incorrreto!!");
+						System.out.println("Tamanho do track ID incorreto!");
 					}
 				}
 				case 9 -> {
-					System.out.print("Danceability: ");
-					sc.nextLine();
-					Float trackDance = sc.nextFloat();
-					t.setDanceability(trackDance);
-					db.update(idUpdt, t);
-					break;
+					t.setDanceability(lerFloat("Danceability: "));
 				}
 				case 10 -> {
-					System.out.print("Energy: ");
-					sc.nextLine();
-					Float trackEnergy = sc.nextFloat();
-					t.setDanceability(trackEnergy);
-					db.update(idUpdt, t);
-					break;
+					t.setEnergy(lerFloat("Energy: "));
 				}
 				case 11 -> {
-					System.out.print("Loudness: ");
-					sc.nextLine();
-					Float loudness = sc.nextFloat();
-					t.setDanceability(loudness);
-					db.update(idUpdt, t);
-					break;
+					t.setLoudness(lerFloat("Loudness: "));
 				}
 				case 12 -> {
-					System.out.print("Tempo: ");
-					sc.nextLine();
-					Float trackTempo = sc.nextFloat();
-					t.setDanceability(trackTempo);
-					db.update(idUpdt, t);
-					break;
+					t.setTempo(lerFloat("Tempo: "));
 				}
 				case 13 -> {
-					System.out.print("Valence: ");
-					sc.nextLine();
-					Float trackValence = sc.nextFloat();
-					t.setDanceability(trackValence);
-					db.update(idUpdt, t);
-					break;
+					t.setValence(lerFloat("Valence: "));
 				}
 				case 14 -> {
-					System.out.print("ID: ");
-					sc.nextLine();
-					int trackId = sc.nextInt();
-					t.setId(trackId);
-					db.update(idUpdt, t);
-					break;
+					t.setId(lerInt("ID: "));
 				}
 				case 15 -> {
-					System.out.print("Key: ");
-					sc.nextLine();
-					int trackKey = sc.nextInt();
-					t.setId(trackKey);
-					db.update(idUpdt, t);
-					break;
+					t.setKey(lerInt("Key: "));
 				}
 				case 16 -> {
-					System.out.print("Popularity: ");
-					sc.nextLine();
-					int trackPopularity = sc.nextInt();
-					t.setId(trackPopularity);
-					db.update(idUpdt, t);
-					break;
+					t.setPopularity(lerInt("Popularity: "));
 				}
+				case 0 -> System.out.println("Saindo da atualização...");
 				default -> System.out.println("Tente outro número.");
 			}
 		}
+		
+		// Atualiza os dados no banco de dados apenas uma vez, no final
+		db.update(idUpdt, t);
 	}
-
+	
 	public static void delete() throws Exception{
 		
 		int acao4 = 20;
@@ -510,4 +403,43 @@ public class Menu {
 			db.delete(acao4);
 		}
 	}
+
+private static List<String> lerLista(String mensagem) {
+    System.out.print(mensagem);
+    String entrada = sc.nextLine();
+    return Arrays.stream(entrada.split(","))
+                 .map(String::trim)
+                 .collect(Collectors.toList());
+}
+
+private static Float lerFloat(String mensagem) {
+    Float valor = null;
+    while (valor == null) {
+        try {
+            System.out.print(mensagem);
+            valor = sc.nextFloat();
+        } catch (InputMismatchException e) {
+            System.out.println("Entrada inválida! Digite um número válido.");
+            sc.nextLine(); 
+        }
+    }
+    sc.nextLine(); 
+    return valor;
+}
+
+private static Integer lerInt(String mensagem) {
+    Integer valor = null;
+    while (valor == null) {
+        try {
+            System.out.print(mensagem);
+            valor = sc.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Entrada inválida! Digite um número válido.");
+            sc.nextLine(); 
+        }
+    }
+    sc.nextLine(); 
+    return valor;
+}
+
 }
