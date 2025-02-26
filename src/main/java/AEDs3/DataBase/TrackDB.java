@@ -40,7 +40,7 @@ public class TrackDB implements Iterable<Track> {
 
 		BinaryTrackWriter btw = new BinaryTrackWriter(track);
 		file.seek(file.length());
-		file.writeBoolean(btw.isValid());
+		file.writeBoolean(btw.isTombstone());
 		file.writeInt(btw.getSize());
 		file.write(btw.getStream().toByteArray());
 
@@ -72,15 +72,15 @@ public class TrackDB implements Iterable<Track> {
 		if (writer.getSize() <= oldSize) {
 			// Volta para o começo do registro para sobrescrevê-lo
 			file.seek(lastBinaryTrackPos);
-			file.writeBoolean(writer.isValid());
+			file.writeBoolean(writer.isTombstone());
 			file.writeInt(oldSize);
 		} else {
 			// Seta a lápide do registro
 			file.seek(lastBinaryTrackPos);
-			file.writeBoolean(false);
+			file.writeBoolean(true);
 			// Pula para o final do arquivo, para inserir registro no final
 			file.seek(file.length());
-			file.writeBoolean(writer.isValid());
+			file.writeBoolean(writer.isTombstone());
 			file.writeInt(writer.getSize());
 		}
 
@@ -93,7 +93,7 @@ public class TrackDB implements Iterable<Track> {
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
-		file.writeBoolean(false); // Seta a lápide
+		file.writeBoolean(true); // Seta a lápide
 	}
 
 	public Track next() throws NoSuchElementException, IOException, ClassNotFoundException {
@@ -116,16 +116,16 @@ public class TrackDB implements Iterable<Track> {
 
 	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
 		lastBinaryTrackPos = file.getFilePointer();
-		boolean valid = file.readBoolean();
+		boolean tombstone = file.readBoolean();
 		int size = file.readInt();
 
-		if (valid) {
-			byte[] buf = new byte[size];
-			file.read(buf);
-			return new BinaryTrackReader(valid, size, new ByteArrayInputStream(buf));
-		} else {
+		if (tombstone) {
 			file.skipBytes(size);
 			return null;
+		} else {
+			byte[] buf = new byte[size];
+			file.read(buf);
+			return new BinaryTrackReader(tombstone, size, new ByteArrayInputStream(buf));
 		}
 	}
 
@@ -176,15 +176,15 @@ public class TrackDB implements Iterable<Track> {
 }
 
 abstract class BinaryTrack {
-	protected boolean valid;
+	protected boolean tombstone;
 	protected int size;
 
-	public boolean isValid() {
-		return valid;
+	public boolean isTombstone() {
+		return tombstone;
 	}
 
-	public void setValid(boolean valid) {
-		this.valid = valid;
+	public void setTombstone(boolean tombstone) {
+		this.tombstone = tombstone;
 	}
 
 	public int getSize() {
@@ -200,9 +200,9 @@ class BinaryTrackReader extends BinaryTrack {
 	protected ByteArrayInputStream stream;
 	private Track track;
 
-	public BinaryTrackReader(boolean valid, int size, ByteArrayInputStream stream) {
+	public BinaryTrackReader(boolean tombstone, int size, ByteArrayInputStream stream) {
 		track = null;
-		this.valid = valid;
+		this.tombstone = tombstone;
 		this.size = size;
 		this.stream = stream;
 	}
@@ -245,7 +245,7 @@ class BinaryTrackWriter extends BinaryTrack {
 			track.writeExternal(objOutStream);
 		}
 
-		valid = true;
+		tombstone = false;
 		size = stream.size();
 	}
 
