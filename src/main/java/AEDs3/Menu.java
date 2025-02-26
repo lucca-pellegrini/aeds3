@@ -37,18 +37,113 @@ public class Menu {
 		sc.close();
 	}
 
-	public static void create() {
-		int acao1 = 20;
-		System.out.println("Deseja criar um objeto por qual característica?");
+	public static void create() throws Exception  {
+		int cont = 1;
+		while(cont == 1){
 
-		while (acao1 != 0) {
+			Track nova = new Track();
+
+			System.out.println("Vamos começar a criar a nossa track:");
+		
+			System.out.print("Album Release Date (YYYY-MM-DD): ");
+			
+
+			System.out.print("Genres (separados por vírgula): ");
+					
+				
+			System.out.print("Track Artists (separados por vírgula): ");
+					
+				
+			System.out.print("Album Name: ");
+				sc.nextLine();
+				String albumName = sc.nextLine();
+				nova.setAlbumName(albumName);
+				
+			System.out.print("Album Type: ");
+				sc.nextLine();
+				String albumType = sc.nextLine();
+				nova.setAlbumType(albumType);
+				
+			System.out.print("Track Name: ");
+				sc.nextLine();
+				String trackName = sc.nextLine();
+				nova.setName(trackName);
+				
+			System.out.print("Explicit (true/false): ");
+				sc.nextLine();
+				Boolean explicit = sc.nextBoolean();
+				nova.setExplicit(explicit);
+				
+			System.out.print("Track ID: ");
+				sc.nextLine();
+				char[] trackI = sc.nextLine().toCharArray();
+					if (trackI.length == Track.getTrackIdNumChars()) {
+						nova.setTrackId(trackI);
+						break;
+					} else {
+						System.out.println("Tamanho do track ID incorrreto!!");
+					}
+				
+			System.out.print("Danceability: ");
+				sc.nextLine();
+				Float dance = sc.nextFloat();
+				nova.setDanceability(dance);
+					
+			System.out.print("Energy: ");
+				sc.nextLine();
+				Float energy = sc.nextFloat();
+				nova.setEnergy(energy);
+				
+			System.out.print("Loudness: ");
+				sc.nextLine();
+				Float loud = sc.nextFloat();
+				nova.setLoudness(loud);
+				
+			System.out.print("Tempo: ");
+				sc.nextLine();
+				Float tempo = sc.nextFloat();
+				nova.setTempo(tempo);
+				
+			System.out.print("Valence: ");
+				sc.nextLine();
+				Float valence = sc.nextFloat();
+				nova.setValence(valence);
+				
+			System.out.print("ID: ");
+				sc.nextLine();
+				int id = sc.nextInt();
+				nova.setId(id);
+				
+			System.out.print("Key: ");
+				sc.nextLine();
+				int key = sc.nextInt();
+				nova.setKey(key);
+				
+			System.out.print("Popularity: ");
+				sc.nextLine();
+				int popul = sc.nextInt();
+				nova.setPopularity(popul);
+			
+			db.create(nova);
+
+			System.out.print("Digite 1 para adicionar outra track: ");
+			cont = sc.nextInt();
+			}
+		}
+
+	public static void read() throws Exception {
+		System.out.println("Por qual caracterísca voce irá querer para fazer a leitura?");
+		
+		int acao3 = 20;
+
+		while (acao3 != 0) {
 			System.out.println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. "
 					+ "AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. "
 					+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. "
 					+ "Popularity\n0. Sair");
-			acao1 = sc.nextInt();
+			acao3 = sc.nextInt();
 
-			switch (acao1) {
+			switch (acao3) {
 				case 1 -> {
 					System.out.print("Album Release Date (YYYY-MM-DD): ");
 					// track = LocalDate.parse(sc.nextLine());
@@ -66,76 +161,103 @@ public class Menu {
 				}
 				case 4 -> {
 					System.out.print("Album Name: ");
-					// track = sc.nextLine();
+					sc.nextLine();
+					String albumName = sc.nextLine();
+					Track track = db.read(TrackField.ALBUM_NAME, albumName);
 					break;
 				}
 				case 5 -> {
 					System.out.print("Album Type: ");
-					// track = sc.nextLine();
+					sc.nextLine();
+					String albumType = sc.nextLine();
+					Track track = db.read(TrackField.ALBUM_TYPE, albumType);
 					break;
 				}
 				case 6 -> {
 					System.out.print("Track Name: ");
-					// track = sc.nextLine();
+					sc.nextLine();
+					String trackName = sc.nextLine();
+					Track track = db.read(TrackField.TRACK_NAME, trackName);
 					break;
 				}
 				case 7 -> {
 					System.out.print("Explicit (true/false): ");
-					// track = sc.nextBoolean();
+					sc.nextLine();
+					Boolean explicit = sc.nextBoolean();
+					Track track = db.read(TrackField.EXPLICIT, explicit);
 					break;
 				}
 				case 8 -> {
 					System.out.print("Track ID: ");
-					// track = sc.nextLine().toCharArray();
-					break;
+					sc.nextLine();
+					char[] trackId = sc.nextLine().toCharArray();
+					if (trackId.length == Track.getTrackIdNumChars()) {
+						Track track = db.read(TrackField.TRACK_ID, trackId);;
+						break;
+					} else {
+						System.out.println("Tamanho do track ID incorrreto!!");
+					}
 				}
 				case 9 -> {
 					System.out.print("Danceability: ");
-					// track =sc.nextFloat();
+					sc.nextLine();
+					Float trackDance = sc.nextFloat();
+					Track track = db.read(TrackField.DANCEABILITY, trackDance);
 					break;
 				}
 				case 10 -> {
 					System.out.print("Energy: ");
-					// track =sc.nextFloat();
+					sc.nextLine();
+					Float trackEnergy = sc.nextFloat();
+					Track track = db.read(TrackField.ENERGY, trackEnergy);
 					break;
 				}
 				case 11 -> {
 					System.out.print("Loudness: ");
-					// track =sc.nextFloat();
+					sc.nextLine();
+					Float loudness = sc.nextFloat();
+					Track track = db.read(TrackField.LOUDNESS, loudness);
 					break;
 				}
 				case 12 -> {
 					System.out.print("Tempo: ");
-					// track =sc.nextFloat();
+					sc.nextLine();
+					Float trackTempo = sc.nextFloat();
+					Track track = db.read(TrackField.TEMPO, trackTempo);
 					break;
 				}
 				case 13 -> {
 					System.out.print("Valence: ");
-					// track =sc.nextFloat();
+					sc.nextLine();
+					Float trackValence = sc.nextFloat();
+					Track track = db.read(TrackField.VALENCE, trackValence);
 					break;
 				}
 				case 14 -> {
 					System.out.print("ID: ");
-					// track = sc.nextInt();
+					sc.nextLine();
+					int trackId = sc.nextInt();
+					Track track = db.read(TrackField.ID, trackId);
 					break;
 				}
 				case 15 -> {
 					System.out.print("Key: ");
-					// track = sc.nextInt()
+					sc.nextLine();
+					int trackKey = sc.nextInt();
+					Track track = db.read(TrackField.KEY, trackKey);
 					break;
 				}
 				case 16 -> {
 					System.out.print("Popularity: ");
-					// track = sc.nextInt()
+					sc.nextLine();
+					int trackPopularity = sc.nextInt();
+					Track track = db.read(TrackField.POPULARITY, trackPopularity);
 					break;
 				}
+
 				default -> System.out.println("Tente outro número.");
 			}
 		}
-	}
-
-	public static void read() {
-		System.err.println("Read não implementado");
 	}
 
 	public static void update() throws Exception {
@@ -280,100 +402,15 @@ public class Menu {
 		}
 	}
 
-	public static void delete() {
+	public static void delete() throws Exception{
+		
 		int acao4 = 20;
-		System.out.println("Deseja deletar um objeto por qual característica?");
-
+		
 		while (acao4 != 0) {
-			System.out.println("1. AlbumReleaseDate\n2. Genres\n3. TrackArtists\n4. AlbumName\n5. "
-					+ "AlbumType\n6. Name\n7. Explicit\n8. TrackId\n9. Danceability\n10. "
-					+ "Energy\n11. Loudness\n12. Tempo\n13. Valence\n14. ID\n15. Key\n16. "
-					+ "Popularity\n0. Sair");
+			System.out.println("Qual ID voce deseja deletar? Digite 0 para parar o delete.");
 			acao4 = sc.nextInt();
-
-			switch (acao4) {
-				case 1 -> {
-					System.out.print("Album Release Date (YYYY-MM-DD): ");
-					// track = LocalDate.parse(sc.nextLine());
-					break;
-				}
-				case 2 -> {
-					System.out.print("Genres (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
-					break;
-				}
-				case 3 -> {
-					System.out.print("Track Artists (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
-					break;
-				}
-				case 4 -> {
-					System.out.print("Album Name: ");
-					// track = sc.nextLine();
-					break;
-				}
-				case 5 -> {
-					System.out.print("Album Type: ");
-					// track = sc.nextLine();
-					break;
-				}
-				case 6 -> {
-					System.out.print("Track Name: ");
-					// track = sc.nextLine();
-					break;
-				}
-				case 7 -> {
-					System.out.print("Explicit (true/false): ");
-					// track = sc.nextBoolean();
-					break;
-				}
-				case 8 -> {
-					System.out.print("Track ID: ");
-					// track = sc.nextLine().toCharArray();
-					break;
-				}
-				case 9 -> {
-					System.out.print("Danceability: ");
-					// track =sc.nextFloat();
-					break;
-				}
-				case 10 -> {
-					System.out.print("Energy: ");
-					// track =sc.nextFloat();
-					break;
-				}
-				case 11 -> {
-					System.out.print("Loudness: ");
-					// track =sc.nextFloat();
-					break;
-				}
-				case 12 -> {
-					System.out.print("Tempo: ");
-					// track =sc.nextFloat();
-					break;
-				}
-				case 13 -> {
-					System.out.print("Valence: ");
-					// track =sc.nextFloat();
-					break;
-				}
-				case 14 -> {
-					System.out.print("ID: ");
-					// track = sc.nextInt();
-					break;
-				}
-				case 15 -> {
-					System.out.print("Key: ");
-					// track = sc.nextInt()
-					break;
-				}
-				case 16 -> {
-					System.out.print("Popularity: ");
-					// track = sc.nextInt()
-					break;
-				}
-				default -> System.out.println("Tente outro número.");
-			}
+			
+			db.delete(acao4);
 		}
 	}
 }
