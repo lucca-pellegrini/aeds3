@@ -100,6 +100,19 @@ public class TrackDB implements Iterable<Track> {
 		file.writeBoolean(true); // Seta a lápide
 	}
 
+	public void delete(Track.Field field, Object value) throws IOException {
+		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
+
+		for (Track t : this) {
+			if (t.matchesField(field, value)) {
+				long pos = file.getFilePointer(); // Salva posição atual.
+				file.seek(lastBinaryTrackPos); // Volta para o começo do registro.
+				file.writeBoolean(true); // Seta a lápide.
+				file.seek(pos); // Retorna para a posição salva.
+			}
+		}
+	}
+
 	public Track next() throws NoSuchElementException, IOException, ClassNotFoundException {
 		try {
 			return nextValidBinaryTrackReader().getTrack();
