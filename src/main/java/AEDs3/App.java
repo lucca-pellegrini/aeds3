@@ -41,6 +41,14 @@ public class App {
 		genres.add("easy listening");
 		db.setFilter(Track.Field.GENRES, genres);
 		db.printAll();
+		System.out.println("\n\n");
+
+		System.out.println("Testando busca de álbum por RegEx:\n");
+		db.setFilter(Track.Field.ALBUM_NAME,
+				"((Catholic Classics, Vol\\.\\s\\d+:?|The Art of Gregorian|Masters of Chant( "
+						+ "[IVXLCDM]+)?: (The .*|Chapter [IVXLCDM]+)))");
+		db.printAll();
+		System.out.println("\n\n");
 
 		try {
 			Menu.main(null);

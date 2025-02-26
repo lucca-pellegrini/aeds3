@@ -11,6 +11,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 // Criação da classe track.
 public class Track implements Externalizable {
@@ -126,8 +127,6 @@ public class Track implements Externalizable {
 	public boolean matchesField(Track.Field field, Object value) {
 		return switch (field) {
 			case ID -> getId() == (int) value;
-			case NAME -> getName().equals(value);
-			case ALBUM_NAME -> getAlbumName().equals(value);
 			case ALBUM_RELEASE_DATE -> getAlbumReleaseDate().equals(value);
 			case ALBUM_TYPE -> getAlbumType().equals(value);
 			case EXPLICIT -> !(isExplicit() ^ (boolean) value);
@@ -140,7 +139,24 @@ public class Track implements Externalizable {
 			case TEMPO -> getTempo() == (float) value;
 			case VALENCE -> getValence() == (float) value;
 
-			// Listas exigem muito mais cuidado para tratar de forma segura
+			// Strings são comparadas por regex.
+			case NAME -> {
+				if (!(value instanceof String))
+					throw new InvalidParameterException("Tipo inválido. Esperava String.");
+
+				Pattern pattern = Pattern.compile((String) value, Pattern.CASE_INSENSITIVE);
+				yield pattern.matcher(getName()).find();
+			}
+
+			case ALBUM_NAME -> {
+				if (!(value instanceof String))
+					throw new InvalidParameterException("Tipo inválido. Esperava String.");
+
+				Pattern pattern = Pattern.compile((String) value, Pattern.CASE_INSENSITIVE);
+				yield pattern.matcher(getAlbumName()).find();
+			}
+
+			// Listas exigem muito mais cuidado para tratar de forma segura.
 			case TRACK_ARTISTS -> {
 				// Verifica se o valor é uma Collection.
 				if (!(value instanceof Collection<?>))
@@ -150,7 +166,8 @@ public class Track implements Externalizable {
 				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
 					yield getTrackArtists().containsAll((Collection<String>) value);
 				else
-					throw new InvalidParameterException("Tipo inválido! Esperava Collection<String>.");
+					throw new InvalidParameterException(
+							"Tipo inválido! Esperava Collection<String>.");
 			}
 
 			case GENRES -> {
@@ -162,7 +179,8 @@ public class Track implements Externalizable {
 				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
 					yield getGenres().containsAll((Collection<String>) value);
 				else
-					throw new InvalidParameterException("Tipo inválido! Esperava Collection<String>.");
+					throw new InvalidParameterException(
+							"Tipo inválido! Esperava Collection<String>.");
 			}
 		};
 	}
