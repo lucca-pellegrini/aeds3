@@ -1,5 +1,6 @@
 package AEDs3.DataBase;
 
+import AEDs3.DataBase.Track.Field;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
+import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -15,6 +17,7 @@ public class TrackDB implements Iterable<Track> {
 	protected RandomAccessFile file;
 	protected int lastId;
 	private long lastBinaryTrackPos;
+	private TrackFilter searchFilter;
 
 	// Tamanho do cabeçalho com os metadados do BD.
 	private static final short HEADER_SIZE = Integer.SIZE / 8;
@@ -48,10 +51,10 @@ public class TrackDB implements Iterable<Track> {
 	}
 
 	public Track read(int id) throws IOException {
-		return read(Track.Field.ID, id);
+		return readFirst(Track.Field.ID, id);
 	}
 
-	public Track read(Track.Field field, Object value) throws IOException {
+	public Track readFirst(Track.Field field, Object value) throws IOException {
 		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
 
 		for (Track t : this)
@@ -132,12 +135,17 @@ public class TrackDB implements Iterable<Track> {
 			System.out.println(t);
 	}
 
-	public Track next() throws NoSuchElementException, IOException, ClassNotFoundException {
-		try {
+	private Track nextTrack() throws EOFException, IOException, ClassNotFoundException {
+		if (searchFilter == null)
 			return nextValidBinaryTrackReader().getTrack();
-		} catch (EOFException e) {
-			throw new NoSuchElementException("TrackDB chegou ao fim");
-		}
+
+		Track result = null;
+
+		do
+			result = nextValidBinaryTrackReader().getTrack();
+		while (!(result.matchesField(searchFilter.searchField, searchFilter.searchValue)));
+
+		return result;
 	}
 
 	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
@@ -172,6 +180,27 @@ public class TrackDB implements Iterable<Track> {
 		file.seek(pos);
 	}
 
+	public void setFilter(Track.Field field, Object value) {
+		searchFilter = new TrackFilter(field, value);
+	}
+
+	public void clearFilter() {
+		searchFilter = null;
+	}
+
+	private class TrackFilter {
+		public Track.Field searchField;
+		public Object searchValue;
+
+		public TrackFilter(Field searchField, Object searchValue) {
+			if (searchField == null || searchValue == null)
+				throw new InvalidParameterException("Os valores devem ser não-nulos");
+
+			this.searchField = searchField;
+			this.searchValue = searchValue;
+		}
+	}
+
 	@Override
 	public Iterator<Track> iterator() throws RuntimeException {
 		try {
@@ -181,33 +210,35 @@ public class TrackDB implements Iterable<Track> {
 		}
 
 		return new Iterator<Track>() {
-			private BinaryTrackReader currentReader = null;
+			private Track currentTrack = null;
 
 			@Override
 			public boolean hasNext() {
 				try {
 					// Tenta ler a próxima Track. Se for válida, retorna true.
-					currentReader = nextValidBinaryTrackReader();
-					return currentReader != null;
-				} catch (IOException e) {
+					currentTrack = nextTrack();
+					return currentTrack != null;
+				} catch (EOFException e) {
 					return false;
+				} catch (IOException | ClassNotFoundException e) {
+					throw new RuntimeException("Falha ao obter próxima Track");
 				}
 			}
 
 			@Override
 			public Track next() throws RuntimeException {
-				if (currentReader == null)
+				if (currentTrack == null)
 					throw new NoSuchElementException("TrackDB chegou ao fim");
 
-				try {
-					Track track = currentReader.getTrack();
-					currentReader = null; // Reset para null até o próximo hasNext()
-					return track;
-				} catch (IOException | ClassNotFoundException e) {
-					throw new RuntimeException("Falha ao obter próxima Track");
-				}
+				Track track = currentTrack;
+				currentTrack = null; // Reset para null até o próximo hasNext()
+				return track;
 			}
 		};
+	}
+
+	public int getLastId() {
+		return lastId;
 	}
 }
 
