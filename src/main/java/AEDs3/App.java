@@ -41,5 +41,11 @@ public class App {
 		genres.add("easy listening");
 		db.setFilter(Track.Field.GENRES, genres);
 		db.printAll();
+
+		try {
+			Menu.main(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
