@@ -10,6 +10,7 @@ import java.security.InvalidParameterException;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 // Criação da classe track.
@@ -119,6 +120,72 @@ public class Track implements Externalizable {
 	public String toString() {
 		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id
 				+ ", getName()=" + getName() + "]";
+	}
+
+	// Verifica a igualdade entre um campo e um valor.
+	@SuppressWarnings("unchecked")
+	public boolean matchesField(Track.Field field, Object value) {
+		return switch (field) {
+			case ID -> getId() == (int) value;
+			case NAME -> getName().equals(value);
+			case ALBUM_NAME -> getAlbumName().equals(value);
+			case ALBUM_RELEASE_DATE -> getAlbumReleaseDate().equals(value);
+			case ALBUM_TYPE -> getAlbumType().equals(value);
+			case EXPLICIT -> !(isExplicit() ^ (boolean) value);
+			case TRACK_ID -> new String(getTrackId()).equals(value);
+			case POPULARITY -> getPopularity() == (int) value;
+			case KEY -> getKey() == (int) value;
+			case DANCEABILITY -> getDanceability() == (float) value;
+			case ENERGY -> getEnergy() == (float) value;
+			case LOUDNESS -> getLoudness() == (float) value;
+			case TEMPO -> getTempo() == (float) value;
+			case VALENCE -> getValence() == (float) value;
+
+			// Listas exigem muito mais cuidado para tratar de forma segura
+			case TRACK_ARTISTS -> {
+				// Verifica se o valor é uma Collection.
+				if (!(value instanceof Collection<?>))
+					yield false;
+
+				// Verifica se os elementos da Collection são Strings.
+				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
+					yield getTrackArtists().containsAll((Collection<String>) value);
+				else
+					throw new InvalidParameterException("Tipo inválido! Esperava Collection<String>.");
+			}
+
+			case GENRES -> {
+				// Verifica se o valor é uma Collection.
+				if (!(value instanceof Collection<?>))
+					yield false;
+
+				// Verifica se os elementos da Collection são Strings.
+				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
+					yield getGenres().containsAll((Collection<String>) value);
+				else
+					throw new InvalidParameterException("Tipo inválido! Esperava Collection<String>.");
+			}
+		};
+	}
+
+	// Campos do registro disponíveis para busca.
+	public enum Field {
+		ID,
+		NAME,
+		TRACK_ARTISTS,
+		ALBUM_NAME,
+		ALBUM_RELEASE_DATE,
+		ALBUM_TYPE,
+		GENRES,
+		EXPLICIT,
+		TRACK_ID,
+		POPULARITY,
+		KEY,
+		DANCEABILITY,
+		ENERGY,
+		LOUDNESS,
+		TEMPO,
+		VALENCE
 	}
 
 	// Getters e setters.
