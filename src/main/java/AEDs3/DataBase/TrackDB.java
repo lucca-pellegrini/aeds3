@@ -113,6 +113,25 @@ public class TrackDB implements Iterable<Track> {
 		}
 	}
 
+	public void print(int id) throws IOException {
+		print(Track.Field.ID, id);
+	}
+
+	public void print(Track.Field field, Object value) throws IOException {
+		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
+
+		for (Track t : this)
+			if (t.matchesField(field, value))
+				System.out.println(t);
+	}
+
+	public void printAll() throws IOException {
+		file.seek(HEADER_SIZE); // Posiciona cursor no primeiro registro.
+
+		for (Track t : this)
+			System.out.println(t);
+	}
+
 	public Track next() throws NoSuchElementException, IOException, ClassNotFoundException {
 		try {
 			return nextValidBinaryTrackReader().getTrack();
