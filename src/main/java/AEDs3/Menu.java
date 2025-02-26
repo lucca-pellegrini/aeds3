@@ -3,7 +3,10 @@ package AEDs3;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.TrackDB;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 public class Menu {
@@ -45,15 +48,47 @@ public class Menu {
 
 			System.out.println("Vamos começar a criar a nossa track:");
 		
-			System.out.print("Album Release Date (YYYY-MM-DD): ");
-			
+			LocalDate releaseDate = null;
+
+			while (releaseDate == null) {
+    			System.out.print("Album Release Date (YYYY-MM-DD): ");
+    			String dataEntrada = sc.nextLine();
+    
+    		try {
+       			releaseDate = LocalDate.parse(dataEntrada);
+    		} catch (DateTimeParseException e) {
+       			System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
+    		}
+
+			nova.setAlbumReleaseDate(releaseDate);
 
 			System.out.print("Genres (separados por vírgula): ");
-					
+				sc.nextLine();
+				String generos = sc.nextLine();
+
+				String[] arrayGeneros = generos.split(",");
+				List<String> genres = new ArrayList<>();
+
+				for (String genero : arrayGeneros) {
+    			genres.add(genero.trim()); 
+				}
+
+				nova.setGenres(genres);
 				
 			System.out.print("Track Artists (separados por vírgula): ");
-					
-				
+				sc.nextLine();
+				String artistas = sc.nextLine();
+
+				String[] arrayArtistas = artistas.split(",");
+				List<String> artists = new ArrayList<>();
+
+				for (String artista : arrayArtistas) {
+				artists.add(artista.trim()); 
+				}
+
+				nova.setTrackArtists(artists);
+
+			nova.setGenres(genres);
 			System.out.print("Album Name: ");
 				sc.nextLine();
 				String albumName = sc.nextLine();
@@ -145,18 +180,49 @@ public class Menu {
 
 			switch (acao3) {
 				case 1 -> {
-					System.out.print("Album Release Date (YYYY-MM-DD): ");
-					// track = LocalDate.parse(sc.nextLine());
+					LocalDate releaseDate = null;
+
+					while (releaseDate == null) {
+    				System.out.print("Album Release Date (YYYY-MM-DD): ");
+    				String dataEntrada = sc.nextLine();
+    
+    				try {
+       				releaseDate = LocalDate.parse(dataEntrada);
+    				} catch (DateTimeParseException e) {
+       				System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
+    				}
+				}
+					Track track = db.read(TrackField.ALBUM_RELEASE_DATE, releaseDate);
 					break;
 				}
 				case 2 -> {
 					System.out.print("Genres (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
+					sc.nextLine();
+					String generos = sc.nextLine();
+
+					String[] arrayGeneros = generos.split(",");
+					List<String> genres = new ArrayList<>();
+
+					for (String genero : arrayGeneros) {
+    				genres.add(genero.trim()); 
+					}
+
+					Track track = db.read(TrackField.GENRES, genres);
 					break;
 				}
 				case 3 -> {
 					System.out.print("Track Artists (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
+					sc.nextLine();
+					String artistas = sc.nextLine();
+
+					String[] arrayArtistas = artistas.split(",");
+					List<String> artists = new ArrayList<>();
+
+					for (String artista : arrayArtistas) {
+					artists.add(artista.trim()); 
+					}
+
+					Track track = db.read(TrackField.ARTISTS, artists);
 					break;
 				}
 				case 4 -> {
@@ -276,18 +342,49 @@ public class Menu {
 
 			switch (acao3) {
 				case 1 -> {
-					System.out.print("Album Release Date (YYYY-MM-DD): ");
-					// track = LocalDate.parse(sc.nextLine());
+					LocalDate releaseDate = null;
+
+					while (releaseDate == null) {
+    				System.out.print("Album Release Date (YYYY-MM-DD): ");
+    				String dataEntrada = sc.nextLine();
+    
+    				try {
+       				releaseDate = LocalDate.parse(dataEntrada);
+    				} catch (DateTimeParseException e) {
+       				System.out.println("Formato inválido! Use o formato YYYY-MM-DD.");
+    				}
+				}
+					t.setAlbumReleaseDate(releaseDate);
 					break;
 				}
 				case 2 -> {
 					System.out.print("Genres (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
+					sc.nextLine();
+					String generos = sc.nextLine();
+
+					String[] arrayGeneros = generos.split(",");
+					List<String> genres = new ArrayList<>();
+
+					for (String genero : arrayGeneros) {
+    				genres.add(genero.trim()); 
+					}
+
+					t.setGenres(genres);
 					break;
 				}
 				case 3 -> {
 					System.out.print("Track Artists (separados por vírgula): ");
-					// track = Arrays.asList(sc.nextLine().split(", "));
+					sc.nextLine();
+					String artistas = sc.nextLine();
+
+					String[] arrayArtistas = artistas.split(",");
+					List<String> artists = new ArrayList<>();
+
+					for (String artista : arrayArtistas) {
+					artists.add(artista.trim()); 
+					}
+
+					t.setTrackArtists(artists);
 					break;
 				}
 				case 4 -> {
