@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 public class App {
 	public static void main(String[] args) throws IOException {
-		CSVManager csv = new CSVManager("dataset-clean.csv");
+		/* CSVManager csv = new CSVManager("dataset-clean.csv");
 		TrackDB db = new TrackDB("tracks.db");
 
 		if (db.getLastId() == 0) {
@@ -58,5 +58,7 @@ public class App {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	*/
+		CommandLineInterface.main(args);
 	}
 }
