@@ -109,6 +109,11 @@
                 <configuration>
                     <finalName>${project.artifactId}-${project.version}-full</finalName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>AEDs3.App</mainClass>
+                        </transformer>
+                    </transformers>
                 </configuration>
             </plugin>
         </plugins>
