@@ -1,29 +1,40 @@
 package AEDs3;
 
 import AEDs3.DataBase.TrackDB;
+import java.io.FileNotFoundException;
+import org.jline.builtins.Completers.FileNameCompleter;
+import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.impl.completer.ArgumentCompleter;
+import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.jline.widget.AutosuggestionWidgets;
 
 public class CommandLineInterface {
 	private Terminal terminal;
 	private LineReader reader;
-	private TrackDB db;
 
 	public CommandLineInterface() {
 		try {
 			terminal = TerminalBuilder.builder().build();
-			reader = LineReaderBuilder.builder()
-					.terminal(terminal)
-					.option(LineReader.Option.AUTO_FRESH_LINE, true)
-					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void main(String[] args) {
+		CommandLineInterface cli = new CommandLineInterface();
+		cli.start();
+	}
+
+	private void start() {
+		showWelcomeBanner();
+		new MainMenu(terminal).loop();
 	}
 
 	public void showWelcomeBanner() {
