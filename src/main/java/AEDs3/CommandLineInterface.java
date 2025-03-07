@@ -152,7 +152,7 @@ public class CommandLineInterface {
 					commands.info("Programa finalizado");
 					tailtip.disable();
 					suggestions.disable();
-					return;
+					System.exit(0);
 				} catch (Exception e) {
 					systemRegistry.trace(e);
 				}
