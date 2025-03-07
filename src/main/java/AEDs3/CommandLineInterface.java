@@ -41,7 +41,7 @@ public class CommandLineInterface {
 			"Pressione @|magenta <TAB>|@ para ver os comandos.",
 			"Pressione @|magenta Alt-S|@ para (des)habilitar tailtips.",
 			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class,
-					CloseCommand.class })
+					CloseCommand.class, InfoCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -121,6 +121,21 @@ public class CommandLineInterface {
 				parent.prompt = CliCommands.DEFAULT_PROMPT;
 				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT;
 			}
+		}
+	}
+
+	@Command(name = "info", mixinStandardHelpOptions = true, description = "Print information about the opened file.")
+	static class InfoCommand implements Runnable {
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			parent.out.println(ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
 		}
 	}
 
