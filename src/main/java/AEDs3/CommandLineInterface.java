@@ -47,12 +47,20 @@ public class CommandLineInterface {
 		String prompt;
 		String rightPrompt;
 
-		static final String DEFAULT_PROMPT = ansi().fg(GREEN).bold().a("TrackDB> ").toString();
-		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(RED).a("Nenhum arquivo aberto").toString();
+		static final String DEFAULT_PROMPT = ansi().fg(YELLOW).bold().a("TrackDB> ").toString();
+		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(YELLOW).a("Nenhum arquivo aberto").toString();
 
 		CliCommands() {
 			prompt = DEFAULT_PROMPT;
 			rightPrompt = DEFAULT_RIGHT_PROMPT;
+		}
+
+		void error(String msg) {
+			out.println(ansi().bold().render("@|red Erro:|@ " + msg));
+		}
+
+		void info(String msg) {
+			out.println(ansi().bold().render("@|blue Info:|@ " + msg));
 		}
 
 		public void setReader(LineReader reader) {
@@ -71,27 +79,25 @@ public class CommandLineInterface {
 		private boolean create;
 
 		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.")
-		private String[] params;
+		private Path param;
 
 		@ParentCommand
 		CliCommands parent;
 
 		public void run() {
-			if (params == null) {
-				parent.out.println(ansi().bold().render(
-						"@|red Erro:|@ é necessário especificar exatamente um arquivo."));
-			} else if (!create && !new File(params[0]).exists()) {
-				parent.out.println(ansi().bold().render("@|red Erro:|@ o arquivo não existe."));
+			if (!create && !new File(param.toString()).exists()) {
+				parent.error("O arquivo não existe.");
 			} else {
 				try {
-					parent.db = new TrackDB(params[0]);
+					parent.db = new TrackDB(param.toString());
 				} catch (IOException e) {
 					e.printStackTrace();
-					throw new RuntimeException("Erro ao abrir " + params[0]);
+					throw new RuntimeException("Erro ao abrir " + param);
 				}
 
-				parent.rightPrompt = ansi().bold().fg(CYAN).a(params[0]).toString();
-				parent.out.println(ansi().bold().render("@|blue Sucesso:|@ abrindo arquivo."));
+				parent.prompt = ansi().bold().fg(CYAN).a(param + "> ").toString();
+				parent.rightPrompt = ansi().fg(GREEN).a("Nenhum filtro aplicado").toString();
+				parent.info("Arquivo aberto.");
 			}
 		}
 	}
@@ -134,7 +140,8 @@ public class CommandLineInterface {
 			while (true) {
 				try {
 					systemRegistry.cleanUp();
-					line = reader.readLine(commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
+					line = reader.readLine(
+							commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
 					systemRegistry.execute(line);
 				} catch (UserInterruptException e) {
 					// Ignore
