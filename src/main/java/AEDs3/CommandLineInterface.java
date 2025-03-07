@@ -51,6 +51,9 @@ public class CommandLineInterface {
 
 		static final String DEFAULT_PROMPT = ansi().fg(YELLOW).bold().a("TrackDB> ").toString();
 		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(RED).a("[Nenhum arquivo aberto]").toString();
+		static final String ERROR_PROMPT = ansi().bold().render("@|red Erro:|@ ").toString();
+		static final String WARN_PROMPT = ansi().bold().render("@|yellow Warn:|@ ").toString();
+		static final String INFO_PROMPT = ansi().bold().render("@|blue Info:|@ ").toString();
 
 		CliCommands() {
 			prompt = DEFAULT_PROMPT;
@@ -58,15 +61,15 @@ public class CommandLineInterface {
 		}
 
 		void error(String msg) {
-			out.println(ansi().bold().render("@|red Erro:|@ " + msg));
+			out.println(ERROR_PROMPT + msg);
 		}
 
 		void warn(String msg) {
-			out.println(ansi().bold().render("@|yellow Warn:|@ " + msg));
+			out.println(WARN_PROMPT + msg);
 		}
 
 		void info(String msg) {
-			out.println(ansi().bold().render("@|blue Info:|@ " + msg));
+			out.println(INFO_PROMPT + msg);
 		}
 
 		public void setReader(LineReader reader) {
@@ -135,7 +138,8 @@ public class CommandLineInterface {
 				return;
 			}
 
-			parent.out.println(ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
+			parent.out.println(
+					ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
 		}
 	}
 
