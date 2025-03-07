@@ -38,10 +38,10 @@ public class CommandLineInterface {
 
 	// Comando top-level. Somente printa ajuda.
 	@Command(name = "", description = { "Music tracks binary database.",
-			"Pressione @|magenta <TAB>|@ para ver os comandos.",
-			"Pressione @|magenta Alt-S|@ para (des)habilitar tailtips.",
+			"Hit @|magenta <TAB>|@ to see available commands.",
+			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class,
-					CloseCommand.class, InfoCommand.class })
+					CloseCommand.class, InfoCommand.class, UsageCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -78,6 +78,16 @@ public class CommandLineInterface {
 
 		public void run() {
 			out.println(new CommandLine(this).getUsageMessage());
+		}
+	}
+
+	@Command(name = "usage", mixinStandardHelpOptions = true, description = "Print main program help.")
+	static class UsageCommand implements Runnable {
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			parent.out.println(new CommandLine(parent).getUsageMessage());
 		}
 	}
 
