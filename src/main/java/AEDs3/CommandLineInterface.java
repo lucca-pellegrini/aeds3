@@ -50,7 +50,7 @@ public class CommandLineInterface {
 		String rightPrompt;
 
 		static final String DEFAULT_PROMPT = ansi().fg(YELLOW).bold().a("TrackDB> ").toString();
-		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(YELLOW).a("Nenhum arquivo aberto").toString();
+		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(RED).a("[Nenhum arquivo aberto]").toString();
 
 		CliCommands() {
 			prompt = DEFAULT_PROMPT;
@@ -102,7 +102,7 @@ public class CommandLineInterface {
 				}
 
 				parent.prompt = ansi().bold().fg(CYAN).a(param + "> ").toString();
-				parent.rightPrompt = ansi().fg(GREEN).a("Nenhum filtro aplicado").toString();
+				parent.rightPrompt = ansi().fg(GREEN).a("[Nenhum filtro aplicado]").toString();
 				parent.info("Arquivo aberto.");
 			}
 		}
