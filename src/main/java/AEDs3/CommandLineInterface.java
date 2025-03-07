@@ -40,7 +40,8 @@ public class CommandLineInterface {
 	@Command(name = "", description = { "Music tracks binary database.",
 			"Pressione @|magenta <TAB>|@ para ver os comandos.",
 			"Pressione @|magenta Alt-S|@ para (des)habilitar tailtips.",
-			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class })
+			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class,
+					CloseCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -58,6 +59,10 @@ public class CommandLineInterface {
 
 		void error(String msg) {
 			out.println(ansi().bold().render("@|red Erro:|@ " + msg));
+		}
+
+		void warn(String msg) {
+			out.println(ansi().bold().render("@|yellow Warn:|@ " + msg));
 		}
 
 		void info(String msg) {
@@ -99,6 +104,22 @@ public class CommandLineInterface {
 				parent.prompt = ansi().bold().fg(CYAN).a(param + "> ").toString();
 				parent.rightPrompt = ansi().fg(GREEN).a("Nenhum filtro aplicado").toString();
 				parent.info("Arquivo aberto.");
+			}
+		}
+	}
+
+	@Command(name = "close", mixinStandardHelpOptions = true, description = "Close the opened TrackDB file.")
+	static class CloseCommand implements Runnable {
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.warn("Não há nenhum arquivo aberto.");
+			} else {
+				parent.db = null;
+				parent.prompt = CliCommands.DEFAULT_PROMPT;
+				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT;
 			}
 		}
 	}
