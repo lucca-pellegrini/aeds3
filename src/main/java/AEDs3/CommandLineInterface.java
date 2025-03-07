@@ -22,6 +22,8 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.jline.utils.InfoCmp.Capability;
+import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -35,8 +37,7 @@ public class CommandLineInterface {
 	private Terminal terminal;
 
 	// Comando top-level. Somente printa ajuda.
-	@Command(name = "", description = { "Banco de dados de trilhas musicais em formato binário. "
-			+ "Primeiro TP de AEDs3.",
+	@Command(name = "", description = { "Music tracks binary database.",
 			"Pressione @|magenta <TAB>|@ para ver os comandos.",
 			"Pressione @|magenta Alt-S|@ para (des)habilitar tailtips.",
 			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class })
@@ -73,12 +74,12 @@ public class CommandLineInterface {
 	}
 
 	// Abertura do DB.
-	@Command(name = "open", mixinStandardHelpOptions = true, description = "Abrir um arquivo TrackDB.")
+	@Command(name = "open", mixinStandardHelpOptions = true, description = "Open a TrackDB file.")
 	static class OpenCommand implements Runnable {
-		@Option(names = { "-n", "--new" }, description = "Criar o arquivo se ele não existir.")
+		@Option(names = { "-n", "--new" }, description = "Create a new file if it does not exist.")
 		private boolean create;
 
-		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.")
+		@Parameters(paramLabel = "<path>", description = "Path to the file.")
 		private Path param;
 
 		@ParentCommand
@@ -112,8 +113,10 @@ public class CommandLineInterface {
 			PicocliCommandsFactory factory = new PicocliCommandsFactory();
 			CommandLine cmd = new CommandLine(commands, factory);
 			PicocliCommands picocliCommands = new PicocliCommands(cmd);
+			picocliCommands.name("TrackDB commands");
 			Parser parser = new DefaultParser();
 			terminal = TerminalBuilder.builder().build();
+			terminal.puts(Capability.clear_screen); // Limpa a tela.
 			SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
 			systemRegistry.setCommandRegistries(builtins, picocliCommands);
 			systemRegistry.register("help", picocliCommands);
@@ -128,9 +131,11 @@ public class CommandLineInterface {
 			builtins.setLineReader(reader);
 			commands.setReader(reader);
 			factory.setTerminal(terminal);
-			TailTipWidgets widgets = new TailTipWidgets(
+			TailTipWidgets tailtip = new TailTipWidgets(
 					reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
-			widgets.enable();
+			tailtip.enable();
+			AutosuggestionWidgets suggestions = new AutosuggestionWidgets(reader);
+			suggestions.enable();
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
 			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
 
@@ -143,9 +148,10 @@ public class CommandLineInterface {
 					line = reader.readLine(
 							commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
 					systemRegistry.execute(line);
-				} catch (UserInterruptException e) {
-					// Ignore
-				} catch (EndOfFileException e) {
+				} catch (UserInterruptException | EndOfFileException e) {
+					commands.info("Programa finalizado");
+					tailtip.disable();
+					suggestions.disable();
 					return;
 				} catch (Exception e) {
 					systemRegistry.trace(e);
