@@ -36,7 +36,7 @@ public class CommandLineInterface {
 		bannerLeft[4] = "   █     █     ▄▀▀▀█  █      █▀█    █    █ █    █  ";
 		bannerLeft[5] = "   █     █     ▀▄▄▀█  ▀█▄▄▀  █  ▀▄  █▄▄▄▀  █▄▄▄▄▀  ";
 		bannerLeft[6] = "";
-		bannerLeft[7] = "══════════════════════════════════════════════════════════════════════";
+		bannerLeft[7] = "══════════════════════════════════════════════════════════════════════\n";
 
 		// Colore o título principal em ASCII art.
 		for (int i = 1; i <= 5; ++i)
