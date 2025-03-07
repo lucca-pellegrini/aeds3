@@ -13,8 +13,9 @@ import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class TrackDB implements Iterable<Track> {
+public class TrackDB implements Iterable<Track>, AutoCloseable {
 	protected RandomAccessFile file;
+	protected String filePath;
 	protected int lastId;
 	private long lastBinaryTrackPos;
 	private TrackFilter searchFilter;
@@ -24,7 +25,12 @@ public class TrackDB implements Iterable<Track> {
 
 	// Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
-		file = new RandomAccessFile(fileName, "rw");
+		this.filePath = fileName;
+		this.open();
+	}
+
+	public void open() throws IOException {
+		file = new RandomAccessFile(filePath, "rw");
 		file.seek(0);
 
 		// Vê se o arquivo já tem algum ID inserido.
@@ -35,6 +41,11 @@ public class TrackDB implements Iterable<Track> {
 			file.writeInt(lastId);
 		}
 	}
+
+	public void close() throws IOException {
+		file.close();
+	}
+
 
 	// Função para adicionar uma linha no arquivo.
 	public void create(Track track) throws IOException {
@@ -239,6 +250,10 @@ public class TrackDB implements Iterable<Track> {
 
 	public int getLastId() {
 		return lastId;
+	}
+
+	public String getFilePath() {
+		return filePath;
 	}
 }
 
