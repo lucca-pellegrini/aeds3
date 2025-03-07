@@ -85,16 +85,58 @@ public class CommandLineInterface {
 		for (String s : bannerLeft)
 			terminal.writer().println(s);
 	}
+}
 
-	private void start() {
-		showWelcomeBanner();
+abstract class CommandLineMenu {
+	protected Terminal terminal;
+	protected LineReader reader;
+	protected String prompt;
 
+	// Abstract method for building the completer specific to each menu
+	protected abstract Completer buildCompleter();
+
+	protected abstract void loop();
+
+	// Constructor to initialize terminal and LineReader
+	public CommandLineMenu(Terminal terminal) {
+		this.terminal = terminal;
+		this.reader = LineReaderBuilder.builder()
+				.terminal(terminal)
+				.option(LineReader.Option.AUTO_FRESH_LINE, true)
+				.completer(buildCompleter())
+				.build();
+		new AutosuggestionWidgets(this.reader).enable();
+	}
+
+	// Optionally add more common methods for menus, like reading input, etc.
+	public String readInput(String prompt) {
+		return reader.readLine(prompt);
+	}
+}
+
+class MainMenu extends CommandLineMenu {
+	public MainMenu(Terminal terminal) {
+		super(terminal);
+		prompt = new AttributedString(
+				"TrackDB> ", AttributedStyle.BOLD.foreground(AttributedStyle.YELLOW))
+				.toAnsi();
+	}
+
+	@Override
+	protected void loop() {
 		try {
 			while (true) {
-				String prompt = new AttributedString(
-						"No File> ", AttributedStyle.BOLD.foreground(AttributedStyle.RED))
-						.toAnsi();
 				String input = reader.readLine(prompt).trim();
+				try (TrackDB db = new TrackDB(input)) {
+					terminal.writer().println(new AttributedString(
+							"Arquivo aberto", AttributedStyle.DEFAULT.foreground(AttributedStyle.GREEN))
+							.toAnsi());
+					// crudMenu(db);
+				} catch (FileNotFoundException e) {
+					terminal.writer().println(new AttributedString("Diretório inexistente!",
+							AttributedStyle.BOLD.foreground(AttributedStyle.RED))
+							.toAnsi());
+				}
 			}
 		} catch (EndOfFileException e) {
 			return;
@@ -103,8 +145,11 @@ public class CommandLineInterface {
 		}
 	}
 
-	public static void main(String[] args) {
-		CommandLineInterface cli = new CommandLineInterface();
-		cli.start();
+	@Override
+	protected Completer buildCompleter() {
+		// MainMenu-specific completer logic
+		return new ArgumentCompleter(new StringsCompleter("open", "new"), // Command completion
+				new FileNameCompleter() // File path completion
+		);
 	}
 }
