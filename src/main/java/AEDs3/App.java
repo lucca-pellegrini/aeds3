@@ -59,6 +59,6 @@ public class App {
 			e.printStackTrace();
 		}
 	*/
-		CommandLineInterface.main(args);
+		new CommandLineInterface(args);
 	}
 }
