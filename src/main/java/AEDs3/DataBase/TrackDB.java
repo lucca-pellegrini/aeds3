@@ -48,7 +48,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 
 	// Função para adicionar uma linha no arquivo.
-	public void create(Track track) throws IOException {
+	public int create(Track track) throws IOException {
 		lastId += 1;
 		track.id = lastId;
 
@@ -59,6 +59,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		file.write(btw.getStream().toByteArray());
 
 		updateLastId();
+
+		return track.id;
 	}
 
 	public Track read(int id) throws IOException {
