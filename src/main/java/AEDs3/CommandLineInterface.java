@@ -54,7 +54,8 @@ public class CommandLineInterface {
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
-					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class })
+					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
+					SortCommand.class })
 	class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -497,6 +498,27 @@ public class CommandLineInterface {
 				return;
 			} finally {
 				parent.suggestions.enable();
+			}
+		}
+	}
+
+	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Sort the database.")
+	static class SortCommand implements Runnable {
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			try {
+				parent.db.sort();
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar ordenar o banco de dados.");
+				return;
 			}
 		}
 	}
