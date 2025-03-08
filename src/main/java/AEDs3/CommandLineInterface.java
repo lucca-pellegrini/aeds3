@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.builtins.ConfigurationPath;
 import org.jline.console.SystemRegistry;
@@ -54,9 +55,11 @@ public class CommandLineInterface {
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
-					ImportCommand.class, ReadCommand.class, DeleteCommand.class })
+					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class })
 	class CliCommands implements Runnable {
+		LineReader reader;
 		PrintWriter out;
+		AutosuggestionWidgets suggestions;
 		TrackDB db;
 
 		String prompt;
@@ -158,7 +161,12 @@ public class CommandLineInterface {
 		}
 
 		public void setReader(LineReader reader) {
-			out = reader.getTerminal().writer();
+			this.reader = reader;
+			this.out = reader.getTerminal().writer();
+		}
+
+		public void setSuggestions(AutosuggestionWidgets suggestions) {
+			this.suggestions = suggestions;
 		}
 
 		public void run() {
@@ -416,7 +424,7 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Delete a track by ID")
+	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Delete a track by ID.")
 	static class DeleteCommand implements Runnable {
 		@Parameters(paramLabel = "<ID>", description = "Track's primary key.")
 		int id;
@@ -438,6 +446,58 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao deletar " + id);
+			}
+		}
+	}
+
+	@Command(name = "create", mixinStandardHelpOptions = true, description = "Create a new track.")
+	static class CreateCommand implements Runnable {
+		private Ansi rightPrompt = ansi().bold().fgBrightYellow();
+		LineReader reader;
+
+		@ParentCommand
+		CliCommands parent;
+
+		private String read(String prompt) {
+			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
+					this.rightPrompt.toString(), (MaskingCallback) null, null);
+		}
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
+			rightPrompt = rightPrompt.a("[Editando ID " + (parent.db.getLastId() + 1) + "]");
+
+			try {
+				parent.suggestions.disable();
+				Track t = new Track();
+				t.setName(read("Name"));
+				t.setTrackArtists(Arrays.asList(read("Artists").split(",")));
+				t.setAlbumName(read("Album"));
+				t.setAlbumReleaseDate(LocalDate.parse(read("Release Date (YYYY-MM-DD)")));
+				t.setAlbumType(read("Album Type"));
+				t.setGenres(Arrays.asList(read("Genres").split(",")));
+				t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
+				t.setTrackId(read("Spotify ID (22 characters)").toCharArray());
+				t.setPopularity(Integer.parseInt(read("Popularity")));
+				t.setDanceability(Float.parseFloat(read("Danceability")));
+				t.setEnergy(Float.parseFloat(read("Energy")));
+				t.setLoudness(Float.parseFloat(read("Loudness")));
+				t.setTempo(Float.parseFloat(read("Tempo")));
+				t.setValence(Float.parseFloat(read("Valence")));
+				parent.db.create(t);
+			} catch (EndOfFileException e) {
+				parent.warn("Criação de registro cancelada.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar criar o registro.");
+				return;
+			} finally {
+				parent.suggestions.enable();
 			}
 		}
 	}
@@ -475,6 +535,7 @@ public class CommandLineInterface {
 			tailtip.enable();
 			AutosuggestionWidgets suggestions = new AutosuggestionWidgets(reader);
 			suggestions.enable();
+			commands.setSuggestions(suggestions);
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
 			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
 
