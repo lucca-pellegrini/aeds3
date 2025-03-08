@@ -59,6 +59,7 @@ public class BalancedMergeSort {
 		for (Track t : ordenado)
 			db.append(t);
 		db.setLastId(saveLastId);
+		db.setOrdered(true);
 
 		// Deleta os arquivos temporários.
 		for (int i = 0; i < 2 * fanout; ++i) {
