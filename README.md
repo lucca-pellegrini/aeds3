@@ -132,6 +132,8 @@ das partes deste repositório que foram desenvolvidas com a ajuda de LLMs:
 - Ajuda com alguns dos métodos da biblioteca
   [pandas](https://pandas.pydata.org/) que optamos por usar no lugar do Excel
   para o pré-processamento dos dados em `dataset/`
+- Escrita ou ajuda com a escrita de muitos comentários Javadoc usados para
+  gerar a [documentação online](https://aeds3.verticordia.com).
 - Este aviso que você está lendo, adicionalmente, foi escrito com a ajuda do
   ChatGPT.
 
