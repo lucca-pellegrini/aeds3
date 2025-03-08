@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.PriorityQueue;
 import java.util.UUID;
-
 import javax.swing.border.SoftBevelBorder;
 
 public class BalancedMergeSort {
@@ -29,36 +28,41 @@ public class BalancedMergeSort {
 
 	public void sort() throws IOException {
 		for (int i = 0; i < files.length; ++i)
-			files[i] = new TrackDB(db.getFilePath() + "." + UUID.randomUUID().getLeastSignificantBits() + "." + i);
+			files[i] = new TrackDB(
+					db.getFilePath() + "." + UUID.randomUUID().getLeastSignificantBits() + "." + i);
 
 		Iterator<Track> iterator = db.iterator();
 		PriorityQueue<TrackPonderada> heap = new PriorityQueue<>(maxHeapNodes);
 		int weight = 0;
-		TrackPonderada lastTrack, nextTrack;
 
 		// Popula o heap inicialmente.
-		while (heap.size() < maxHeapNodes && iterator.hasNext())
+		while (heap.size() < maxHeapNodes && iterator.hasNext()) {
+			System.err.println(heap.size() + " itens no heap");
 			heap.add(new TrackPonderada(iterator.next(), weight));
+		}
 
 		// Distribui os elementos do arquivo inicial.
-		while (iterator.hasNext()) {
-			lastTrack = heap.remove();
-			int lastId = lastTrack.track.getId();
-			int lastWeight = lastTrack.weight;
+		while (heap.size() > 0) {
+			System.err.println(heap.size() + " itens no heap");
 
-			if (lastWeight > weight)
-				weight = lastWeight;
+			TrackPonderada tmp = heap.remove();
+			int lastId = tmp.track.getId();
+			weight = tmp.weight;
 
-			files[weight % fanout].append(lastTrack.track);
-			System.err.println("ID " + lastId + " peso: " + weight + " arquivo : " + files[weight % fanout].getFilePath());
+			files[weight % fanout].append(tmp.track);
+			System.err.println("ID " + lastId + " peso: " + weight
+					+ " arquivo : " + files[weight % fanout].getFilePath());
 
-			lastTrack = null;
-
-			nextTrack = new TrackPonderada(iterator.next(), weight);
-			if (nextTrack.track.getId() < lastId)
-				nextTrack.weight += 1;
-			heap.add(nextTrack);
+			if (iterator.hasNext()) {
+				tmp = new TrackPonderada(iterator.next(), weight);
+				if (tmp.track.getId() < lastId)
+					tmp.weight += 1;
+				heap.add(tmp);
+			}
 		}
+
+		if (heap.size() != 0)
+			throw new AssertionError("Erro interno na distribuição dos registros.");
 	}
 
 	private class TrackPonderada implements Comparable<TrackPonderada> {
