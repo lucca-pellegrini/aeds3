@@ -11,7 +11,9 @@ import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CSVManagerTest implements AutoCloseable {
 	private Iterator<Track> trackIterator;
 	private CSVManager manager;
