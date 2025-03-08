@@ -42,7 +42,7 @@ public class BalancedMergeSort {
 	 * Indica se estamos intercalando segmentos do grupo A (primeiro conjunto de N
 	 * arquivos) para o grupo B (segundo grupo) ou vice-versa.
 	 */
-	boolean grupo;
+	boolean group;
 
 	/**
 	 * Indica se deve exibir em `System.err` os passos da execução durante a
@@ -74,7 +74,7 @@ public class BalancedMergeSort {
 		this.db = db;
 		this.fanout = fanout;
 		this.maxHeapNodes = maxHeapNodes;
-		this.grupo = true; // Começamos no grupo A (arquivos 0–(N - 1)).
+		this.group = true; // Começamos no grupo A (arquivos 0–(N - 1)).
 		this.verbose = false;
 		files = new TrackDB[fanout * 2];
 	}
@@ -92,12 +92,12 @@ public class BalancedMergeSort {
 	 */
 	public void sort() throws IOException {
 		// Faz a distribuição inicial dos segmentos em N caminhos usando heap.
-		distribuir();
+		distribute();
 
 		// Itera até o método `intercalar` retornar o BD ordenado.
 		TrackDB ordenado = null;
 		do
-			ordenado = intercalar();
+			ordenado = merge();
 		while (ordenado == null);
 
 		// Esvazia o arquivo original e insere os elementos ordenados.
@@ -123,24 +123,24 @@ public class BalancedMergeSort {
 	 * @throws IOException Se ocorrer um erro de entrada/saída durante a
 	 *                     distribuição.
 	 */
-	private void distribuir() throws IOException {
+	private void distribute() throws IOException {
 		// Inicializa os arquivos temporários.
 		for (int i = 0; i < files.length; ++i)
 			files[i] = new TrackDB(db.getFilePath() + ".sort." + String.format("0x%02X", i) + ".bin");
 
 		// Obtém o iterador do BD fonte, para maior controle sobre a inserção no heap.
 		Iterator<Track> iterator = db.iterator();
-		PriorityQueue<TrackPonderada> heap = new PriorityQueue<>(maxHeapNodes);
+		PriorityQueue<WeightedTrack> heap = new PriorityQueue<>(maxHeapNodes);
 		int weight = 0; // Peso inicial.
 
 		// Popula o heap inicialmente.
 		while (heap.size() < maxHeapNodes && iterator.hasNext())
-			heap.add(new TrackPonderada(iterator.next(), weight));
+			heap.add(new WeightedTrack(iterator.next(), weight));
 
 		// Distribui os elementos do arquivo inicial para os arquivos temporários.
 		while (heap.size() > 0) {
 			// Remove um elemento, armazenando seu ID e atualizando o peso atual.
-			TrackPonderada tmp = heap.remove();
+			WeightedTrack tmp = heap.remove();
 			int lastId = tmp.track.getId();
 			weight = tmp.weight;
 
@@ -149,7 +149,7 @@ public class BalancedMergeSort {
 
 			// Se o arquivo não terminou, adiciona o próximo elemento ao heap.
 			if (iterator.hasNext()) {
-				tmp = new TrackPonderada(iterator.next(), weight);
+				tmp = new WeightedTrack(iterator.next(), weight);
 				if (tmp.track.getId() < lastId)
 					tmp.weight += 1;
 				heap.add(tmp);
@@ -169,24 +169,24 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com um peso, para uso com o
 	 * PriorityQueue.
 	 */
-	private class TrackPonderada implements Comparable<TrackPonderada> {
+	private class WeightedTrack implements Comparable<WeightedTrack> {
 		public Track track;
 		public int weight;
 
-		public TrackPonderada(Track track, int weight) {
+		public WeightedTrack(Track track, int weight) {
 			this.track = track;
 			this.weight = weight;
 		}
 
 		/**
-		 * Compara duas instâncias de TrackPonderada primeiro pelo peso e, caso sejam
+		 * Compara duas instâncias de WeightedTrack primeiro pelo peso e, caso sejam
 		 * iguais, pela comparação dos IDs das faixas (Track).
 		 *
-		 * @param other O outro objeto TrackPonderada a ser comparado.
+		 * @param other O outro objeto WeightedTrack a ser comparado.
 		 * @return O valor da comparação entre os dois objetos.
 		 */
 		@Override
-		public int compareTo(TrackPonderada other) {
+		public int compareTo(WeightedTrack other) {
 			int cmp = Integer.compare(weight, other.weight);
 			cmp = (cmp == 0) ? track.compareTo(other.track) : cmp;
 			return cmp;
@@ -204,7 +204,7 @@ public class BalancedMergeSort {
 	 * @throws IOException Se ocorrer um erro de entrada/saída durante a
 	 *                     intercalação.
 	 */
-	private TrackDB intercalar() throws IOException {
+	private TrackDB merge() throws IOException {
 		// Listas de BDs de origem e destino.
 		List<TrackDB> source = new ArrayList<>(fanout);
 		List<TrackDB> destination = new ArrayList<>(fanout);
@@ -217,7 +217,7 @@ public class BalancedMergeSort {
 
 		// Determina se a fonte e o destino são, respectivamente, os arquivos numerados
 		// 0–(N - 1), ou N–(2N - 1).
-		int firstSourceId = (grupo) ? 0 : fanout;
+		int firstSourceId = (group) ? 0 : fanout;
 		int firstDestinationId = fanout - firstSourceId;
 
 		// Popula as listas de fontes e destinos a partir dos arquivos temporários.
@@ -229,7 +229,7 @@ public class BalancedMergeSort {
 			destination.add(files[i]);
 
 		// Heap para encontrar o menor registro.
-		PriorityQueue<TrackArquivo> heap = new PriorityQueue<>(fanout);
+		PriorityQueue<FileTrack> heap = new PriorityQueue<>(fanout);
 		int currentDestination = 0; // Segmento atual.
 
 		// Itera para cada conjunto de segmentos, enquanto pelo menos um arquivo fonte
@@ -237,24 +237,24 @@ public class BalancedMergeSort {
 		while (source.stream().anyMatch(db -> !db.isFinished())) {
 			// Popula o heap com o primeiro elemento de cada segmento.
 			for (int i = 0; i < fanout; ++i) {
-				Iterator<Track> caminhoAtual = sourceIterators.get(i);
-				if (caminhoAtual.hasNext())
-					heap.add(new TrackArquivo(caminhoAtual.next(), i));
+				Iterator<Track> currentSegment = sourceIterators.get(i);
+				if (currentSegment.hasNext())
+					heap.add(new FileTrack(currentSegment.next(), i));
 			}
 
 			if (verbose)
 				System.err.println("\rIntercalando segmento " + currentDestination + ", grupo: "
-						+ (grupo ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
+						+ (group ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
 
 			// Itera até esgotarem-se os registros em cada segmento.
 			while (heap.size() > 0) {
-				TrackArquivo tmp = heap.remove();
+				FileTrack tmp = heap.remove();
 				int origin = tmp.origin; // Armazena o arquivo de origem.
 
 				// Se ainda há registros no segmento deste arquivo, adiciona-o ao heap.
 				if (sourceIterators.get(origin).hasNext()) {
 					if (!source.get(origin).isSegmentFinished())
-						heap.add(new TrackArquivo(sourceIterators.get(origin).next(), origin));
+						heap.add(new FileTrack(sourceIterators.get(origin).next(), origin));
 					else
 						source.get(origin).returnToSegmentStart();
 				}
@@ -272,7 +272,7 @@ public class BalancedMergeSort {
 			d.truncate();
 
 		// Inverte o grupo, trocando a direção da intercalação.
-		grupo = !grupo;
+		group = !group;
 
 		// Retorna o BD com os dados ordenados, se a intercalação estiver completa.
 		return (currentDestination == 1) ? result : null;
@@ -282,23 +282,23 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com o índice do arquivo em que está,
 	 * para uso com o PriorityQueue.
 	 */
-	private class TrackArquivo implements Comparable<TrackArquivo> {
+	private class FileTrack implements Comparable<FileTrack> {
 		public Track track;
 		public int origin;
 
-		public TrackArquivo(Track track, int origin) {
+		public FileTrack(Track track, int origin) {
 			this.track = track;
 			this.origin = origin;
 		}
 
 		/**
-		 * Compara duas instâncias de TrackArquivo com base no registro de Track.
+		 * Compara duas instâncias de FileTrack com base no registro de Track.
 		 *
-		 * @param other O outro objeto TrackArquivo a ser comparado.
+		 * @param other O outro objeto FileTrack a ser comparado.
 		 * @return O valor da comparação entre os dois objetos.
 		 */
 		@Override
-		public int compareTo(TrackArquivo other) {
+		public int compareTo(FileTrack other) {
 			return track.compareTo(other.track);
 		}
 	}
@@ -337,12 +337,12 @@ public class BalancedMergeSort {
 		this.maxHeapNodes = maxHeapNodes;
 	}
 
-	public boolean isGrupo() {
-		return grupo;
+	public boolean isGroup() {
+		return group;
 	}
 
-	public void setGrupo(boolean grupo) {
-		this.grupo = grupo;
+	public void setGroup(boolean grupo) {
+		this.group = grupo;
 	}
 
 	public boolean isVerbose() {
