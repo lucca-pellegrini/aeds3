@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -120,6 +122,7 @@ class CSVManagerTest implements AutoCloseable {
 		assertEquals(0.24, track.getDanceability(), 0.0001);
 	}
 
+	@AfterAll
 	@Override
 	public void close() throws IOException {
 		manager.close();
