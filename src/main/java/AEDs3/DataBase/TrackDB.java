@@ -400,6 +400,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	public void setOrdered(boolean value) throws IOException {
 		flags = value ? (flags | Flag.ORDERED.getBitmask()) : (flags & ~Flag.ORDERED.getBitmask());
+		updateHeader();
 	}
 }
 
