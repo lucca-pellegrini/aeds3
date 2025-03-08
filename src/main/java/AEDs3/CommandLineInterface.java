@@ -236,7 +236,13 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "read", mixinStandardHelpOptions = true, description = "Read track(s).")
+	@Command(name = "read", mixinStandardHelpOptions = true, description = "Read track(s) by field or by ID.", footer = {
+			"Examples:", "read 117 @|magenta (read by ID 117)|@",
+			"read --field=GENRES pop rock @|magenta (read entries with Genres including pop "
+					+ "and rock)|@",
+			"read --field=TRACK_ARTISTS \"Frank Sinatra\" @|magenta (read tracks by Frank "
+					+ "Sinatra)|@",
+			"read --field=NAME --regex 'You.*Gone' @|magenta (read track names matching RegEx)|@" })
 	static class ReadCommand implements Runnable {
 		@ArgGroup(exclusive = true)
 		private AllOrField allOrField = new AllOrField();
