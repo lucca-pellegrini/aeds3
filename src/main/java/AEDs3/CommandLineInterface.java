@@ -233,14 +233,18 @@ public class CommandLineInterface {
 				return;
 			}
 
+			int numTracks = parent.db.getNumTracks();
+			int numSpaces = parent.db.getNumSpaces();
+			float efficiency = numTracks / (float) numSpaces;
+
 			parent.out.println(
 					ansi().bold().fgGreen().a("File ID:\t").reset().a(parent.db.getUUID()));
 			parent.out.println(
 					ansi().bold().fgGreen().a("Last ID:\t").reset().a(parent.db.getLastId()));
+			parent.out.println(ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(numTracks));
+			parent.out.println(ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(numSpaces));
 			parent.out.println(
-					ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(parent.db.getNumTracks()));
-			parent.out.println(
-					ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(parent.db.getNumSpaces()));
+					ansi().bold().fgGreen().a("Efficiency:\t").reset().a(100. * efficiency + "%"));
 		}
 	}
 
