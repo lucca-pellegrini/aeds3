@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.UUID;
 
 public class BalancedMergeSort {
 	TrackDB db;
@@ -57,7 +56,8 @@ public class BalancedMergeSort {
 
 	private void distribuir() throws IOException {
 		for (int i = 0; i < files.length; ++i)
-			files[i] = new TrackDB(db.getFilePath() + "." + UUID.randomUUID() + "." + i);
+			files[i] = new TrackDB(db.getFilePath() + ".sort."
+					+ String.format("0x%02X", i) + ".bin");
 
 		Iterator<Track> iterator = db.iterator();
 		PriorityQueue<TrackPonderada> heap = new PriorityQueue<>(maxHeapNodes);
@@ -65,21 +65,19 @@ public class BalancedMergeSort {
 
 		// Popula o heap inicialmente.
 		while (heap.size() < maxHeapNodes && iterator.hasNext()) {
-			System.err.println(heap.size() + " itens no heap");
 			heap.add(new TrackPonderada(iterator.next(), weight));
 		}
 
 		// Distribui os elementos do arquivo inicial.
 		while (heap.size() > 0) {
-			System.err.println(heap.size() + " itens no heap");
-
 			TrackPonderada tmp = heap.remove();
 			int lastId = tmp.track.getId();
 			weight = tmp.weight;
 
 			files[weight % fanout].append(tmp.track);
-			System.err.println("ID " + lastId + " peso: " + weight
-					+ " arquivo : " + files[weight % fanout].getFilePath());
+
+			System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
+					+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
 
 			if (iterator.hasNext()) {
 				tmp = new TrackPonderada(iterator.next(), weight);
@@ -139,6 +137,9 @@ public class BalancedMergeSort {
 				if (caminhoAtual.hasNext())
 					heap.add(new TrackArquivo(caminhoAtual.next(), i));
 			}
+
+			System.err.println("\rIntercalando segmento " + currentDestination + ", grupo: "
+					+ (grupo ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
 
 			// Itera até esgotarem-se os registros em cada segmento.
 			while (heap.size() > 0) {
