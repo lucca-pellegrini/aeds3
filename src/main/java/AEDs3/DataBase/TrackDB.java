@@ -63,9 +63,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	// Função para adicionar uma linha no arquivo.
 	public int create(Track track) throws IOException {
 		lastId += 1;
+		track.id = lastId;
+
+		return append(track);
+	}
+
+	protected int append(Track track) throws IOException {
 		numTracks += 1;
 		numSpaces += 1;
-		track.id = lastId;
 
 		BinaryTrackWriter btw = new BinaryTrackWriter(track);
 		file.seek(file.length());
@@ -153,6 +158,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		// Atualiza o cabeçalho.
 		updateHeader();
+	}
+
+	public void sort() throws IOException {
+		new BalancedMergeSort(this).sort();
 	}
 
 	public void print(int id) throws IOException {
@@ -294,6 +303,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	public int getLastId() {
 		return lastId;
+	}
+
+	public void setLastId(int lastId) throws IOException {
+		this.lastId = lastId;
+		updateHeader();
 	}
 
 	public int getNumTracks() {
