@@ -50,7 +50,7 @@ public class CommandLineInterface {
 	@Command(name = "", description = { "Music tracks binary database.",
 			"Hit @|magenta <TAB>|@ to see available commands.",
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
-			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class,
+			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ReadCommand.class })
 	class CliCommands implements Runnable {
