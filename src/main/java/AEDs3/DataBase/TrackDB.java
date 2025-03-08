@@ -17,8 +17,8 @@ import java.util.UUID;
 public class TrackDB implements Iterable<Track>, AutoCloseable {
 	protected RandomAccessFile file;
 	protected String filePath;
-	private long lastBinaryTrackPos;
-	private TrackFilter searchFilter;
+	protected long lastBinaryTrackPos;
+	protected TrackFilter searchFilter;
 
 	// Itens do cabeçalho
 	protected UUID uuid; // ID único aleatório do BD.
@@ -28,7 +28,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	protected long flags; // BitMask com diversas flags.
 
 	// Tamanho do cabeçalho com os metadados do BD.
-	private static final short HEADER_SIZE = 3 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
+	protected static final short HEADER_SIZE = 3 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
 
 	// Parâmetros para a ordenação
 	protected boolean segmentFinished = false; // Se estamos no fim de um segmento.
@@ -211,7 +211,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			System.out.println(t);
 	}
 
-	private Track nextTrack() throws EOFException, IOException, ClassNotFoundException {
+	protected Track nextTrack() throws EOFException, IOException, ClassNotFoundException {
 		if (searchFilter == null)
 			return nextValidBinaryTrackReader().getTrack();
 
@@ -224,7 +224,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return result;
 	}
 
-	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
+	protected BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
 		BinaryTrackReader result = null;
 
 		do
@@ -234,7 +234,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return result;
 	}
 
-	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+	protected BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
 		lastBinaryTrackPos = file.getFilePointer();
 		boolean tombstone = file.readBoolean();
 		int size = file.readInt();
@@ -278,7 +278,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		}
 	}
 
-	private void updateHeader() throws IOException {
+	protected void updateHeader() throws IOException {
 		long pos = file.getFilePointer();
 		file.seek(0);
 		file.writeLong(uuid.getMostSignificantBits());
