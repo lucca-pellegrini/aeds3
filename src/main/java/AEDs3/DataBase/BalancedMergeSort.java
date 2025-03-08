@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Classe responsável por realizar a **ordenação externa por intercalação
- * balanceada**. Este algoritmo divide os dados em segmentos menores e utiliza
+ * Classe responsável por realizar a ordenação externa por intercalação
+ * balanceada. Este algoritmo divide os dados em segmentos menores e utiliza
  * uma estrutura de heap (fila de prioridade) para realizar a intercalação
  * eficiente de grandes quantidades de dados que não cabem na memória RAM de uma
  * vez. A ordenação é realizada usando 2N arquivos temporários e o algoritmo de
