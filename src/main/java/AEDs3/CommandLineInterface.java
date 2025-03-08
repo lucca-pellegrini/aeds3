@@ -2,7 +2,6 @@ package AEDs3;
 
 import static AEDs3.DataBase.Track.Field.*;
 import static org.fusesource.jansi.Ansi.*;
-import static org.fusesource.jansi.Ansi.Color.*;
 
 import AEDs3.DataBase.CSVManager;
 import AEDs3.DataBase.Track;
@@ -65,8 +64,8 @@ public class CommandLineInterface {
 		String prompt;
 		String rightPrompt;
 
-		static final String DEFAULT_PROMPT = ansi().fg(YELLOW).bold().a("TrackDB> ").toString();
-		static final String DEFAULT_RIGHT_PROMPT = ansi().fg(RED).a("[Nenhum arquivo aberto]").toString();
+		static final String DEFAULT_PROMPT = ansi().fgYellow().bold().a("TrackDB> ").toString();
+		static final String DEFAULT_RIGHT_PROMPT = ansi().fgRed().a("[Nenhum arquivo aberto]").toString();
 		static final String ERROR_PROMPT = ansi().bold().render("@|red Erro:|@ ").toString();
 		static final String WARN_PROMPT = ansi().bold().render("@|yellow Warn:|@ ").toString();
 		static final String INFO_PROMPT = ansi().bold().render("@|blue Info:|@ ").toString();
@@ -207,8 +206,8 @@ public class CommandLineInterface {
 					throw new RuntimeException("Erro ao abrir " + param);
 				}
 
-				parent.prompt = ansi().bold().fg(CYAN).a(param + "> ").toString();
-				parent.rightPrompt = ansi().fg(GREEN).a("[Nenhum filtro aplicado]").toString();
+				parent.prompt = ansi().bold().fgCyan().a(param + "> ").toString();
+				parent.rightPrompt = ansi().fgGreen().a("[Nenhum filtro aplicado]").toString();
 				parent.info("Arquivo aberto.");
 			}
 		}
