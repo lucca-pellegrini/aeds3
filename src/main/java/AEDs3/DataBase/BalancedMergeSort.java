@@ -95,10 +95,6 @@ public class BalancedMergeSort {
 			// Apende o elemento ao BD temporário correto.
 			files[weight % fanout].append(tmp.track);
 
-			if (verbose)
-				System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
-						+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
-
 			// Se o arquivo não terminou, adiciona o próximo elemento ao PriorityQueue.
 			if (iterator.hasNext()) {
 				tmp = new TrackPonderada(iterator.next(), weight);
@@ -106,6 +102,10 @@ public class BalancedMergeSort {
 					tmp.weight += 1;
 				heap.add(tmp);
 			}
+
+			if (verbose)
+				System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
+						+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
 		}
 
 		// Garante que o PriorityQueue foi corretamente esvaziado.
