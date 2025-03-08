@@ -12,33 +12,59 @@ import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
-public class TrackDB implements Iterable<Track> {
+public class TrackDB implements Iterable<Track>, AutoCloseable {
 	protected RandomAccessFile file;
-	protected int lastId;
+	protected String filePath;
 	private long lastBinaryTrackPos;
 	private TrackFilter searchFilter;
 
+	// Itens do cabeçalho
+	protected UUID uuid;
+	protected int lastId;
+	protected int numTracks;
+	protected int numSpaces;
+
 	// Tamanho do cabeçalho com os metadados do BD.
-	private static final short HEADER_SIZE = Integer.SIZE / 8;
+	private static final short HEADER_SIZE = 2 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
 
 	// Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
-		file = new RandomAccessFile(fileName, "rw");
+		this.filePath = fileName;
+		this.open();
+	}
+
+	public void open() throws IOException {
+		file = new RandomAccessFile(filePath, "rw");
 		file.seek(0);
 
-		// Vê se o arquivo já tem algum ID inserido.
+		// Vê se o arquivo já tem o UUID inserido.
 		try {
+			long major = file.readLong();
+			long minor = file.readLong();
+			uuid = new UUID(major, minor);
 			lastId = file.readInt();
+			numTracks = file.readInt();
+			numSpaces = file.readInt();
 		} catch (EOFException e) {
+			uuid = UUID.randomUUID();
 			lastId = 0;
-			file.writeInt(lastId);
+			numTracks = 0;
+			numSpaces = 0;
+			updateHeader();
 		}
 	}
 
+	public void close() throws IOException {
+		file.close();
+	}
+
 	// Função para adicionar uma linha no arquivo.
-	public void create(Track track) throws IOException {
+	public int create(Track track) throws IOException {
 		lastId += 1;
+		numTracks += 1;
+		numSpaces += 1;
 		track.id = lastId;
 
 		BinaryTrackWriter btw = new BinaryTrackWriter(track);
@@ -47,7 +73,9 @@ public class TrackDB implements Iterable<Track> {
 		file.writeInt(btw.getSize());
 		file.write(btw.getStream().toByteArray());
 
-		updateLastId();
+		updateHeader();
+
+		return track.id;
 	}
 
 	public Track read(int id) throws IOException {
@@ -89,6 +117,10 @@ public class TrackDB implements Iterable<Track> {
 			file.seek(file.length());
 			file.writeBoolean(writer.isTombstone());
 			file.writeInt(writer.getSize());
+
+			// Atualiza o cabeçalho.
+			numSpaces += 1;
+			updateHeader();
 		}
 
 		// Escrevendo o registro.
@@ -101,6 +133,9 @@ public class TrackDB implements Iterable<Track> {
 
 		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
 		file.writeBoolean(true); // Seta a lápide
+
+		numTracks -= 1; // Decrementa contador de tracks.
+		updateHeader(); // Atualiza o cabeçalho.
 	}
 
 	public void delete(Track.Field field, Object value) throws IOException {
@@ -112,8 +147,12 @@ public class TrackDB implements Iterable<Track> {
 				file.seek(lastBinaryTrackPos); // Volta para o começo do registro.
 				file.writeBoolean(true); // Seta a lápide.
 				file.seek(pos); // Retorna para a posição salva.
+				numTracks -= 1; // Decrementa contador de tracks.
 			}
 		}
+
+		// Atualiza o cabeçalho.
+		updateHeader();
 	}
 
 	public void print(int id) throws IOException {
@@ -173,22 +212,34 @@ public class TrackDB implements Iterable<Track> {
 		}
 	}
 
-	private void updateLastId() throws IOException {
+	private void updateHeader() throws IOException {
 		long pos = file.getFilePointer();
 		file.seek(0);
+		file.writeLong(uuid.getMostSignificantBits());
+		file.writeLong(uuid.getLeastSignificantBits());
 		file.writeInt(lastId);
+		file.writeInt(numTracks);
+		file.writeInt(numSpaces);
 		file.seek(pos);
 	}
 
+	public void setFilter(TrackFilter searchFilter) {
+		this.searchFilter = searchFilter;
+	}
+
 	public void setFilter(Track.Field field, Object value) {
-		searchFilter = new TrackFilter(field, value);
+		setFilter(new TrackFilter(field, value));
+	}
+
+	public TrackFilter getFilter() {
+		return searchFilter;
 	}
 
 	public void clearFilter() {
 		searchFilter = null;
 	}
 
-	private class TrackFilter {
+	static public class TrackFilter {
 		public Track.Field searchField;
 		public Object searchValue;
 
@@ -237,8 +288,24 @@ public class TrackDB implements Iterable<Track> {
 		};
 	}
 
+	public UUID getUUID() {
+		return uuid;
+	}
+
 	public int getLastId() {
 		return lastId;
+	}
+
+	public int getNumTracks() {
+		return numTracks;
+	}
+
+	public int getNumSpaces() {
+		return numSpaces;
+	}
+
+	public String getFilePath() {
+		return filePath;
 	}
 }
 
