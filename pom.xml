@@ -113,6 +113,24 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                        <configuration>
+                            <additionalJOptions>
+                                <additionalJOption>-private</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Maven Jar Plugin for Minimal JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
