@@ -93,7 +93,19 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	}
 
 	public Track read(int id) throws IOException {
-		return readFirst(Track.Field.ID, id);
+		// Se está desordenado, fazemos a busca pelo arquivo completo.
+		if (!isOrdered())
+			return readFirst(Track.Field.ID, id);
+
+		// Caso contrário, podemos parar mais cedo.
+		for (Track t : this) {
+			if (t.getId() > id)
+				return null;
+			else if (t.getId() == id)
+				return t;
+		}
+
+		return null;
 	}
 
 	public Track readFirst(Track.Field field, Object value) throws IOException {
