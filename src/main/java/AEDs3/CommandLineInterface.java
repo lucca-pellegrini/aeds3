@@ -209,7 +209,7 @@ public class CommandLineInterface {
 				}
 
 				parent.prompt = ansi().bold().fgCyan().a(param + "> ").toString();
-				parent.rightPrompt = ansi().fgGreen().a("[Nenhum filtro aplicado]").toString();
+				parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
 				parent.info("Arquivo aberto.");
 			}
 		}
