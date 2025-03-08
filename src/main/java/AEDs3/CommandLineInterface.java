@@ -53,8 +53,8 @@ public class CommandLineInterface {
 			"Hit @|magenta <TAB>|@ to see available commands.",
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
-					CloseCommand.class, InfoCommand.class, UsageCommand.class, ImportCommand.class,
-					ReadCommand.class, DeleteCommand.class })
+					CloseCommand.class, InfoCommand.class, UsageCommand.class,
+					ImportCommand.class, ReadCommand.class, DeleteCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -234,7 +234,13 @@ public class CommandLineInterface {
 			}
 
 			parent.out.println(
-					ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
+					ansi().bold().fgGreen().a("File ID:\t").reset().a(parent.db.getUUID()));
+			parent.out.println(
+					ansi().bold().fgGreen().a("Last ID:\t").reset().a(parent.db.getLastId()));
+			parent.out.println(
+					ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(parent.db.getNumTracks()));
+			parent.out.println(
+					ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(parent.db.getNumSpaces()));
 		}
 	}
 
