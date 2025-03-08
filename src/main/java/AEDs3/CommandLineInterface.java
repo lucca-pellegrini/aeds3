@@ -4,6 +4,7 @@ import static AEDs3.DataBase.Track.Field.*;
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 
+import AEDs3.DataBase.CSVManager;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.TrackDB;
@@ -52,7 +53,7 @@ public class CommandLineInterface {
 			"Hit @|magenta <TAB>|@ to see available commands.",
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
-					CloseCommand.class, InfoCommand.class, UsageCommand.class,
+					CloseCommand.class, InfoCommand.class, UsageCommand.class, ImportCommand.class,
 					ReadCommand.class, DeleteCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
@@ -234,6 +235,35 @@ public class CommandLineInterface {
 
 			parent.out.println(
 					ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
+		}
+	}
+
+	@Command(name = "import", mixinStandardHelpOptions = true, description = "Import tracks from a CSV file.")
+	static class ImportCommand implements Runnable {
+		@Parameters(paramLabel = "<path>", description = "Path to the CSV source file.")
+		private Path param;
+
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			try (CSVManager csvManager = new CSVManager(param.toString())) {
+				int count = 0;
+				for (Track t : csvManager) {
+					++count;
+					parent.db.create(t);
+				}
+				parent.info("Imported " + count + " items. Last ID: " + parent.db.getLastId());
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar ler o CSV.");
+				return;
+			}
 		}
 	}
 

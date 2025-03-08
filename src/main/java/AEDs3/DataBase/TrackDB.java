@@ -12,8 +12,10 @@ import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 public class TrackDB implements Iterable<Track>, AutoCloseable {
+	protected UUID uuid;
 	protected RandomAccessFile file;
 	protected String filePath;
 	protected int lastId;

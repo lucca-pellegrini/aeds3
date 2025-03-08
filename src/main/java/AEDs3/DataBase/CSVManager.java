@@ -16,12 +16,16 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-public class CSVManager implements Iterable<Track> {
+public class CSVManager implements Iterable<Track>, AutoCloseable {
 	protected CSVParser parser;
 
 	public CSVManager(String fileName) throws FileNotFoundException, IOException {
 		parser = CSVFormat.RFC4180.builder().setHeader().setSkipHeaderRecord(true).get().parse(
 				new InputStreamReader(new FileInputStream(new File(fileName)), StandardCharsets.UTF_8));
+	}
+
+	public void close() throws IOException {
+		parser.close();
 	}
 
 	/*
