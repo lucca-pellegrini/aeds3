@@ -1,15 +1,25 @@
 package AEDs3;
 
+import static AEDs3.DataBase.Track.Field.*;
 import static org.fusesource.jansi.Ansi.*;
 import static org.fusesource.jansi.Ansi.Color.*;
 
+import AEDs3.DataBase.Track;
+import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.TrackDB;
+import AEDs3.DataBase.TrackDB.TrackFilter;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.builtins.ConfigurationPath;
 import org.jline.console.SystemRegistry;
@@ -26,6 +36,7 @@ import org.jline.utils.InfoCmp.Capability;
 import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -41,7 +52,8 @@ public class CommandLineInterface {
 			"Hit @|magenta <TAB>|@ to see available commands.",
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Pressione @|magenta Ctrl-D|@ para sair." }, subcommands = { OpenCommand.class,
-					CloseCommand.class, InfoCommand.class, UsageCommand.class })
+					CloseCommand.class, InfoCommand.class, UsageCommand.class,
+					ReadCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -58,6 +70,78 @@ public class CommandLineInterface {
 		CliCommands() {
 			prompt = DEFAULT_PROMPT;
 			rightPrompt = DEFAULT_RIGHT_PROMPT;
+		}
+
+		void printTrack(Track track) {
+			if (track == null) {
+				warn("Nenhuma track foi encontrada.");
+				return;
+			}
+
+			List<String> tmp;
+
+			out.println();
+
+			out.print(ansi().bold().fgGreen().a(track.getId() + ":\t\t"));
+			out.println(ansi().bold().fgMagenta().a(track.getName()));
+
+			out.println(ansi().bold().fgMagenta().a(
+					"──────────────────────────────────────────────────────────────────────"));
+
+			tmp = track.getTrackArtists();
+			out.print(ansi().bold().fgYellow().a("Artists:\t").reset());
+			for (int i = 0; i < tmp.size() - 1; ++i)
+				out.print(tmp.get(i) + ", ");
+			out.println(tmp.get(tmp.size() - 1));
+
+			out.print(ansi().bold().fgYellow().a("Album:\t\t").reset());
+			out.println(track.getAlbumName());
+
+			out.print(ansi().bold().fgYellow().a("Release Date:\t").reset());
+			out.println(track.getAlbumReleaseDate());
+
+			out.print(ansi().bold().fgYellow().a("Album Type:\t").reset());
+			out.println(track.getAlbumType());
+
+			tmp = track.getGenres();
+			out.print(ansi().bold().fgYellow().a("Genres:\t\t").reset());
+			for (int i = 0; i < tmp.size() - 1; ++i)
+				out.print(tmp.get(i) + ", ");
+			out.println(tmp.get(tmp.size() - 1));
+
+			out.print(ansi().bold().fgYellow().a("Explicit:\t").reset());
+			out.println(track.isExplicit());
+
+			out.print(ansi().bold().fgYellow().a("Spotify ID:\t").reset());
+			out.println(new String(track.getTrackId()));
+
+			out.print(ansi().bold().fgYellow().a("Popularity:\t").reset());
+			out.println(track.getPopularity());
+
+			out.print(ansi().bold().fgYellow().a("Key:\t\t").reset());
+			out.println(track.getKey());
+
+			out.print(ansi().bold().fgYellow().a("Danceability:\t").reset());
+			out.println(track.getDanceability());
+
+			out.print(ansi().bold().fgYellow().a("Energy:\t\t").reset());
+			out.println(track.getEnergy());
+
+			out.print(ansi().bold().fgYellow().a("Loudness:\t").reset());
+			out.println(track.getLoudness());
+
+			out.print(ansi().bold().fgYellow().a("Tempo:\t\t").reset());
+			out.println(track.getTempo());
+
+			out.print(ansi().bold().fgYellow().a("Valence:\t").reset());
+			out.println(track.getValence());
+
+			out.println();
+		}
+
+		void printAllTracks() {
+			for (Track track : db)
+				printTrack(track);
 		}
 
 		void error(String msg) {
@@ -150,6 +234,139 @@ public class CommandLineInterface {
 
 			parent.out.println(
 					ansi().bold().fgGreen().a("Last ID: ").reset().a(parent.db.getLastId()));
+		}
+	}
+
+	@Command(name = "read", mixinStandardHelpOptions = true, description = "Read track(s).")
+	static class ReadCommand implements Runnable {
+		@ArgGroup(exclusive = true)
+		private AllOrField allOrField = new AllOrField();
+
+		static class AllOrField {
+			@Option(names = { "-f", "--field" }, description = "What field to search on.", defaultValue = "ID")
+			Field field = ID;
+
+			@Option(names = { "-a", "--all" }, description = "Read all registers.", defaultValue = "false")
+			boolean all = false;
+		}
+
+		@Option(names = { "-r", "--regex" }, description = "Match strings by regex.", defaultValue = "false")
+		boolean regex = false;
+
+		@Parameters(paramLabel = "<value>", description = "Value to search.")
+		String[] params;
+
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			if (allOrField.all) {
+				TrackFilter oldFilter = parent.db.getFilter();
+				try {
+					parent.db.clearFilter();
+					parent.printAllTracks();
+				} finally {
+					parent.db.setFilter(oldFilter);
+				}
+				return;
+			}
+
+			Field field = allOrField.field;
+
+			if (params == null) {
+				parent.out.println(new CommandLine(this).getUsageMessage());
+				return;
+			} else if (params.length > 1) {
+				switch (field) {
+					case ID:
+					case NAME:
+					case ALBUM_NAME:
+					case ALBUM_RELEASE_DATE:
+					case ALBUM_TYPE:
+					case TRACK_ID:
+					case POPULARITY:
+					case KEY:
+						parent.error(
+								"O campo " + field.toString() + " exige exatamente um parâmetro.");
+						return;
+					default:
+				}
+			}
+
+			String singleParam = params[0];
+
+			try {
+				if (field == ID) {
+					parent.printTrack(parent.db.read(Integer.parseInt(singleParam)));
+					return;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar ler o registro.");
+				return;
+			} catch (NumberFormatException e) {
+				parent.error(singleParam + " não é um numero inteiro.");
+				return;
+			}
+
+			// Salva o filtro de busca anterior.
+			TrackFilter oldFilter = parent.db.getFilter();
+
+			try {
+				TrackFilter newFilter = switch (field) {
+					case NAME, ALBUM_NAME -> {
+						if (regex)
+							yield new TrackFilter(field,
+									Pattern.compile(
+											singleParam, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+						else
+							yield new TrackFilter(field, singleParam);
+					}
+
+					case TRACK_ID -> {
+						if (singleParam.length() != Track.getTrackIdNumChars()) {
+							parent.error(field.toString() + " deve conter exatamente "
+									+ Track.getTrackIdNumChars() + " caracteres.");
+							throw new IllegalArgumentException();
+						}
+						yield new TrackFilter(field, singleParam);
+					}
+
+					case ALBUM_RELEASE_DATE -> new TrackFilter(field, LocalDate.parse(singleParam));
+					case ALBUM_TYPE -> new TrackFilter(field, singleParam);
+					case POPULARITY, KEY -> new TrackFilter(field, Integer.parseInt(singleParam));
+					case TRACK_ARTISTS, GENRES -> new TrackFilter(field, Arrays.asList(params));
+
+					case DANCEABILITY, ENERGY, LOUDNESS, TEMPO, VALENCE -> {
+						parent.error("Não é possível buscar por valores de tipo float.");
+						throw new IllegalArgumentException();
+					}
+
+					case EXPLICIT -> {
+						parent.error("Não é possível buscar por valores de tipo booleano.");
+						throw new IllegalArgumentException();
+					}
+
+					case ID -> {
+						// ID é um caso especial, tratado acima.
+						throw new AssertionError();
+					}
+				};
+
+				parent.db.setFilter(newFilter);
+				parent.printAllTracks();
+			} catch (NumberFormatException | DateTimeParseException e) {
+				parent.error("O valor não está formatado corretamente.");
+			} catch (Exception e) {
+				parent.warn("Por favor, tente outro termo de busca.");
+			} finally {
+				parent.db.setFilter(oldFilter);
+			}
 		}
 	}
 
