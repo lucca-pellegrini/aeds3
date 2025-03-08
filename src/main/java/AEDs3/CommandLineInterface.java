@@ -48,14 +48,36 @@ import picocli.CommandLine.ParentCommand;
 import picocli.shell.jline3.PicocliCommands;
 import picocli.shell.jline3.PicocliCommands.PicocliCommandsFactory;
 
+/**
+ * Classe principal de interface de linha de comando (CLI) para o gerenciamento
+ * de arquivos TrackDB. Utiliza JLine3 para manipulação de entrada do usuário e
+ * Picocli para definir os comandos da interface.
+ */
 public class CommandLineInterface {
 	private Terminal terminal;
 
-	// Comando top-level. Somente printa ajuda.
-	@Command(name = "", description = { "Music tracks binary database.",
-			"Hit @|magenta <TAB>|@ to see available commands.",
-			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
-			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
+	/**
+	 * Comando principal para exibir informações sobre o programa e os comandos
+	 * disponíveis.
+	 *
+	 * <p>
+	 * Esta classe serve como o "pai" de todos os outros comandos do sistema(como
+	 * <code>OpenCommand</code>, <code>CloseCommand</code>,
+	 * <code>InfoCommand</code>, etc.), funcionando como um ponto central para
+	 * agrupar e fornecer um ambiente compartilhado onde os subcomandos podem
+	 * acessar dados e exibir informações na linha de comando (CLI) para o usuário.
+	 * </p>
+	 *
+	 * <p>
+	 * Ela é responsável por configurar e controlar a interface com o usuário,
+	 * providenciando prompts personalizados, habilitando e desabilitando as
+	 * capabilidades do terminal, e exibindo mensagens de erro, aviso e informação.
+	 * </p>
+	 */
+	@Command(name = "", description = { "Banco de dados binário de faixas de música.",
+			"Pressione @|magenta <TAB>|@ para ver os comandos disponíveis.",
+			"pressione @|magenta Alt-S|@ para alternar as dicas de tailtip.",
+			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
 					UpdateCommand.class, SortCommand.class })
@@ -79,6 +101,11 @@ public class CommandLineInterface {
 			rightPrompt = DEFAULT_RIGHT_PROMPT;
 		}
 
+		/**
+		 * Exibe as informações detalhadas de uma faixa de música.
+		 *
+		 * @param track A faixa de música a ser exibida.
+		 */
 		void printTrack(Track track) {
 			if (track == null) {
 				warn("Nenhuma track foi encontrada.");
@@ -146,19 +173,37 @@ public class CommandLineInterface {
 			out.println();
 		}
 
+		/**
+		 * Exibe todas as faixas no banco de dados.
+		 */
 		void printAllTracks() {
 			for (Track track : db)
 				printTrack(track);
 		}
 
+		/**
+		 * Exibe uma mensagem de erro.
+		 *
+		 * @param msg A mensagem de erro a ser exibida.
+		 */
 		void error(String msg) {
 			out.println(ERROR_PROMPT + msg);
 		}
 
+		/**
+		 * Exibe uma mensagem de aviso.
+		 *
+		 * @param msg A mensagem de aviso a ser exibida.
+		 */
 		void warn(String msg) {
 			out.println(WARN_PROMPT + msg);
 		}
 
+		/**
+		 * Exibe uma mensagem de informação.
+		 *
+		 * @param msg A mensagem informativa a ser exibida.
+		 */
 		void info(String msg) {
 			out.println(INFO_PROMPT + msg);
 		}
@@ -172,12 +217,18 @@ public class CommandLineInterface {
 			this.suggestions = suggestions;
 		}
 
+		/**
+		 * Executa o comando que exibe a ajuda da linha de comando.
+		 */
 		public void run() {
 			out.println(new CommandLine(this).getUsageMessage());
 		}
 	}
 
-	@Command(name = "usage", mixinStandardHelpOptions = true, description = "Print main program help.")
+	/**
+	 * Comando para exibir a ajuda do programa.
+	 */
+	@Command(name = "usage", mixinStandardHelpOptions = true, description = "Exibe a ajuda principal do programa.")
 	static class UsageCommand implements Runnable {
 		@ParentCommand
 		CliCommands parent;
@@ -187,29 +238,65 @@ public class CommandLineInterface {
 		}
 	}
 
-	// Abertura do DB.
-	@Command(name = "open", mixinStandardHelpOptions = true, description = "Open a TrackDB file.")
+	/**
+	 * Comando para abrir um banco de dados de faixas TrackDB.
+	 *
+	 * <p>
+	 * Este comando é responsável por abrir um arquivo TrackDB existente ou criar um
+	 * novo arquivo caso o parâmetro <code>-n</code> (ou <code>--new</code>) seja
+	 * utilizado e o arquivo não exista.
+	 * </p>
+	 *
+	 * <p>
+	 * O arquivo de banco de dados será carregado e as informações relacionadas ao
+	 * arquivo aberto serão configuradas para o ambiente CLI.
+	 * </p>
+	 *
+	 * @see TrackDB
+	 */
+	@Command(name = "open", mixinStandardHelpOptions = true, description = "Abre um arquivo TrackDB.")
 	static class OpenCommand implements Runnable {
-		@Option(names = { "-n", "--new" }, description = "Create a new file if it does not exist.")
+		/**
+		 * Define se um novo arquivo será criado caso o arquivo especificado não exista.
+		 * Se não for especificado, o arquivo deve existir para ser aberto.
+		 */
+		@Option(names = { "-n", "--new" }, description = "Cria um novo arquivo se não existir.")
 		private boolean create;
 
-		@Parameters(paramLabel = "<path>", description = "Path to the file.")
+		/**
+		 * Caminho do arquivo que será aberto ou criado, se necessário.
+		 */
+		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.")
 		private Path param;
 
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Abre o arquivo TrackDB especificado pelo caminho.
+		 *
+		 * <p>
+		 * Se o arquivo não existir e o parâmetro <code>--new</code> não for
+		 * especificado, um erro será exibido. Caso o arquivo exista, ele será carregado
+		 * e o prompt será alterado para refletir o arquivo aberto.
+		 * </p>
+		 */
 		public void run() {
 			if (!create && !new File(param.toString()).exists()) {
 				parent.error("O arquivo não existe.");
 			} else {
 				try {
-					parent.db = new TrackDB(param.toString());
+					parent.db = new TrackDB(param.toString()); // Carrega o banco de dados.
 				} catch (IOException e) {
 					e.printStackTrace();
 					throw new RuntimeException("Erro ao abrir " + param);
 				}
 
+				// Atualiza o prompt da CLI para refletir o arquivo aberto.
 				parent.prompt = ansi().bold().fgCyan().a(param + "> ").toString();
 				parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
 				parent.info("Arquivo aberto.");
@@ -217,38 +304,99 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "close", mixinStandardHelpOptions = true, description = "Close the opened TrackDB file.")
+	/**
+	 * Comando para fechar o arquivo do banco de dados aberto.
+	 *
+	 * <p>
+	 * Este comando é utilizado para fechar o arquivo TrackDB atualmente aberto. Se
+	 * não houver nenhum arquivo aberto, uma mensagem de aviso será exibida.
+	 * </p>
+	 *
+	 * <p>
+	 * Após o fechamento do arquivo, o prompt da linha de comando será restaurado
+	 * para seus valores padrão.
+	 * </p>
+	 */
+	@Command(name = "close", mixinStandardHelpOptions = true, description = "Fecha o arquivo TrackDB aberto.")
 	static class CloseCommand implements Runnable {
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Fecha o arquivo TrackDB aberto e restaura o prompt padrão.
+		 *
+		 * <p>
+		 * Se nenhum arquivo estiver aberto, uma mensagem de aviso será exibida. Caso
+		 * contrário, o banco de dados será fechado e o prompt será restaurado.
+		 * </p>
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.warn("Não há nenhum arquivo aberto.");
 			} else {
-				parent.db = null;
-				parent.prompt = CliCommands.DEFAULT_PROMPT;
-				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT;
+				parent.db = null; // Fecha o banco de dados.
+				parent.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
+				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
 			}
 		}
 	}
 
-	@Command(name = "info", mixinStandardHelpOptions = true, description = "Print information about the opened file.")
+	/**
+	 * Comando para exibir informações sobre o arquivo de banco de dados aberto.
+	 *
+	 * <p>
+	 * Este comando exibe informações detalhadas sobre o banco de dados TrackDB
+	 * atualmente aberto, incluindo o ID do arquivo, o último ID utilizado, o número
+	 * de faixas e de espaços utilizados, a ordem dos registros e o aproveitamento
+	 * de espaço do banco de dados.
+	 * </p>
+	 *
+	 * <p>
+	 * A eficiência é calculada como a razão entre o número de faixas e o número
+	 * total de espaços utilizados no banco de dados. A cor da eficiência varia
+	 * conforme o valor: verde para eficiência alta (>= 90%), amarelo para
+	 * eficiência média (>= 50%) e vermelho para eficiência baixa (< 50%).
+	 * </p>
+	 */
+	@Command(name = "info", mixinStandardHelpOptions = true, description = "Exibe informações sobre o arquivo aberto.")
 	static class InfoCommand implements Runnable {
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Exibe as informações detalhadas sobre o banco de dados TrackDB aberto.
+		 *
+		 * <p>
+		 * O comando exibe informações como o UUID do arquivo, o último ID registrado, o
+		 * número de faixas e espaços utilizados, o estado de ordenação do banco de
+		 * dados e a eficiência (número de faixas em relação aos espaços).
+		 * </p>
+		 *
+		 * <p>
+		 * Se nenhum banco de dados estiver aberto, uma mensagem de erro será exibida.
+		 * </p>
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
 				return;
 			}
 
+			// Calcula a eficiência do banco de dados.
 			Ansi tmp;
 			int numTracks = parent.db.getNumTracks();
 			int numSpaces = parent.db.getNumSpaces();
 			float efficiency = numTracks / (float) numSpaces;
 
+			// Exibe as informações sobre o banco de dados.
 			parent.out.println(
 					ansi().bold().fgGreen().a("File ID:\t").reset().a(parent.db.getUUID()));
 			parent.out.println(
@@ -256,11 +404,13 @@ public class CommandLineInterface {
 			parent.out.println(ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(numTracks));
 			parent.out.println(ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(numSpaces));
 
+			// Exibe o estado de ordenação.
 			tmp = ansi().bold().fgGreen().a("Ordered:\t").reset();
 			tmp = (parent.db.isOrdered()) ? tmp.fgBrightGreen().a("true")
 					: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
+			// Exibe a eficiência com a cor correspondente.
 			tmp = ansi().bold().fgGreen().a("Efficiency:\t").reset();
 			tmp = (efficiency >= 0.9) ? tmp.fgBrightGreen()
 					: (efficiency >= 0.5) ? tmp.fgBrightYellow()
@@ -269,14 +419,60 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "import", mixinStandardHelpOptions = true, description = "Import tracks from a CSV file.")
+	/**
+	 * Comando responsável por importar faixas de música a partir de um arquivo CSV.
+	 * Este comando lê o arquivo CSV especificado pelo caminho e insere as faixas no
+	 * banco de dados.
+	 *
+	 * <p>
+	 * O comando verifica se o banco de dados está aberto antes de realizar a
+	 * importação. Caso contrário, será exibida uma mensagem de erro informando que
+	 * não há nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * <p>
+	 * Ao importar as faixas, o comando cria uma instância do {@link CSVManager}
+	 * para ler os dados do arquivo e insere cada faixa no banco de dados utilizando
+	 * o método {@link Database#create(Track)}.
+	 * </p>
+	 *
+	 * <p>
+	 * Após a importação, o comando exibe o número total de itens importados e o
+	 * último ID gerado.
+	 * </p>
+	 *
+	 * <p>
+	 * Em caso de erro ao tentar ler o arquivo CSV, será exibida uma mensagem de
+	 * erro de IO.
+	 * </p>
+	 *
+	 * @see CSVManager
+	 * @see Track
+	 * @see Database
+	 */
+	@Command(name = "import", mixinStandardHelpOptions = true, description = "Importar faixas de um arquivo CSV.")
 	static class ImportCommand implements Runnable {
-		@Parameters(paramLabel = "<path>", description = "Path to the CSV source file.")
+		/**
+		 * Caminho para o arquivo CSV de origem a ser importado.
+		 * O caminho é passado como parâmetro ao executar o comando.
+		 *
+		 * @param param Caminho do arquivo CSV a ser importado.
+		 */
+		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo CSV de origem.")
 		private Path param;
 
+		/**
+		 * Referência para o comando pai, usada para acessar o banco de dados e exibir
+		 * mensagens de erro e informações.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a importação das faixas de música a partir do arquivo CSV.
+		 * O comando verifica se o banco de dados está aberto e, se sim, processa o
+		 * arquivo CSV para criar as faixas no banco de dados.
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -289,7 +485,7 @@ public class CommandLineInterface {
 					++count;
 					parent.db.create(t);
 				}
-				parent.info("Imported " + count + " items. Last ID: " + parent.db.getLastId());
+				parent.info("Importados " + count + " itens. Último ID: " + parent.db.getLastId());
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ler o CSV.");
@@ -298,40 +494,120 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "read", mixinStandardHelpOptions = true, description = "Read track(s) by field or by ID.", footer = {
-			"Examples:", "read 117 @|magenta (read by ID 117)|@",
-			"read --field=GENRES pop rock @|magenta (read entries with Genres including pop "
-					+ "and rock)|@",
-			"read --field=TRACK_ARTISTS \"Frank Sinatra\" @|magenta (read tracks by Frank "
+	/**
+	 * Comando responsável por ler faixas de música no banco de dados, seja por ID
+	 * ou por campo específico. O comando pode filtrar as faixas por diversos campos
+	 * (como nome, artistas, popularidade, etc.) e também suporta busca por
+	 * expressões regulares.
+	 *
+	 * <p>
+	 * Este comando permite a leitura de faixas com base em um campo específico ou,
+	 * se o parâmetro <code>--all</code> for fornecido, todas as faixas serão
+	 * listadas. Também é possível aplicar filtros por campos como nome, artistas ou
+	 * popularidade. O filtro pode ser baseado em expressões regulares quando a
+	 * opção <code>--regex</code> for ativada.
+	 * </p>
+	 *
+	 * <p>
+	 * O comando valida os parâmetros fornecidos e lida com diferentes tipos de
+	 * campos. Por exemplo, para o campo "ID", o parâmetro fornecido deve ser um
+	 * número inteiro. Para campos como "GENRES", a busca pode ser feita com
+	 * múltiplos valores.
+	 * </p>
+	 *
+	 * <p>
+	 * Em caso de erro de formatação ou falha na execução da leitura, o comando
+	 * exibirá mensagens de erro apropriadas para o usuário.
+	 * </p>
+	 *
+	 * @see Track
+	 * @see TrackFilter
+	 * @see Field
+	 */
+	@Command(name = "read", mixinStandardHelpOptions = true, description = "Ler faixa(s) por campo ou por ID.", footer = {
+			"Exemplos:", "read 117 @|magenta (ler por ID 117)|@",
+			"read --field=GENRES pop rock @|magenta (ler faixas com Gêneros incluindo pop e "
+					+ "rock)|@",
+			"read --field=TRACK_ARTISTS \"Frank Sinatra\" @|magenta (ler faixas de Frank "
 					+ "Sinatra)|@",
-			"read --field=NAME --regex 'You.*Gone' @|magenta (read track names matching RegEx)|@" })
+			"read --field=NAME --regex 'You.*Gone' @|magenta (ler nomes de faixas com expressão "
+					+ "regular)|@" })
 	static class ReadCommand implements Runnable {
+		/**
+		 * Grupo de opções para escolher entre ler todas as faixas ou especificar um
+		 * campo de filtro. As opções incluem:
+		 * - Um campo específico para busca (como ID, NAME, GENRES, etc.).
+		 * - A opção de ler todas as faixas.
+		 */
 		@ArgGroup(exclusive = true)
 		private AllOrField allOrField = new AllOrField();
 
+		/**
+		 * Classe que contém as opções de filtro para a busca das faixas.
+		 *
+		 * @see Field
+		 */
 		static class AllOrField {
-			@Option(names = { "-f", "--field" }, description = "What field to search on.", defaultValue = "ID")
+			/**
+			 * Define o campo a ser usado para busca. O valor padrão é "ID".
+			 *
+			 * @param field O campo a ser usado para a busca.
+			 */
+			@Option(names = { "-f", "--field" }, description = "Campo a ser usado para busca.", defaultValue = "ID")
 			Field field = ID;
 
-			@Option(names = { "-a", "--all" }, description = "Read all registers.", defaultValue = "false")
+			/**
+			 * Se ativado, lê todas as faixas no banco de dados, sem aplicar filtros.
+			 *
+			 * @param all Se verdadeiro, todas as faixas serão lidas.
+			 */
+			@Option(names = { "-a", "--all" }, description = "Ler todos os registros.", defaultValue = "false")
 			boolean all = false;
 		}
 
-		@Option(names = { "-r", "--regex" }, description = "Match strings by regex.", defaultValue = "false")
+		/**
+		 * Se ativado, a busca por nome da faixa ou do álbum será realizada utilizando
+		 * expressões regulares.
+		 *
+		 * @param regex Se verdadeiro, a busca será feita utilizando uma expressão
+		 *              regular.
+		 */
+		@Option(names = { "-r",
+				"--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
 		boolean regex = false;
 
-		@Parameters(paramLabel = "<value>", description = "Value to search.")
+		/**
+		 * Parâmetros para a busca. O valor depende do campo escolhido. Pode ser um
+		 * único valor ou múltiplos.
+		 *
+		 * @param params Valor(es) utilizado(s) para a busca.
+		 */
+		@Parameters(paramLabel = "<valor>", description = "Valor a ser buscado.")
 		String[] params;
 
+		/**
+		 * Referência para o comando pai, usado para acessar o banco de dados e exibir
+		 * mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a leitura das faixas do banco de dados com base no filtro fornecido.
+		 * Se a busca for realizada por um campo, o comando valida os parâmetros e, em
+		 * seguida, aplica o filtro de busca ao banco de dados. Caso contrário, exibe um
+		 * erro.
+		 *
+		 * @see TrackFilter
+		 * @see Track
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
 				return;
 			}
 
+			// Se a opção --all foi selecionada, exibe todas as faixas.
 			if (allOrField.all) {
 				TrackFilter oldFilter = parent.db.getFilter();
 				try {
@@ -345,10 +621,13 @@ public class CommandLineInterface {
 
 			Field field = allOrField.field;
 
+			// Se os parâmetros de busca não foram fornecidos ou são inválidos, exibe o uso
+			// correto.
 			if (params == null) {
 				parent.out.println(new CommandLine(this).getUsageMessage());
 				return;
 			} else if (params.length > 1) {
+				// Validações específicas de campo.
 				switch (field) {
 					case ID:
 					case NAME:
@@ -367,6 +646,7 @@ public class CommandLineInterface {
 
 			String singleParam = params[0];
 
+			// Caso o campo seja ID, realiza a busca pelo ID específico.
 			try {
 				if (field == ID) {
 					parent.printTrack(parent.db.read(Integer.parseInt(singleParam)));
@@ -377,14 +657,15 @@ public class CommandLineInterface {
 				parent.error("Erro fatal de IO ao tentar ler o registro.");
 				return;
 			} catch (NumberFormatException e) {
-				parent.error(singleParam + " não é um numero inteiro.");
+				parent.error(singleParam + " não é um número inteiro.");
 				return;
 			}
 
-			// Salva o filtro de busca anterior.
+			// Salva o filtro de busca anterior para restaurá-lo após a execução.
 			TrackFilter oldFilter = parent.db.getFilter();
 
 			try {
+				// Aplica o filtro de busca conforme o campo selecionado.
 				TrackFilter newFilter = switch (field) {
 					case NAME, ALBUM_NAME -> {
 						if (regex)
@@ -394,7 +675,6 @@ public class CommandLineInterface {
 						else
 							yield new TrackFilter(field, singleParam);
 					}
-
 					case TRACK_ID -> {
 						if (singleParam.length() != Track.getTrackIdNumChars()) {
 							parent.error(field.toString() + " deve conter exatamente "
@@ -403,28 +683,25 @@ public class CommandLineInterface {
 						}
 						yield new TrackFilter(field, singleParam);
 					}
-
 					case ALBUM_RELEASE_DATE -> new TrackFilter(field, LocalDate.parse(singleParam));
 					case ALBUM_TYPE -> new TrackFilter(field, singleParam);
 					case POPULARITY, KEY -> new TrackFilter(field, Integer.parseInt(singleParam));
 					case TRACK_ARTISTS, GENRES -> new TrackFilter(field, Arrays.asList(params));
-
 					case DANCEABILITY, ENERGY, LOUDNESS, TEMPO, VALENCE -> {
 						parent.error("Não é possível buscar por valores de tipo float.");
 						throw new IllegalArgumentException();
 					}
-
 					case EXPLICIT -> {
 						parent.error("Não é possível buscar por valores de tipo booleano.");
 						throw new IllegalArgumentException();
 					}
-
 					case ID -> {
-						// ID é um caso especial, tratado acima.
+						// ID é um caso especial, já tratado antes.
 						throw new AssertionError();
 					}
 				};
 
+				// Aplica o novo filtro e exibe as faixas filtradas.
 				parent.db.setFilter(newFilter);
 				parent.printAllTracks();
 			} catch (NumberFormatException | DateTimeParseException e) {
@@ -432,19 +709,56 @@ public class CommandLineInterface {
 			} catch (Exception e) {
 				parent.warn("Por favor, tente outro termo de busca.");
 			} finally {
+				// Reverte o filtro para o que foi salvo anteriormente.
 				parent.db.setFilter(oldFilter);
 			}
 		}
 	}
 
-	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Delete a track by ID.")
+	/**
+	 * Comando responsável por deletar uma faixa de música no banco de dados a
+	 * partir do seu ID.
+	 *
+	 * <p>
+	 * Este comando recebe um ID de faixa como parâmetro e tenta deletar a faixa
+	 * correspondente no banco de dados. Caso o ID não exista ou ocorra algum erro,
+	 * uma mensagem de erro será exibida.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see Track
+	 * @see CliCommands
+	 */
+	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Deletar uma faixa pelo ID.")
 	static class DeleteCommand implements Runnable {
-		@Parameters(paramLabel = "<ID>", description = "Track's primary key.")
+		/**
+		 * ID da faixa a ser deletada.
+		 *
+		 * @param id ID da chave primária da faixa no banco de dados.
+		 */
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
 		int id;
 
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a exclusão da faixa a partir do ID fornecido.
+		 *
+		 * <p>
+		 * Se o banco de dados estiver aberto, o comando tentará deletar a faixa
+		 * correspondente ao ID fornecido. Se o ID não for encontrado, uma mensagem de
+		 * erro será exibida. Caso ocorra outro erro, o comando irá relatar a falha na
+		 * operação.
+		 * </p>
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -463,19 +777,58 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "create", mixinStandardHelpOptions = true, description = "Create a new track.")
+	/**
+	 * Comando responsável por criar uma nova faixa de música no banco de dados.
+	 *
+	 * <p>
+	 * Este comando solicita que o usuário forneça os dados para a criação de uma
+	 * nova faixa, como nome, artistas, álbum, data de lançamento, etc. O processo
+	 * de criação é interativo e requer a entrada de vários campos. Caso o usuário
+	 * cancele a operação ou ocorra um erro, a operação será interrompida.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see Track
+	 * @see CliCommands
+	 */
+	@Command(name = "create", mixinStandardHelpOptions = true, description = "Criar uma nova faixa.")
 	static class CreateCommand implements Runnable {
 		private Ansi rightPrompt = ansi().bold().fgBrightYellow();
 		LineReader reader;
 
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Método auxiliar para ler os dados de entrada do usuário de maneira
+		 * interativa.
+		 *
+		 * @param prompt Mensagem que será exibida ao usuário.
+		 * @return O valor fornecido pelo usuário.
+		 */
 		private String read(String prompt) {
 			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
 					this.rightPrompt.toString(), (MaskingCallback) null, null);
 		}
 
+		/**
+		 * Executa a criação de uma nova faixa de música no banco de dados.
+		 *
+		 * <p>
+		 * O comando solicita dados interativos do usuário para preencher todos os
+		 * campos necessários para a criação de uma nova faixa. Caso a operação seja
+		 * cancelada ou ocorra algum erro, uma mensagem de erro será exibida.
+		 * </p>
+		 *
+		 * @see Track
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -522,25 +875,77 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "update", mixinStandardHelpOptions = true, description = "Update an existing track")
+	/**
+	 * Comando responsável por atualizar uma faixa de música existente no banco de
+	 * dados.
+	 *
+	 * <p>
+	 * Este comando permite ao usuário atualizar os campos de uma faixa existente no
+	 * banco de dados, como nome, artistas, álbum, popularidade, entre outros. O
+	 * comando solicita ao usuário os novos valores para os campos que deseja
+	 * atualizar. Caso a operação seja cancelada ou ocorra algum erro, o processo de
+	 * atualização será interrompido.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see Track
+	 * @see CliCommands
+	 */
+	@Command(name = "update", mixinStandardHelpOptions = true, description = "Atualizar uma faixa existente.")
 	static class UpdateCommand implements Runnable {
 		private Ansi rightPrompt = ansi().bold().fgBrightMagenta();
 		LineReader reader;
 
-		@Option(names = { "-f", "--field" }, description = "What fields to update.")
+		/**
+		 * Campos que devem ser atualizados. Se não fornecido, todos os campos serão
+		 * atualizados.
+		 *
+		 * @param field Lista de campos a serem atualizados.
+		 */
+		@Option(names = { "-f", "--field" }, description = "Campos a serem atualizados.")
 		Field[] field;
 
-		@Parameters(paramLabel = "<ID>", description = "Track's primary key.")
+		/**
+		 * ID da faixa a ser atualizada.
+		 *
+		 * @param id ID da chave primária da faixa no banco de dados.
+		 */
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
 		int id;
 
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Método auxiliar para ler os dados de entrada do usuário de maneira
+		 * interativa.
+		 *
+		 * @param prompt Mensagem que será exibida ao usuário.
+		 * @return O valor fornecido pelo usuário.
+		 */
 		private String read(String prompt) {
 			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
 					this.rightPrompt.toString(), (MaskingCallback) null, null);
 		}
 
+		/**
+		 * Executa a atualização de uma faixa existente no banco de dados.
+		 *
+		 * <p>
+		 * O comando solicita ao usuário os novos valores para os campos a serem
+		 * atualizados. Caso a operação seja cancelada ou ocorra algum erro, o processo
+		 * de atualização será interrompido.
+		 * </p>
+		 *
+		 * @see Track
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -572,6 +977,14 @@ public class CommandLineInterface {
 			}
 		}
 
+		/**
+		 * Atualiza todos os campos de uma faixa, exceto o campo ID.
+		 *
+		 * @param id ID da faixa a ser atualizada.
+		 * @return A faixa com os campos atualizados.
+		 * @throws IOException Se ocorrer um erro durante a leitura ou escrita dos
+		 *                     dados.
+		 */
 		private Track updateFull(int id) throws IOException {
 			List<Field> fieldsList = new ArrayList<>(Arrays.asList(Field.values()));
 			fieldsList.remove(ID); // Remove o ID, que não pode ser editado.
@@ -580,6 +993,15 @@ public class CommandLineInterface {
 			return updateFields(id, allFields);
 		}
 
+		/**
+		 * Atualiza os campos específicos de uma faixa.
+		 *
+		 * @param id     ID da faixa a ser atualizada.
+		 * @param fields Campos a serem atualizados.
+		 * @return A faixa com os campos atualizados.
+		 * @throws IOException Se ocorrer um erro durante a leitura ou escrita dos
+		 *                     dados.
+		 */
 		private Track updateFields(int id, Field[] fields) throws IOException {
 			Track t = parent.db.read(id);
 
@@ -643,22 +1065,82 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Sort the database.")
+	/**
+	 * Comando responsável por ordenar o banco de dados utilizando o algoritmo de
+	 * ordenação externa Balanced Merge Sort (intercalação balanceada).
+	 *
+	 * <p>
+	 * Este comando permite que o usuário ordene as faixas de música no banco de
+	 * dados de acordo com a lógica de ordenação definida no algoritmo de Balanced
+	 * Merge Sort. Ele oferece opções para configurar o fanout (número de elementos
+	 * a serem intercalados de cada vez) e o tamanho máximo da pilha em memória,
+	 * além de uma opção para ativar a saída detalhada de informações sobre o
+	 * processo.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto ou não houver faixas para ordenar, uma
+	 * mensagem de erro ou aviso será exibida.
+	 * </p>
+	 *
+	 * @see CliCommands
+	 * @see BalancedMergeSort
+	 */
+	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Ordenar o banco de dados.")
 	static class SortCommand implements Runnable {
-		@Option(names = { "-f", "--fanout" }, description = { "Fanout for the balanced merge sort.",
-				"(Number of elements merged at a time.)" }, defaultValue = "8")
+		/**
+		 * O fanout especifica o número de elementos que são intercalados de cada vez
+		 * durante a ordenação. O valor padrão é 8.
+		 *
+		 * @param fanout O número de elementos a serem intercalados de cada vez.
+		 */
+		@Option(names = { "-f", "--fanout" }, description = { "Fanout para o algoritmo Balanced Merge Sort.",
+				"(Número de elementos mesclados de cada vez.)" }, defaultValue = "8")
 		int fanout = 8;
 
-		@Option(names = { "-n", "--num" }, description = { "Maximum number of elements in the in-memory heap",
-				"to use during sorting." }, defaultValue = "64")
+		/**
+		 * O tamanho máximo da pilha em memória a ser usada durante a ordenação.
+		 * O valor padrão é 64.
+		 *
+		 * @param maxHeapSize O número máximo de elementos na pilha em memória.
+		 */
+		@Option(names = { "-n", "--num" }, description = { "Número máximo de elementos na pilha em memória",
+				"a ser utilizado durante a ordenação." }, defaultValue = "64")
 		int maxHeapSize = 64;
 
-		@Option(names = { "-v", "--verbose" }, description = "Enable verbose output.")
+		/**
+		 * Ativa ou desativa a saída detalhada durante a ordenação.
+		 *
+		 * @param verbose Se ativado, imprime informações detalhadas sobre o processo de
+		 *                ordenação.
+		 */
+		@Option(names = { "-v", "--verbose" }, description = "Ativar saída detalhada.")
 		boolean verbose = false;
 
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a ordenação do banco de dados utilizando o algoritmo Balanced Merge
+		 * Sort.
+		 *
+		 * <p>
+		 * O comando verifica se o banco de dados está aberto e se há registros a serem
+		 * ordenados. Caso contrário, ele exibe uma mensagem de erro ou aviso
+		 * apropriada.
+		 * </p>
+		 *
+		 * <p>
+		 * Se as condições forem atendidas, o comando cria uma instância do algoritmo de
+		 * ordenação `BalancedMergeSort`, configurando-o com os parâmetros fornecidos e
+		 * iniciando a ordenação.
+		 * </p>
+		 *
+		 * @see BalancedMergeSort
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -669,11 +1151,12 @@ public class CommandLineInterface {
 			}
 
 			try {
+				// Cria instância do algoritmo BalancedMergeSort com os parâmetros fornecidos
 				BalancedMergeSort sorter = new BalancedMergeSort(parent.db, fanout, maxHeapSize);
-				sorter.setVerbose(verbose);
-				sorter.sort();
+				sorter.setVerbose(verbose); // Ativa ou desativa a saída detalhada
+				sorter.sort(); // Realiza a ordenação
 			} catch (IllegalArgumentException e) {
-				parent.error(e.getMessage());
+				parent.error(e.getMessage()); // Exibe erro caso haja um argumento inválido
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ordenar o banco de dados.");
@@ -682,10 +1165,44 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Classe responsável pela configuração e execução da interface de linha de
+	 * comando (CLI) para o banco de dados de faixas musicais.
+	 *
+	 * <p>
+	 * Este construtor inicializa o sistema de interface de linha de comando,
+	 * configurando todos os componentes necessários, como o terminal, comandos do
+	 * Picocli, sugestões de autocompletar, manipulação de teclas e outros recursos.
+	 * O método `showWelcomeBanner` é utilizado para exibir um banner de boas-vindas
+	 * personalizado na inicialização.
+	 * </p>
+	 *
+	 * <p>
+	 * O fluxo de execução continua em um loop, aguardando o input do usuário,
+	 * executando os comandos inseridos e exibindo informações sobre o progresso ou
+	 * erros durante a execução.
+	 * </p>
+	 *
+	 * <p>
+	 * O sistema acompanha recursos de autocompletar, sugestões de comandos e
+	 * exibição de mensagens detalhadas durante a execução.
+	 * </p>
+	 *
+	 * @see CliCommands
+	 * @see PicocliCommandsFactory
+	 * @see PicocliCommands
+	 * @see SystemRegistry
+	 * @see Terminal
+	 * @see LineReader
+	 * @see AutosuggestionWidgets
+	 * @see TailTipWidgets
+	 */
 	public CommandLineInterface(String[] args) {
+		// Inicializa o sistema de console com suporte a cores.
 		AnsiConsole.systemInstall();
 
 		try {
+			// Configuração do diretório de trabalho e comandos do sistema.
 			Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
 			Builtins builtins = new Builtins(workDir, new ConfigurationPath(workDir.get(), workDir.get()), null);
 			CliCommands commands = new CliCommands();
@@ -693,13 +1210,16 @@ public class CommandLineInterface {
 			CommandLine cmd = new CommandLine(commands, factory);
 			PicocliCommands picocliCommands = new PicocliCommands(cmd);
 			picocliCommands.name("TrackDB commands");
+
+			// Configuração do terminal e parser.
 			Parser parser = new DefaultParser();
 			terminal = TerminalBuilder.builder().build();
-			terminal.puts(Capability.clear_screen); // Limpa a tela.
+			terminal.puts(Capability.clear_screen); // Limpa a tela no terminal.
 			SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
 			systemRegistry.setCommandRegistries(builtins, picocliCommands);
 			systemRegistry.register("help", picocliCommands);
 
+			// Configuração do leitor de linhas e sugestões de autocompletar.
 			LineReader reader = LineReaderBuilder.builder()
 					.terminal(terminal)
 					.completer(systemRegistry.completer())
@@ -710,17 +1230,23 @@ public class CommandLineInterface {
 			builtins.setLineReader(reader);
 			commands.setReader(reader);
 			factory.setTerminal(terminal);
+
+			// Configuração de widgets de sugestões e dicas de comandos.
 			TailTipWidgets tailtip = new TailTipWidgets(
 					reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
 			tailtip.enable();
 			AutosuggestionWidgets suggestions = new AutosuggestionWidgets(reader);
 			suggestions.enable();
 			commands.setSuggestions(suggestions);
+
+			// Mapeia teclas de atalho.
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
 			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
 
+			// Exibe o banner de boas-vindas ao iniciar o programa.
 			showWelcomeBanner();
 
+			// Loop principal de execução do CLI.
 			String line;
 			while (true) {
 				try {
@@ -740,12 +1266,28 @@ public class CommandLineInterface {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		} finally {
+			// Remove o suporte ao console ao encerrar.
 			AnsiConsole.systemUninstall();
 		}
 	}
 
+	/**
+	 * Exibe um banner de boas-vindas no início do programa.
+	 *
+	 * <p>
+	 * Este método monta e exibe um banner estilizado em duas partes: uma parte
+	 * à esquerda com uma arte em ASCII e uma parte à direita com a descrição
+	 * do programa, incluindo o nome do banco de dados e os autores do projeto.
+	 * </p>
+	 *
+	 * <p>
+	 * A arte ASCII e as informações de descrição são coloridas para proporcionar
+	 * uma
+	 * apresentação visual atraente no terminal.
+	 * </p>
+	 */
 	public void showWelcomeBanner() {
-		// Monta a banner em duas partes: esquerda e direita, com cores diferentes.
+		// Cria a arte ASCII à esquerda com cores.
 		String[] bannerLeft = new String[8];
 		bannerLeft[0] = "";
 		bannerLeft[1] = "▄▄▄▄▄▄▄                      █      ▄▄▄▄   ▄▄▄▄▄   ";
@@ -756,39 +1298,38 @@ public class CommandLineInterface {
 		bannerLeft[6] = "";
 		bannerLeft[7] = "══════════════════════════════════════════════════════════════════════\n";
 
-		// Colore o título principal em ASCII art.
+		// Aplica a formatação de cor nas linhas da arte ASCII.
 		for (int i = 1; i <= 5; ++i)
 			bannerLeft[i] = new AttributedString(
 					bannerLeft[i], AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
 					.toAnsi();
-		// Colore a linha separadora.
 		bannerLeft[7] = new AttributedString(
 				bannerLeft[7], AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA))
 				.toAnsi();
 
+		// Cria a descrição do programa à direita.
 		String[] bannerRight = new String[5];
 		bannerRight[0] = "Banco de Dados";
-		bannerRight[1] = "de Trilhas Musicais";
+		bannerRight[1] = "de Faixas Musicais";
 		bannerRight[2] = "em formato binário";
 		bannerRight[3] = "Lucca Pellegrini";
 		bannerRight[4] = "Pedro Vitor Andrade";
 
-		// Colore a descrição do programa.
+		// Aplica a formatação de cor nas linhas de descrição.
 		for (int i = 0; i <= 2; ++i)
 			bannerRight[i] = new AttributedString(
 					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
 					.toAnsi();
-		// Colore os nomes dos autores.
 		for (int i = 3; i <= 4; ++i)
 			bannerRight[i] = new AttributedString(
 					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
 					.toAnsi();
 
-		// Apende os segmentos.
+		// Combina a arte ASCII com a descrição do programa.
 		for (int i = 0; i <= 4; ++i)
 			bannerLeft[i + 1] += bannerRight[i];
 
-		// Printa o resultado
+		// Exibe o banner completo no terminal.
 		for (String s : bannerLeft)
 			terminal.writer().println(s);
 	}
