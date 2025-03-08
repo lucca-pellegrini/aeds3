@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.fusesource.jansi.AnsiConsole;
@@ -52,7 +53,7 @@ public class CommandLineInterface {
 			"hit @|magenta Alt-S|@ to toggle tailtip hints.",
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
-					ReadCommand.class })
+					ReadCommand.class, DeleteCommand.class })
 	class CliCommands implements Runnable {
 		PrintWriter out;
 		TrackDB db;
@@ -371,6 +372,32 @@ public class CommandLineInterface {
 				parent.warn("Por favor, tente outro termo de busca.");
 			} finally {
 				parent.db.setFilter(oldFilter);
+			}
+		}
+	}
+
+	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Delete a track by ID")
+	static class DeleteCommand implements Runnable {
+		@Parameters(paramLabel = "<ID>", description = "Track's primary key.")
+		int id;
+
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			try {
+				parent.db.delete(id);
+			} catch (NoSuchElementException e) {
+				parent.error("O ID " + id + " não existe nesse arquivo.");
+				return;
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Erro ao deletar " + id);
 			}
 		}
 	}
