@@ -13,29 +13,104 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
-// Criação da classe track.
+/**
+ * Representa uma faixa de música no banco de dados.
+ *
+ * A classe {@link Track} implementa a interface {@link Externalizable},
+ * permitindo a leitura e escrita dos dados da faixa de forma binária. Ela
+ * também implementa {@link Comparable} para comparação das faixas com base no
+ * ID.
+ *
+ * Esta classe contém metadados relacionados a uma faixa de música, como nome da
+ * faixa, artistas, data de lançamento do álbum, entre outros.
+ */
 public class Track implements Externalizable, Comparable<Track> {
-	// Atributos
+	/**
+	 * Data de lançamento do álbum.
+	 */
 	protected LocalDate albumReleaseDate;
-	protected List<String> genres; // Sujeito a futura revisão.
+
+	/**
+	 * Gêneros musicais da faixa.
+	 */
+	protected List<String> genres;
+
+	/**
+	 * Artistas da faixa.
+	 */
 	protected List<String> trackArtists;
+
+	/**
+	 * Nome do álbum.
+	 */
 	protected String albumName;
-	protected String albumType; // Sujeito a futura revisão.
+
+	/**
+	 * Tipo do álbum (e.g., "single", "album").
+	 */
+	protected String albumType;
+
+	/**
+	 * Nome da faixa.
+	 */
 	protected String name;
+
+	/**
+	 * Indica se a faixa contém conteúdo explícito.
+	 */
 	protected boolean explicit;
+
+	/**
+	 * Identificador único da faixa.
+	 */
 	protected char[] trackId;
+
+	/**
+	 * Atributos de áudio da faixa.
+	 */
 	protected float danceability;
 	protected float energy;
 	protected float loudness;
 	protected float tempo;
 	protected float valence;
+
+	/**
+	 * ID da faixa.
+	 */
 	protected int id;
+
+	/**
+	 * Chave musical da faixa.
+	 */
 	protected int key;
+
+	/**
+	 * Popularidade da faixa.
+	 */
 	protected int popularity;
 
 	private static final int trackIdNumChars = 22;
 
-	// Construtor
+	/**
+	 * Constrói uma instância de {@link Track} com todos os metadados fornecidos.
+	 *
+	 * @param albumReleaseDate Data de lançamento do álbum.
+	 * @param genres           Lista de gêneros musicais.
+	 * @param trackArtists     Lista de artistas da faixa.
+	 * @param albumName        Nome do álbum.
+	 * @param albumType        Tipo do álbum.
+	 * @param name             Nome da faixa.
+	 * @param explicit         Indica se a faixa é explícita.
+	 * @param trackId          Identificador da faixa.
+	 * @param loudness         Volume da faixa.
+	 * @param danceability     Dançabilidade da faixa.
+	 * @param energy           Energia da faixa.
+	 * @param valence          Valência (humor) da faixa.
+	 * @param tempo            Tempo da faixa.
+	 * @param key              Chave musical da faixa.
+	 * @param popularity       Popularidade da faixa.
+	 * @param id               ID único da faixa.
+	 */
 	public Track(LocalDate albumReleaseDate, List<String> genres, List<String> trackArtists,
 			String albumName, String albumType, String name, boolean explicit, char[] trackId,
 			float loudness, float danceability, float energy, float valence, float tempo, int key,
@@ -58,10 +133,18 @@ public class Track implements Externalizable, Comparable<Track> {
 		this.id = id;
 	}
 
+	/**
+	 * Construtor padrão.
+	 */
 	public Track() {
 	}
 
-	// Escrita dos dados em binário.
+	/**
+	 * Método responsável pela escrita dos dados da faixa em formato binário.
+	 *
+	 * @param out Fluxo de saída de dados.
+	 * @throws IOException Caso ocorra erro durante a escrita dos dados.
+	 */
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeInt(getId());
@@ -87,7 +170,14 @@ public class Track implements Externalizable, Comparable<Track> {
 		out.writeFloat(getValence());
 	}
 
-	// Leitura dos dados em binário.
+	/**
+	 * Método responsável pela leitura dos dados da faixa em formato binário.
+	 *
+	 * @param in Fluxo de entrada de dados.
+	 * @throws IOException            Caso ocorra erro durante a leitura dos dados.
+	 * @throws ClassNotFoundException Caso não seja possível encontrar uma classe
+	 *                                correspondendo a um dado que foi serializado.
+	 */
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		id = in.readInt();
@@ -116,18 +206,37 @@ public class Track implements Externalizable, Comparable<Track> {
 		valence = in.readFloat();
 	}
 
+	/**
+	 * Compara esta faixa com outra faixa com base no ID.
+	 *
+	 * @param other Faixa a ser comparada.
+	 * @return Resultado da comparação entre os IDs das faixas.
+	 */
 	@Override
 	public int compareTo(Track other) {
 		return Integer.compare(getId(), other.getId());
 	}
 
+	/**
+	 * Representação em formato de string da faixa.
+	 *
+	 * @return String representando a faixa.
+	 */
 	@Override
 	public String toString() {
 		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id
 				+ ", getName()=" + getName() + "]";
 	}
 
-	// Verifica a igualdade entre um campo e um valor.
+	/**
+	 * Verifica se um campo específico da faixa corresponde ao valor informado.
+	 *
+	 * @param field Campo a ser verificado.
+	 * @param value Valor a ser comparado.
+	 * @return Verdadeiro se o campo corresponder ao valor, falso caso contrário.
+	 * @throws InvalidParameterException Se o tipo do valor não for compatível com o
+	 *                                   campo.
+	 */
 	@SuppressWarnings("unchecked")
 	public boolean matchesField(Track.Field field, Object value) {
 		return switch (field) {
@@ -143,8 +252,6 @@ public class Track implements Externalizable, Comparable<Track> {
 			case LOUDNESS -> getLoudness() == (float) value;
 			case TEMPO -> getTempo() == (float) value;
 			case VALENCE -> getValence() == (float) value;
-
-			// Strings são comparadas por regex.
 			case NAME -> {
 				if (value instanceof String)
 					yield getName().equals(value);
@@ -154,7 +261,6 @@ public class Track implements Externalizable, Comparable<Track> {
 					throw new InvalidParameterException(
 							"Tipo inválido. Esperava String ou Pattern.");
 			}
-
 			case ALBUM_NAME -> {
 				if (value instanceof String)
 					yield getAlbumName().equals(value);
@@ -164,27 +270,18 @@ public class Track implements Externalizable, Comparable<Track> {
 					throw new InvalidParameterException(
 							"Tipo inválido. Esperava String ou Pattern.");
 			}
-
-			// Listas exigem muito mais cuidado para tratar de forma segura.
 			case TRACK_ARTISTS -> {
-				// Verifica se o valor é uma Collection.
 				if (!(value instanceof Collection<?>))
 					yield false;
-
-				// Verifica se os elementos da Collection são Strings.
 				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
 					yield getTrackArtists().containsAll((Collection<String>) value);
 				else
 					throw new InvalidParameterException(
 							"Tipo inválido! Esperava Collection<String>.");
 			}
-
 			case GENRES -> {
-				// Verifica se o valor é uma Collection.
 				if (!(value instanceof Collection<?>))
 					yield false;
-
-				// Verifica se os elementos da Collection são Strings.
 				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
 					yield getGenres().containsAll((Collection<String>) value);
 				else
@@ -194,7 +291,9 @@ public class Track implements Externalizable, Comparable<Track> {
 		};
 	}
 
-	// Campos do registro disponíveis para busca.
+	/**
+	 * Enum que define os campos que podem ser utilizados para busca na faixa.
+	 */
 	public enum Field {
 		ID,
 		NAME,
@@ -214,7 +313,7 @@ public class Track implements Externalizable, Comparable<Track> {
 		VALENCE
 	}
 
-	// Getters e setters.
+	// Getters e setters para todos os atributos.
 	public LocalDate getAlbumReleaseDate() {
 		return albumReleaseDate;
 	}
@@ -279,7 +378,6 @@ public class Track implements Externalizable, Comparable<Track> {
 		if (trackId.length != Track.getTrackIdNumChars())
 			throw new InvalidParameterException(
 					"trackId deve ter exatamente " + Track.getTrackIdNumChars() + " caracteres");
-
 		this.trackId = trackId;
 	}
 
