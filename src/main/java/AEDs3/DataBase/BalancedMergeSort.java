@@ -19,6 +19,9 @@ public class BalancedMergeSort {
 	// do grupo B no grupo A.
 	boolean grupo;
 
+	// Indica que devemos printar os passos da execução em stdout.
+	boolean verbose;
+
 	public BalancedMergeSort(TrackDB db) {
 		this(db, 8, 64);
 	}
@@ -35,6 +38,7 @@ public class BalancedMergeSort {
 		this.fanout = fanout;
 		this.maxHeapNodes = maxHeapNodes;
 		this.grupo = true; // Começamos no grupo A (arquivos 0–(N - 1)).
+		this.verbose = false;
 		files = new TrackDB[fanout * 2];
 	}
 
@@ -90,8 +94,9 @@ public class BalancedMergeSort {
 			// Apende o elemento ao BD temporário correto.
 			files[weight % fanout].append(tmp.track);
 
-			System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
-					+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
+			if (verbose)
+				System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
+						+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
 
 			// Se o arquivo não terminou, adiciona o próximo elemento ao PriorityQueue.
 			if (iterator.hasNext()) {
@@ -167,8 +172,9 @@ public class BalancedMergeSort {
 					heap.add(new TrackArquivo(caminhoAtual.next(), i));
 			}
 
-			System.err.println("\rIntercalando segmento " + currentDestination + ", grupo: "
-					+ (grupo ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
+			if (verbose)
+				System.err.println("\rIntercalando segmento " + currentDestination + ", grupo: "
+						+ (grupo ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
 
 			// Itera até esgotarem-se os registros em cada segmento.
 			while (heap.size() > 0) {
@@ -222,5 +228,54 @@ public class BalancedMergeSort {
 		public int compareTo(TrackArquivo other) {
 			return track.compareTo(other.track);
 		}
+	}
+
+	// Getters & Setters.
+	public TrackDB getDb() {
+		return db;
+	}
+
+	public void setDb(TrackDB db) {
+		this.db = db;
+	}
+
+	public TrackDB[] getFiles() {
+		return files;
+	}
+
+	public void setFiles(TrackDB[] files) {
+		this.files = files;
+	}
+
+	public int getFanout() {
+		return fanout;
+	}
+
+	public void setFanout(int fanout) {
+		this.fanout = fanout;
+	}
+
+	public int getMaxHeapNodes() {
+		return maxHeapNodes;
+	}
+
+	public void setMaxHeapNodes(int maxHeapNodes) {
+		this.maxHeapNodes = maxHeapNodes;
+	}
+
+	public boolean isGrupo() {
+		return grupo;
+	}
+
+	public void setGrupo(boolean grupo) {
+		this.grupo = grupo;
+	}
+
+	public boolean isVerbose() {
+		return verbose;
+	}
+
+	public void setVerbose(boolean verbose) {
+		this.verbose = verbose;
 	}
 }

@@ -166,6 +166,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		updateHeader();
 	}
 
+	public void sort(int fanout, int maxHeapNodes) throws IOException {
+		new BalancedMergeSort(this, fanout, maxHeapNodes).sort();
+	}
+
 	public void sort() throws IOException {
 		new BalancedMergeSort(this).sort();
 	}

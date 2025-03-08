@@ -3,6 +3,7 @@ package AEDs3;
 import static AEDs3.DataBase.Track.Field.*;
 import static org.fusesource.jansi.Ansi.*;
 
+import AEDs3.DataBase.BalancedMergeSort;
 import AEDs3.DataBase.CSVManager;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.Track.Field;
@@ -504,6 +505,17 @@ public class CommandLineInterface {
 
 	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Sort the database.")
 	static class SortCommand implements Runnable {
+		@Option(names = { "-f", "--fanout" }, description = { "Fanout for the balanced merge sort.",
+				"(Number of elements merged at a time.)" }, defaultValue = "8")
+		int fanout = 8;
+
+		@Option(names = { "-n", "--num" }, description = { "Maximum number of elements in the in-memory heap",
+				"to use during sorting." }, defaultValue = "64")
+		int maxHeapSize = 64;
+
+		@Option(names = {"-v", "--verbose"}, description = "Enable verbose output.")
+		boolean verbose = false;
+
 		@ParentCommand
 		CliCommands parent;
 
@@ -514,7 +526,11 @@ public class CommandLineInterface {
 			}
 
 			try {
-				parent.db.sort();
+				BalancedMergeSort sorter = new BalancedMergeSort(parent.db, fanout, maxHeapSize);
+				sorter.setVerbose(verbose);
+				sorter.sort();
+			} catch (IllegalArgumentException e) {
+				parent.error(e.getMessage());
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ordenar o banco de dados.");
