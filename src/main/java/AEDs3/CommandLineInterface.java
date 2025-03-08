@@ -16,11 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.builtins.ConfigurationPath;
@@ -56,7 +58,7 @@ public class CommandLineInterface {
 			"" }, footer = { "", "Hit @|magenta Ctrl-C|@ to exit." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-					SortCommand.class })
+					UpdateCommand.class, SortCommand.class })
 	class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -481,19 +483,24 @@ public class CommandLineInterface {
 			}
 
 			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
-			rightPrompt = rightPrompt.a("[Editando ID " + (parent.db.getLastId() + 1) + "]");
+			rightPrompt = rightPrompt.a("[Criando ID " + (parent.db.getLastId() + 1) + "]");
 
 			try {
 				parent.suggestions.disable();
 				Track t = new Track();
 				t.setName(read("Name"));
-				t.setTrackArtists(Arrays.asList(read("Artists").split(",")));
+				t.setTrackArtists(Arrays.stream(read("Artists").split(","))
+						.map(String::trim)
+						.collect(Collectors.toList()));
 				t.setAlbumName(read("Album"));
 				t.setAlbumReleaseDate(LocalDate.parse(read("Release Date (YYYY-MM-DD)")));
 				t.setAlbumType(read("Album Type"));
-				t.setGenres(Arrays.asList(read("Genres").split(",")));
+				t.setGenres(Arrays.stream(read("Genres").split(","))
+						.map(String::trim)
+						.collect(Collectors.toList()));
 				t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
 				t.setTrackId(read("Spotify ID (22 characters)").toCharArray());
+				t.setKey(Integer.parseInt(read("Key")));
 				t.setPopularity(Integer.parseInt(read("Popularity")));
 				t.setDanceability(Float.parseFloat(read("Danceability")));
 				t.setEnergy(Float.parseFloat(read("Energy")));
@@ -506,10 +513,133 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar criar o registro.");
-				return;
+			} catch (Exception e) {
+				parent.error("Impossível atualizar registro: " + e.getMessage());
 			} finally {
+				rightPrompt = ansi().bold().fgBrightYellow();
 				parent.suggestions.enable();
 			}
+		}
+	}
+
+	@Command(name = "update", mixinStandardHelpOptions = true, description = "Update an existing track")
+	static class UpdateCommand implements Runnable {
+		private Ansi rightPrompt = ansi().bold().fgBrightMagenta();
+		LineReader reader;
+
+		@Option(names = { "-f", "--field" }, description = "What fields to update.")
+		Field[] field;
+
+		@Parameters(paramLabel = "<ID>", description = "Track's primary key.")
+		int id;
+
+		@ParentCommand
+		CliCommands parent;
+
+		private String read(String prompt) {
+			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
+					this.rightPrompt.toString(), (MaskingCallback) null, null);
+		}
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
+			rightPrompt = rightPrompt.a("[Editando " + id + "]");
+
+			try {
+				parent.suggestions.disable();
+				parent.db.update(id,
+						(field == null || field.length == 0) ? updateFull(id)
+								: updateFields(id, field));
+			} catch (NoSuchElementException e) {
+				parent.error("O ID " + id + " não existe nesse arquivo.");
+			} catch (IllegalArgumentException e) {
+				parent.error(e.getMessage());
+			} catch (EndOfFileException e) {
+				parent.warn("Atualização de registro cancelada.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar criar o registro.");
+			} catch (Exception e) {
+				parent.error("Impossível atualizar registro: " + e.getMessage());
+			} finally {
+				rightPrompt = ansi().bold().fgBrightMagenta();
+				parent.suggestions.enable();
+			}
+		}
+
+		private Track updateFull(int id) throws IOException {
+			List<Field> fieldsList = new ArrayList<>(Arrays.asList(Field.values()));
+			fieldsList.remove(ID); // Remove o ID, que não pode ser editado.
+			Field[] allFields = fieldsList.toArray(new Field[0]);
+
+			return updateFields(id, allFields);
+		}
+
+		private Track updateFields(int id, Field[] fields) throws IOException {
+			Track t = parent.db.read(id);
+
+			for (Field field : Arrays.asList(fields)) {
+				switch (field) {
+					case NAME:
+						t.setName(read("Name"));
+						break;
+					case TRACK_ARTISTS:
+						t.setTrackArtists(Arrays.stream(read("Artists").split(","))
+								.map(String::trim)
+								.collect(Collectors.toList()));
+						break;
+					case ALBUM_NAME:
+						t.setAlbumName(read("Album"));
+						break;
+					case ALBUM_RELEASE_DATE:
+						t.setAlbumReleaseDate(LocalDate.parse(read("Release Date (YYYY-MM-DD)")));
+						break;
+					case ALBUM_TYPE:
+						t.setAlbumType(read("Album Type"));
+						break;
+					case GENRES:
+						t.setGenres(Arrays.stream(read("Genres").split(","))
+								.map(String::trim)
+								.collect(Collectors.toList()));
+						break;
+					case EXPLICIT:
+						t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
+						break;
+					case TRACK_ID:
+						t.setTrackId(read("Spotify ID (22 characters)").toCharArray());
+						break;
+					case POPULARITY:
+						t.setPopularity(Integer.parseInt(read("Popularity")));
+						break;
+					case KEY:
+						t.setKey(Integer.parseInt(read("Key")));
+						break;
+					case DANCEABILITY:
+						t.setDanceability(Float.parseFloat(read("Danceability")));
+						break;
+					case ENERGY:
+						t.setEnergy(Float.parseFloat(read("Energy")));
+						break;
+					case LOUDNESS:
+						t.setLoudness(Float.parseFloat(read("Loudness")));
+						break;
+					case TEMPO:
+						t.setTempo(Float.parseFloat(read("Tempo")));
+						break;
+					case VALENCE:
+						t.setValence(Float.parseFloat(read("Valence")));
+						break;
+					case ID:
+						throw new IllegalArgumentException("Não é possível alterar o ID.");
+				}
+			}
+
+			return t;
 		}
 	}
 
