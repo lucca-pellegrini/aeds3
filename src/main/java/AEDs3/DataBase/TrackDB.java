@@ -191,15 +191,23 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		file.seek(pos);
 	}
 
+	public void setFilter(TrackFilter searchFilter) {
+		this.searchFilter = searchFilter;
+	}
+
 	public void setFilter(Track.Field field, Object value) {
-		searchFilter = new TrackFilter(field, value);
+		setFilter(new TrackFilter(field, value));
+	}
+
+	public TrackFilter getFilter() {
+		return searchFilter;
 	}
 
 	public void clearFilter() {
 		searchFilter = null;
 	}
 
-	private class TrackFilter {
+	static public class TrackFilter {
 		public Track.Field searchField;
 		public Object searchValue;
 
