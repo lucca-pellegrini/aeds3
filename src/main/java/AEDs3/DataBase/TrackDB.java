@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,6 +29,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	// Tamanho do cabeçalho com os metadados do BD.
 	private static final short HEADER_SIZE = 2 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
+
+	// Parâmetros para a ordenação
+	protected boolean segmentFinished = false; // Se estamos no fim de um segmento.
+	protected int lastIteratorId = 0; // Último ID encontrado pelo iterador.
+	protected long segmentStart = HEADER_SIZE; // Posição do início do segmento atual.
 
 	// Abrindo o arquivo.
 	public TrackDB(String fileName) throws FileNotFoundException, IOException {
@@ -221,6 +227,35 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		}
 	}
 
+	// Retorna o ponteiro do arquivo ao primeiro elemento do segmento.
+	protected void returnToSegmentStart() throws IOException {
+		file.seek(segmentStart);
+	}
+
+	// Zera o arquivo, mantendo apenas o UUID.
+	protected void truncate() throws IOException {
+		boolean isOpened = (file != null);
+		if (!isOpened)
+			open();
+
+		file.getChannel().truncate(0);
+		lastId = numTracks = numSpaces = 0;
+		updateHeader();
+
+		if (!isOpened)
+			close();
+	}
+
+	// Verifica se estamos no final do arquivo.
+	public boolean isFinished() {
+		try {
+			return file.getFilePointer() == file.length();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException("Problema ao verificar se o arquivo acabou.");
+		}
+	}
+
 	private void updateHeader() throws IOException {
 		long pos = file.getFilePointer();
 		file.seek(0);
@@ -275,8 +310,17 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			@Override
 			public boolean hasNext() {
 				try {
+					long pos = file.getFilePointer();
 					// Tenta ler a próxima Track. Se for válida, retorna true.
 					currentTrack = nextTrack();
+					if (currentTrack != null)
+						segmentFinished = (currentTrack.getId() < lastIteratorId);
+					else
+						segmentFinished = false;
+
+					if (segmentFinished)
+						segmentStart = pos;
+
 					return currentTrack != null;
 				} catch (EOFException e) {
 					return false;
@@ -291,6 +335,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 					throw new NoSuchElementException("TrackDB chegou ao fim");
 
 				Track track = currentTrack;
+				lastIteratorId = track.getId();
 				currentTrack = null; // Reset para null até o próximo hasNext()
 				return track;
 			}
@@ -320,6 +365,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	public String getFilePath() {
 		return filePath;
+	}
+
+	public boolean isSegmentFinished() {
+		return segmentFinished;
 	}
 }
 

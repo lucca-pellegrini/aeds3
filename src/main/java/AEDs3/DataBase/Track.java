@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 // Criação da classe track.
-public class Track implements Externalizable {
+public class Track implements Externalizable, Comparable<Track> {
 	// Atributos
 	protected LocalDate albumReleaseDate;
 	protected List<String> genres; // Sujeito a futura revisão.
@@ -117,6 +117,11 @@ public class Track implements Externalizable {
 	}
 
 	@Override
+	public int compareTo(Track other) {
+		return Integer.compare(getId(), other.getId());
+	}
+
+	@Override
 	public String toString() {
 		return "Track [trackArtists=" + trackArtists + ", albumName=" + albumName + ", id=" + id
 				+ ", getName()=" + getName() + "]";
@@ -146,7 +151,8 @@ public class Track implements Externalizable {
 				else if (value instanceof Pattern)
 					yield ((Pattern) value).matcher(getName()).find();
 				else
-					throw new InvalidParameterException("Tipo inválido. Esperava String ou Pattern.");
+					throw new InvalidParameterException(
+							"Tipo inválido. Esperava String ou Pattern.");
 			}
 
 			case ALBUM_NAME -> {
@@ -155,7 +161,8 @@ public class Track implements Externalizable {
 				else if (value instanceof Pattern)
 					yield ((Pattern) value).matcher(getAlbumName()).find();
 				else
-					throw new InvalidParameterException("Tipo inválido. Esperava String ou Pattern.");
+					throw new InvalidParameterException(
+							"Tipo inválido. Esperava String ou Pattern.");
 			}
 
 			// Listas exigem muito mais cuidado para tratar de forma segura.
