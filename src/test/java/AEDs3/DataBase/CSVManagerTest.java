@@ -10,14 +10,15 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class CSVManagerTest {
+class CSVManagerTest implements AutoCloseable {
 	private Iterator<Track> trackIterator;
+	private CSVManager manager;
 
 	@BeforeEach
 	void setUp() throws IOException {
-		trackIterator = new CSVManager(
-				getClass().getClassLoader().getResource("CSVManagerTestDataset.csv").getPath())
-				.iterator();
+		manager = new CSVManager(
+				getClass().getClassLoader().getResource("CSVManagerTestDataset.csv").getPath());
+		trackIterator = manager.iterator();
 	}
 
 	@Test
@@ -117,5 +118,10 @@ class CSVManagerTest {
 		assertEquals(0.459, track.getEnergy(), 0.0001);
 		assertEquals(-6.472, track.getLoudness(), 0.0001);
 		assertEquals(0.24, track.getDanceability(), 0.0001);
+	}
+
+	@Override
+	public void close() throws IOException {
+		manager.close();
 	}
 }
