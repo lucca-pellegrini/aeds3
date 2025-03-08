@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,13 +21,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	private TrackFilter searchFilter;
 
 	// Itens do cabeçalho
-	protected UUID uuid;
-	protected int lastId;
-	protected int numTracks;
-	protected int numSpaces;
+	protected UUID uuid; // ID único aleatório do BD.
+	protected int lastId; // Último ID inserido.
+	protected int numTracks; // Número de Tracks válidas no BD.
+	protected int numSpaces; // Número de espaços usados no BD, incluindo com lápides.
+	protected long flags; // BitMask com diversas flags.
 
 	// Tamanho do cabeçalho com os metadados do BD.
-	private static final short HEADER_SIZE = 2 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
+	private static final short HEADER_SIZE = 3 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
 
 	// Parâmetros para a ordenação
 	protected boolean segmentFinished = false; // Se estamos no fim de um segmento.
@@ -51,11 +51,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			long minor = file.readLong();
 			uuid = new UUID(major, minor);
 			lastId = file.readInt();
+			flags = file.readLong();
 			numTracks = file.readInt();
 			numSpaces = file.readInt();
 		} catch (EOFException e) {
 			uuid = UUID.randomUUID();
 			lastId = 0;
+			flags = 0;
+			setOrdered(true); // Arquivo vazio está ordenado.
 			numTracks = 0;
 			numSpaces = 0;
 			updateHeader();
@@ -128,6 +131,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			file.seek(file.length());
 			file.writeBoolean(writer.isTombstone());
 			file.writeInt(writer.getSize());
+
+			// Indica que o arquivo está agora desordenado.
+			setOrdered(false);
 
 			// Atualiza o cabeçalho.
 			numSpaces += 1;
@@ -266,6 +272,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		file.writeLong(uuid.getMostSignificantBits());
 		file.writeLong(uuid.getLeastSignificantBits());
 		file.writeInt(lastId);
+		file.writeLong(flags);
 		file.writeInt(numTracks);
 		file.writeInt(numSpaces);
 		file.seek(pos);
@@ -374,6 +381,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public boolean isSegmentFinished() {
 		return segmentFinished;
 	}
+
+	public boolean isOrdered() {
+		return (flags & Flag.ORDERED.getBitmask()) != 0;
+	}
+
+	public void setOrdered(boolean value) throws IOException {
+		flags = value ? (flags | Flag.ORDERED.getBitmask()) : (flags & ~Flag.ORDERED.getBitmask());
+	}
 }
 
 abstract class BinaryTrack {
@@ -456,5 +471,20 @@ class BinaryTrackWriter extends BinaryTrack {
 
 	public void setStream(ByteArrayOutputStream stream) {
 		this.stream = stream;
+	}
+}
+
+// Tipo de enumeração para a BitMask contendo as flags do arquivo.
+enum Flag {
+	ORDERED(1L << 0); // Indica se o arquivo está ordenado.
+
+	private final long bitmask;
+
+	Flag(long bitmask) {
+		this.bitmask = bitmask;
+	}
+
+	public long getBitmask() {
+		return bitmask;
 	}
 }

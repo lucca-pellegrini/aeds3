@@ -242,6 +242,7 @@ public class CommandLineInterface {
 				return;
 			}
 
+			Ansi tmp;
 			int numTracks = parent.db.getNumTracks();
 			int numSpaces = parent.db.getNumSpaces();
 			float efficiency = numTracks / (float) numSpaces;
@@ -252,8 +253,17 @@ public class CommandLineInterface {
 					ansi().bold().fgGreen().a("Last ID:\t").reset().a(parent.db.getLastId()));
 			parent.out.println(ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(numTracks));
 			parent.out.println(ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(numSpaces));
-			parent.out.println(
-					ansi().bold().fgGreen().a("Efficiency:\t").reset().a(100. * efficiency + "%"));
+
+			tmp = ansi().bold().fgGreen().a("Ordered:\t").reset();
+			tmp = (parent.db.isOrdered()) ? tmp.fgBrightGreen().a("true")
+					: tmp.fgBrightRed().a("false");
+			parent.out.println(tmp);
+
+			tmp = ansi().bold().fgGreen().a("Efficiency:\t").reset();
+			tmp = (efficiency >= 0.9) ? tmp.fgBrightGreen()
+					: (efficiency >= 0.5) ? tmp.fgBrightYellow()
+							: tmp.fgBrightRed();
+			parent.out.println(tmp.a(100. * efficiency + "%"));
 		}
 	}
 
@@ -513,7 +523,7 @@ public class CommandLineInterface {
 				"to use during sorting." }, defaultValue = "64")
 		int maxHeapSize = 64;
 
-		@Option(names = {"-v", "--verbose"}, description = "Enable verbose output.")
+		@Option(names = { "-v", "--verbose" }, description = "Enable verbose output.")
 		boolean verbose = false;
 
 		@ParentCommand
@@ -522,6 +532,9 @@ public class CommandLineInterface {
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			} else if (parent.db.getNumTracks() == 0) {
+				parent.warn("Não há nenhum registro para ordenar.");
 				return;
 			}
 
