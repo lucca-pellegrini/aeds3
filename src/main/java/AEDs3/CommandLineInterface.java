@@ -1213,7 +1213,12 @@ public class CommandLineInterface {
 
 			// Configuração do terminal e parser.
 			Parser parser = new DefaultParser();
-			terminal = TerminalBuilder.builder().build();
+			if (System.getProperty("os.name").toLowerCase().contains("win"))
+				// Use terminal de sistema à força no Windows.
+				terminal = TerminalBuilder.builder().system(true).build();
+			else
+				terminal = TerminalBuilder.builder().build();
+
 			terminal.puts(Capability.clear_screen); // Limpa a tela no terminal.
 			SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
 			systemRegistry.setCommandRegistries(builtins, picocliCommands);

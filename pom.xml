@@ -5,7 +5,7 @@
     <groupId>AEDs3</groupId>
     <artifactId>AEDs3</artifactId>
     <packaging>jar</packaging>
-    <version>v0.1.0</version>
+    <version>v0.1.0.r3</version>
     <name>AEDs3</name>
     <url>http://maven.apache.org</url>
 
@@ -31,19 +31,19 @@
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-reader</artifactId>
-            <version>3.29.0</version>
+            <version>3.24.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-builtins</artifactId>
-            <version>3.29.0</version>
+            <version>3.24.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-console</artifactId>
-            <version>3.29.0</version>
+            <version>3.24.1</version>
         </dependency>
 
         <dependency>
