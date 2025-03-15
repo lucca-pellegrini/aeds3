@@ -37,7 +37,8 @@ Antes de começar, certifique-se de ter o seguinte:
 Na execução, será possível importar os dados de
 [um arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset),
 e, tendo inicializado a base de dados binária em disco, todas as operações CRUD
-serão disponibilizadas ao usuário.
+serão disponibilizadas ao usuário. Use o comando `help` no menu interativo para
+mais informações.
 
 ## Estrutura do Repositório
 
@@ -54,11 +55,15 @@ serão disponibilizadas ao usuário.
       de música.
     - **TrackDB.java**: implementação das classes relacionadas às operações
       sobre os dados em disco.
+    - **BalancedMergeSort.java**: implementação da ordenação externa por
+      [intercalação balanceada _k-way_](https://en.wikipedia.org/wiki/K-way_merge_algorithm?useskin=vector#Heap),
+      utilizando um heap para a distribuição inicial dos registros.
     - **CSVManager.java**: implementação de uma classe auxiliar que gerencia a
       leitura e processamento inicial do
       [arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset).
-    - **Menu.java**: implementação dos menus apresentados ao usuário, e
-      responsável por intermediar a interação entre o usuário e o programa.
+    - **CommandLineInterface.java**: implementação dos menus apresentados ao
+      usuário, e responsável por intermediar a interação entre o usuário e o
+      programa.
   - **test/<...>/AEDs3/**: contém todos os testes necessários durante a
     compilação para garantir que o programa se comporta conforme o esperado.
 - **dataset/**: é um
@@ -132,8 +137,8 @@ das partes deste repositório que foram desenvolvidas com a ajuda de LLMs:
 - Ajuda com alguns dos métodos da biblioteca
   [pandas](https://pandas.pydata.org/) que optamos por usar no lugar do Excel
   para o pré-processamento dos dados em `dataset/`
-- Escrita ou ajuda com a escrita de muitos comentários Javadoc usados para
-  gerar a [documentação online](https://aeds3.verticordia.com).
+- Escrita ou ajuda com a escrita de muitos comentários Javadoc usados para gerar
+  a [documentação online](https://aeds3.verticordia.com).
 - Este aviso que você está lendo, adicionalmente, foi escrito com a ajuda do
   ChatGPT.
 
