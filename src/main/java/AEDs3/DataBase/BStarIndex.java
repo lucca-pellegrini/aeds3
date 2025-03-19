@@ -79,6 +79,7 @@ public class BStarIndex implements Index {
 	}
 
 	public void destruct() throws IOException {
+		file.close();
 		Files.delete(Paths.get(filePath));
 		db = null;
 		file = null;
