@@ -928,7 +928,11 @@ enum Flag {
 	 *
 	 * O valor de bitmask associado a essa flag é {@code 1L << 0}.
 	 */
-	ORDERED(1L << 0); // Indica se o arquivo está ordenado.
+	ORDERED(1L << 0), // Indica se o arquivo está ordenado.
+
+	INDEXED_BTREE(1L << 1),
+	INDEXED_HASH(1L << 2),
+	INDEXED_INVERSE_LIST(1L << 3);
 
 	private final long bitmask;
 
