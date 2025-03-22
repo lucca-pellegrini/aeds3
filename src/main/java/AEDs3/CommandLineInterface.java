@@ -1201,6 +1201,14 @@ public class CommandLineInterface {
 				return;
 			}
 
+			// Avisa que a operação pode demorar. Forçamos saída antes de iniciar indexação,
+			// para garantir que o aviso será exibido.
+			if ((indexType.btree || indexType.hash || indexType.invertedList)
+					&& parent.db.getNumTracks() >= 50000) {
+				parent.warn("Indexando arquivo com muitos elementos. Isso pode demorar.");
+				parent.out.flush();
+			}
+
 			try {
 				if (indexType.btree)
 					parent.db.setBTreeIndex(true, order);
