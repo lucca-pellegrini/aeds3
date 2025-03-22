@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
-interface Index {
+public interface Index {
 	public long search(int id) throws IOException;
+
 	public void insert(int id, long pos) throws IOException;
+
 	public void delete(int id) throws IOException;
 	// public void update(int id, long newPos) throws IOException;
 	// public void destruct() throws IOException;
@@ -16,6 +18,8 @@ interface Index {
 class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	int id;
 	long pos;
+
+	static final int SIZE = (Integer.SIZE + Long.SIZE) / 8;
 
 	public IndexRegister(int id, long pos) {
 		this.id = id;

@@ -152,7 +152,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		}
 
 		if (isBTreeIndex())
-			index = new BTree(10);
+			index = new BTree(10, filePath);
+			// index = new BTree(filePath);
 	}
 
 	/**
@@ -162,8 +163,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	public void close() throws IOException {
 		file.close();
-		// if (index != null)
-		// 	index.close();
+		index = null;
 	}
 
 	/**
@@ -760,7 +760,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		flags = value ? (flags | Flag.INDEXED_BTREE.getBitmask())
 				: (flags & ~Flag.INDEXED_BTREE.getBitmask());
 		if (value) {
-			index = new BTree(order);
+			index = new BTree(order, filePath);
 			for (Track t : this) {
 				index.insert(t.getId(), lastBinaryTrackPos);
 			}
