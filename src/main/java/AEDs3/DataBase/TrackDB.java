@@ -15,7 +15,6 @@ import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import org.apache.commons.io.IOExceptionWithCause;
 
 /**
  * Representa um banco de dados binário de faixas de música, permitindo
@@ -813,6 +812,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			int saveOrder = ((BTree) index).getHalfPageCapacity();
 			index.destruct();
 			index = new BTree(saveOrder, filePath + ".idx");
+
+			for (Track t : this)
+				index.insert(t.getId(), lastBinaryTrackPos);
+
 			// } else if (isHashIndex()) {
 			// } else if (isInvertedIndex()) {
 		}
