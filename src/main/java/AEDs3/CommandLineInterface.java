@@ -1166,7 +1166,7 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "index", mixinStandardHelpOptions = true, description = "Habilita índice para o banco de dados.")
+	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
 		@ArgGroup(exclusive = true)
 		private IndexType indexType = new IndexType();
