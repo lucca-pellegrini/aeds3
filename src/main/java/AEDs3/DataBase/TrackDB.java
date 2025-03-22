@@ -162,6 +162,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	public void close() throws IOException {
 		file.close();
+		// if (index != null)
+		// 	index.close();
 	}
 
 	/**
@@ -217,6 +219,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	public Track read(int id) throws IOException {
 		if (index != null) {
+			long pos = index.search(id);
+			if (pos < 0)
+				return null;
+
 			file.seek(index.search(id));
 			try {
 				return nextTrack();
@@ -326,6 +332,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
 		file.writeBoolean(true); // Marca como lápide
+
+		if (index != null)
+			index.delete(id);
 
 		numTracks -= 1; // Decrementa o contador de faixas.
 		updateHeader(); // Atualiza o cabeçalho.

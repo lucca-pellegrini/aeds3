@@ -8,7 +8,7 @@ import java.io.ObjectOutput;
 interface Index {
 	public long search(int id) throws IOException;
 	public void insert(int id, long pos) throws IOException;
-	// public void delete(int id) throws IOException;
+	public void delete(int id) throws IOException;
 	// public void update(int id, long newPos) throws IOException;
 	// public void destruct() throws IOException;
 }

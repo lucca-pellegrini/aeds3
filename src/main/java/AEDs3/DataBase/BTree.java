@@ -23,7 +23,8 @@ public class BTree implements Index {
 	}
 
 	public long search(int id) {
-		return this.pesquisa(new IndexRegister(id, -1)).getPos();
+		IndexRegister res = this.pesquisa(new IndexRegister(id, -1));
+		return (res != null) ? res.getPos() : -1;
 	}
 
 	private IndexRegister pesquisa(IndexRegister reg) {
@@ -122,7 +123,128 @@ public class BTree implements Index {
 		ap.n++;
 	}
 
-	// public void retira(IndexRegister reg) {
-	// vide transparências 30, 31 e 32
-	// }
+	public void delete(int id) {
+		retira(new IndexRegister(id, -1));
+	}
+
+	private void retira(IndexRegister reg) {
+		boolean diminuiu[] = new boolean[1];
+		this.raiz = this.retira(reg, this.raiz, diminuiu);
+		if (diminuiu[0] && (this.raiz.n == 0)) { // Árvore diminui na altura
+			this.raiz = this.raiz.p[0];
+		}
+	}
+
+	private Pagina retira(IndexRegister reg, Pagina ap, boolean[] diminuiu) {
+		if (ap == null) {
+			System.out.println("Erro : Registro nao encontrado");
+			diminuiu[0] = false;
+		} else {
+			int ind = 0;
+			while ((ind < ap.n - 1) && (reg.compareTo(ap.r[ind]) > 0))
+				ind++;
+			if (reg.compareTo(ap.r[ind]) == 0) { // achou
+				if (ap.p[ind] == null) { // Página folha
+					ap.n--;
+					diminuiu[0] = ap.n < this.m;
+					for (int j = ind; j < ap.n; j++) {
+						ap.r[j] = ap.r[j + 1];
+						ap.p[j] = ap.p[j + 1];
+					}
+					ap.p[ap.n] = ap.p[ap.n + 1];
+					ap.p[ap.n + 1] = null; // transfere a posse da memória
+				} else { // Página não é folha: trocar com antecessor
+					diminuiu[0] = antecessor(ap, ind, ap.p[ind]);
+					if (diminuiu[0])
+						diminuiu[0] = reconstitui(ap.p[ind], ap, ind);
+				}
+			} else { // não achou
+				if (reg.compareTo(ap.r[ind]) > 0)
+					ind++;
+				ap.p[ind] = retira(reg, ap.p[ind], diminuiu);
+				if (diminuiu[0])
+					diminuiu[0] = reconstitui(ap.p[ind], ap, ind);
+			}
+		}
+		return ap;
+	}
+
+	private boolean antecessor(Pagina ap, int ind, Pagina apPai) {
+		boolean diminuiu = true;
+		if (apPai.p[apPai.n] != null) {
+			diminuiu = antecessor(ap, ind, apPai.p[apPai.n]);
+			if (diminuiu)
+				diminuiu = reconstitui(apPai.p[apPai.n], apPai, apPai.n);
+		} else {
+			ap.r[ind] = apPai.r[--apPai.n];
+			diminuiu = apPai.n < this.m;
+		}
+		return diminuiu;
+	}
+
+	private boolean reconstitui(Pagina apPag, Pagina apPai, int posPai) {
+		boolean diminuiu = true;
+		if (posPai < apPai.n) { // aux = Página à direita de apPag
+			Pagina aux = apPai.p[posPai + 1];
+			int dispAux = (aux.n - this.m + 1) / 2;
+			apPag.r[apPag.n++] = apPai.r[posPai];
+			apPag.p[apPag.n] = aux.p[0];
+			aux.p[0] = null; // transfere a posse da memória
+			if (dispAux > 0) { // Existe folga: transfere de aux para apPag
+				for (int j = 0; j < dispAux - 1; j++) {
+					this.insereNaPagina(apPag, aux.r[j], aux.p[j + 1]);
+					aux.p[j + 1] = null; // transfere a posse da memória
+				}
+				apPai.r[posPai] = aux.r[dispAux - 1];
+				aux.n = aux.n - dispAux;
+				for (int j = 0; j < aux.n; j++)
+					aux.r[j] = aux.r[j + dispAux];
+				for (int j = 0; j <= aux.n; j++)
+					aux.p[j] = aux.p[j + dispAux];
+				aux.p[aux.n + dispAux] = null; // transfere a posse da memória
+				diminuiu = false;
+			} else { // Fusão: intercala aux em apPag e libera aux
+				for (int j = 0; j < this.m; j++) {
+					this.insereNaPagina(apPag, aux.r[j], aux.p[j + 1]);
+					aux.p[j + 1] = null; // transfere a posse da memória
+				}
+				aux = apPai.p[posPai + 1] = null; // libera aux
+				for (int j = posPai; j < apPai.n - 1; j++) {
+					apPai.r[j] = apPai.r[j + 1];
+					apPai.p[j + 1] = apPai.p[j + 2];
+				}
+				apPai.p[apPai.n--] = null; // transfere a posse da memória
+				diminuiu = apPai.n < this.m;
+			}
+		} else { // aux = Página à esquerda de apPag
+			Pagina aux = apPai.p[posPai - 1];
+			int dispAux = (aux.n - this.m + 1) / 2;
+			for (int j = apPag.n - 1; j >= 0; j--)
+				apPag.r[j + 1] = apPag.r[j];
+			apPag.r[0] = apPai.r[posPai - 1];
+			for (int j = apPag.n; j >= 0; j--)
+				apPag.p[j + 1] = apPag.p[j];
+			apPag.n++;
+			if (dispAux > 0) { // Existe folga: transfere de aux para apPag
+				for (int j = 0; j < dispAux - 1; j++) {
+					this.insereNaPagina(apPag, aux.r[aux.n - j - 1], aux.p[aux.n - j]);
+					aux.p[aux.n - j] = null; // transfere a posse da memória
+				}
+				apPag.p[0] = aux.p[aux.n - dispAux + 1];
+				aux.p[aux.n - dispAux + 1] = null; // transfere a posse da memória
+				apPai.r[posPai - 1] = aux.r[aux.n - dispAux];
+				aux.n = aux.n - dispAux;
+				diminuiu = false;
+			} else { // Fusão: intercala apPag em aux e libera apPag
+				for (int j = 0; j < this.m; j++) {
+					this.insereNaPagina(aux, apPag.r[j], apPag.p[j + 1]);
+					apPag.p[j + 1] = null; // transfere a posse da memória
+				}
+				apPag = null; // libera apPag
+				apPai.p[apPai.n--] = null; // transfere a posse da memória
+				diminuiu = apPai.n < this.m;
+			}
+		}
+		return diminuiu;
+	}
 }
