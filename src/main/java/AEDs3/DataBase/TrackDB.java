@@ -44,6 +44,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	protected String filePath;
 
+	protected Index index;
+
 	/**
 	 * Posição do último registro de faixa no banco de dados.
 	 */
@@ -148,6 +150,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			numSpaces = 0;
 			updateHeader();
 		}
+
+		if (isBTreeIndex())
+			index = new BTree(10);
 	}
 
 	/**
@@ -170,6 +175,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public int create(Track track) throws IOException {
 		lastId += 1;
 		track.id = lastId;
+
+		if (index != null)
+			index.insert(lastId, file.length());
 
 		return append(track);
 	}
@@ -208,6 +216,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException Se ocorrer um erro de leitura no arquivo.
 	 */
 	public Track read(int id) throws IOException {
+		if (index != null) {
+			file.seek(index.search(id));
+			try {
+				return nextTrack();
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException("Falha ao obter próxima Track", e);
+			}
+		}
+
 		// Se está desordenado, fazemos a busca pelo arquivo completo.
 		if (!isOrdered())
 			return readFirst(Track.Field.ID, id);
@@ -714,6 +731,29 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	public boolean isSegmentFinished() {
 		return segmentFinished;
+	}
+
+	public boolean isBTreeIndex() {
+		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
+	}
+
+	public void setBTreeIndex(boolean value) throws IOException {
+		setBTreeIndex(value, 10);
+	}
+
+	public void setBTreeIndex(boolean value, int order) throws IOException {
+		flags = value ? (flags | Flag.INDEXED_BTREE.getBitmask())
+				: (flags & ~Flag.INDEXED_BTREE.getBitmask());
+		if (value) {
+			index = new BTree(order);
+			for (Track t : this) {
+				index.insert(t.getId(), lastBinaryTrackPos);
+			}
+		} else {
+			// index.destruct();
+			index = null;
+		}
+		updateHeader();
 	}
 
 	public boolean isOrdered() {

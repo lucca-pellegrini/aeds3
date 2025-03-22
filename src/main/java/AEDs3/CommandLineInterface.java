@@ -80,7 +80,7 @@ public class CommandLineInterface {
 			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-					UpdateCommand.class, SortCommand.class })
+					UpdateCommand.class, SortCommand.class, IndexCommand.class })
 	class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -1092,7 +1092,7 @@ public class CommandLineInterface {
 		 * O fanout especifica o número de elementos que são intercalados de cada vez
 		 * durante a ordenação. O valor padrão é 8.
 		 *
-		 * @param fanout O número de elementos a serem intercalados de cada vez.
+		 * @param order O número de elementos a serem intercalados de cada vez.
 		 */
 		@Option(names = { "-f", "--fanout" }, description = { "Fanout para o algoritmo Balanced Merge Sort.",
 				"(Número de elementos mesclados de cada vez.)" }, defaultValue = "8")
@@ -1160,6 +1160,31 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ordenar o banco de dados.");
+				return;
+			}
+		}
+	}
+
+	@Command(name = "index", mixinStandardHelpOptions = true, description = "Indexar o banco de dados.")
+	static class IndexCommand implements Runnable {
+		@Option(names = { "-n", "--num" }, description = { "Número de elementos na página da árvore B." }, defaultValue = "10")
+		int order = 10;
+
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+
+			try {
+				parent.db.setBTreeIndex(true, order);
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar indexar o banco de dados.");
 				return;
 			}
 		}
