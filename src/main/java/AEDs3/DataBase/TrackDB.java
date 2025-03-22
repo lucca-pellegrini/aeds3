@@ -296,6 +296,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			file.writeBoolean(writer.isTombstone());
 			file.writeInt(oldSize);
 		} else {
+			// Remove e reinsere no índice.
+			if (index != null) {
+				index.delete(id);
+				index.insert(id, file.length());
+			}
+
 			// Seta a lápide do registro
 			file.seek(lastBinaryTrackPos);
 			file.writeBoolean(true);

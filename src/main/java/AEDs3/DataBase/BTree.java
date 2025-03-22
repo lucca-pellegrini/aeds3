@@ -173,7 +173,8 @@ public class BTree implements Index {
 		if (parentPage.children[parentPage.numElements] != null) {
 			shrunk = antecessor(page, ind, parentPage.children[parentPage.numElements]);
 			if (shrunk)
-				shrunk = reconstruct(parentPage.children[parentPage.numElements], parentPage, parentPage.numElements);
+				shrunk = reconstruct(parentPage.children[parentPage.numElements], parentPage,
+						parentPage.numElements);
 		} else {
 			page.elements[ind] = parentPage.elements[--parentPage.numElements];
 			shrunk = parentPage.numElements < this.halfPageCapacity;
