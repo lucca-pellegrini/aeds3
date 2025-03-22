@@ -757,6 +757,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
 	}
 
+	public boolean isHashIndex() {
+		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
+	}
+
+	public boolean isInvertedIndex() {
+		return (flags & Flag.INDEXED_INVERSE_LIST.getBitmask()) != 0;
+	}
+
 	public void setBTreeIndex(boolean value) throws IOException {
 		setBTreeIndex(value, 16);
 	}
