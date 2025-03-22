@@ -10,5 +10,6 @@ target/
 dataset-clean.csv
 dataset-raw.csv
 
-# Base de dados binária
-tracks.db
+# Bases de dados binárias e seus índices
+*.db
+*.idx
