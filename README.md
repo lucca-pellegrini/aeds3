@@ -55,6 +55,11 @@ mais informações.
       de música.
     - **TrackDB.java**: implementação das classes relacionadas às operações
       sobre os dados em disco.
+    - **Index.java**: definição da interface de índice utilizada para otimizar
+      leituras em disco.
+    - **BTree.java:** implementação da interface `Index` utilizando uma Árvore
+      B em disco, carregando na memória apenas as páginas (nós) necessárias
+      para realizar cada operação.
     - **BalancedMergeSort.java**: implementação da ordenação externa por
       [intercalação balanceada _k-way_](https://en.wikipedia.org/wiki/K-way_merge_algorithm?useskin=vector#Heap),
       utilizando um heap para a distribuição inicial dos registros.
