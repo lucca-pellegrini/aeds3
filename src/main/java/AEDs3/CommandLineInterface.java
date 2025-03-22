@@ -407,10 +407,10 @@ public class CommandLineInterface {
 			// Exibe o estado do índice.
 			tmp = ansi().bold().fgGreen().a("Indexed:\t").reset();
 			tmp = (parent.db.isIndexed()) ? parent.db.isBTreeIndex()
-			? tmp.fgBrightBlue().a("B-Tree")
-			: parent.db.isHashIndex() ? tmp.fgBrightBlue().a("Dynamic Hash")
-			: tmp.fgBrightBlue().a("Inverted List")
-			: tmp.fgBrightRed().a("false");
+					? tmp.fgBrightBlue().a("B-Tree")
+					: parent.db.isHashIndex() ? tmp.fgBrightBlue().a("Dynamic Hash")
+							: tmp.fgBrightBlue().a("Inverted List")
+					: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
 			// Exibe o estado de ordenação.
