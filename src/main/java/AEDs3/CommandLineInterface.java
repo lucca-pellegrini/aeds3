@@ -1159,6 +1159,14 @@ public class CommandLineInterface {
 				return;
 			}
 
+			// Avisa que a operação pode demorar. Forçamos saída antes de iniciar indexação,
+			// para garantir que o aviso será exibido.
+			if (parent.db.isIndexed() && parent.db.getNumTracks() >= 50000) {
+				parent.warn("Ordenando arquivo com muitos elementos. Será necessário reindexar. "
+						+ "Isso pode demorar.");
+				parent.out.flush();
+			}
+
 			try {
 				// Cria instância do algoritmo BalancedMergeSort com os parâmetros fornecidos
 				BalancedMergeSort sorter = new BalancedMergeSort(parent.db, fanout, maxHeapSize);
