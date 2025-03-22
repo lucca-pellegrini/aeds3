@@ -5,6 +5,7 @@ import static org.fusesource.jansi.Ansi.*;
 
 import AEDs3.DataBase.BalancedMergeSort;
 import AEDs3.DataBase.CSVManager;
+import AEDs3.DataBase.Index.InvalidBTreeOrderException;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.TrackDB;
@@ -1165,10 +1166,31 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "index", mixinStandardHelpOptions = true, description = "Indexar o banco de dados.")
+	@Command(name = "index", mixinStandardHelpOptions = true, description = "Habilita índice para o banco de dados.")
 	static class IndexCommand implements Runnable {
-		@Option(names = { "-n", "--num" }, description = { "Número de elementos na página da árvore B." }, defaultValue = "10")
-		int order = 10;
+		@ArgGroup(exclusive = true)
+		private IndexType indexType = new IndexType();
+
+		static class IndexType {
+			@Option(names = "tree", description = "Habilita índice por Árvore B.")
+			boolean btree = false;
+
+			@Option(names = "hash", description = "Habilita índice por Hash Dinâmico.")
+			boolean hash = false;
+
+			@Option(names = "inverted", description = "Habilita índice por Lista Invertida.")
+			boolean invertedList = false;
+
+			@Option(names = "disable", description = "Deleta o índice atual.")
+			boolean disable = false;
+
+			@Option(names = "reindex", description = "Reindexa o arquivo inteiro.")
+			boolean reindex = false;
+		}
+
+		@Option(names = { "-o", "--order" }, description = { "Número máximo de filhos de uma página na Árvore B.",
+				"(Deve ser par)" }, defaultValue = "16")
+		int order = 16;
 
 		@ParentCommand
 		CliCommands parent;
@@ -1179,13 +1201,29 @@ public class CommandLineInterface {
 				return;
 			}
 
-
 			try {
-				parent.db.setBTreeIndex(true, order);
+				if (indexType.btree)
+					parent.db.setBTreeIndex(true, order);
+				else if (indexType.hash)
+					// parent.db.setHashIndex(true, bucketSize);
+					parent.error("Tipo de índice ainda não implementado");
+				else if (indexType.invertedList)
+					// parent.db.setInvertedIndex(true);
+					parent.error("Tipo de índice ainda não implementado");
+				else if (indexType.disable)
+					parent.db.disableIndex();
+				else if (indexType.reindex)
+					parent.db.reindex();
+				else
+					parent.error("É necessário especificar exatamente uma operação. Use `index "
+							+ "--help` para mais detalhes.");
+			} catch (IllegalArgumentException e) {
+				parent.error("Parâmetro inválido recebido: " + e.getMessage());
+			} catch (IllegalStateException e) {
+				parent.error("Erro ao executar operação: " + e.getMessage());
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar indexar o banco de dados.");
-				return;
 			}
 		}
 	}

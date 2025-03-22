@@ -1,5 +1,7 @@
 package AEDs3.DataBase;
 
+import AEDs3.DataBase.Index.*;
+import AEDs3.DataBase.Index.InvalidBTreeOrderException.Reason;
 import AEDs3.DataBase.Track.Field;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +15,7 @@ import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import org.apache.commons.io.IOExceptionWithCause;
 
 /**
  * Representa um banco de dados binário de faixas de música, permitindo
@@ -152,8 +155,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		}
 
 		if (isBTreeIndex())
-			index = new BTree(10, filePath);
-			// index = new BTree(filePath);
+			index = new BTree(filePath + ".idx");
 	}
 
 	/**
@@ -748,27 +750,72 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return segmentFinished;
 	}
 
+	public boolean isIndexed() {
+		return index != null;
+	}
+
 	public boolean isBTreeIndex() {
 		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
 	}
 
 	public void setBTreeIndex(boolean value) throws IOException {
-		setBTreeIndex(value, 10);
+		setBTreeIndex(value, 16);
 	}
 
 	public void setBTreeIndex(boolean value, int order) throws IOException {
-		flags = value ? (flags | Flag.INDEXED_BTREE.getBitmask())
-				: (flags & ~Flag.INDEXED_BTREE.getBitmask());
 		if (value) {
-			index = new BTree(order, filePath);
-			for (Track t : this) {
+			if (isBTreeIndex())
+				throw new IllegalStateException("O índice por Árvore B já está habilitado.");
+			if (order <= 2)
+				throw new InvalidBTreeOrderException(order, Reason.TOO_SMALL);
+			if (order % 2 != 0)
+				throw new InvalidBTreeOrderException(order, Reason.NOT_EVEN);
+
+			flags |= Flag.INDEXED_BTREE.getBitmask();
+
+			// setHashIndex(false);
+			// setInvertedIndex(false);
+
+			index = new BTree(order / 2, filePath + ".idx");
+			for (Track t : this)
 				index.insert(t.getId(), lastBinaryTrackPos);
-			}
 		} else {
-			// index.destruct();
+			flags &= ~Flag.INDEXED_BTREE.getBitmask();
+
+			if (index != null)
+				index.destruct();
 			index = null;
 		}
 		updateHeader();
+	}
+
+	public void disableIndex() throws IOException {
+		if ((flags
+				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
+						| Flag.INDEXED_INVERSE_LIST.getBitmask())) == 0)
+			throw new IllegalStateException("Nenhum índice está habilitado.");
+
+		setBTreeIndex(false);
+		// setHashIndex(false);
+		// setInvertedIndex(false);
+	}
+
+	public void reindex() throws IOException {
+		if ((flags
+				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
+						| Flag.INDEXED_INVERSE_LIST.getBitmask())) == 0)
+			throw new IllegalStateException("Nenhum índice está habilitado.");
+
+		if (isBTreeIndex()) {
+			if (!(index instanceof BTree))
+				throw new AssertionError("Índice tem tipo inválido!");
+
+			int saveOrder = ((BTree) index).getHalfPageCapacity();
+			index.destruct();
+			index = new BTree(saveOrder, filePath + ".idx");
+			// } else if (isHashIndex()) {
+			// } else if (isInvertedIndex()) {
+		}
 	}
 
 	public boolean isOrdered() {

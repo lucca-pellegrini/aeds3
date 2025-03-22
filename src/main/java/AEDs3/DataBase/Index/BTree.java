@@ -1,8 +1,9 @@
-package AEDs3.DataBase;
+package AEDs3.DataBase.Index;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class BTree implements Index {
 	private class Page {
@@ -10,76 +11,111 @@ public class BTree implements Index {
 		private IndexRegister elements[];
 		private Page children[];
 
-		// Atributos no arquivo.
 		private boolean loaded;
-		// private long pos;
+		private long pos;
 
 		public Page(int maxElements) throws IOException {
-			// this.pos = file.length();
+			this.pos = file.length();
 			this.loaded = true;
 			this.numElements = 0;
 			this.elements = new IndexRegister[maxElements];
 			this.children = new Page[maxElements + 1];
-			// save();
+			save();
 		}
 
-		// public Page(long pos) {
-		// this.pos = pos;
-		// this.loaded = false;
-		// }
+		public Page(long pos) {
+			this.pos = pos;
+			this.loaded = false;
+		}
 
 		private void load() throws IOException {
-			if (this.isLoaded())
+			if (this.loaded)
 				return;
 
-			// this.pos = (this.pos > 0) ? this.pos : file.length();
-			//
-			// file.seek(pos);
-			// this.numElements = file.readInt();
-			// this.elements = new IndexRegister[pageCapacity];
-			// this.children = new Page[pageCapacity + 1];
-			// for (int i = 0; i < numElements; ++i) {
-			// this.children[i] = new Page((long) file.readLong());
-			// int id = file.readInt();
-			// long pos = file.readLong();
-			// this.elements[i] = new IndexRegister(id, pos);
-			// }
-			// this.children[numElements] = new Page((long) file.readLong());
-			this.setLoaded(true);
+			file.seek(this.pos);
+			this.numElements = file.readInt();
+			this.elements = new IndexRegister[pageCapacity];
+			this.children = new Page[pageCapacity + 1];
+
+			for (int i = 0; i < pageCapacity; i++) {
+				long childPos = file.readLong();
+				if (childPos >= 0) {
+					this.children[i] = new Page(childPos);
+				} else {
+					this.children[i] = null; // Placeholder, no need to create a new page
+				}
+
+				if (i < this.numElements) {
+					this.elements[i] = new IndexRegister();
+					this.elements[i].readExternal(file);
+				} else {
+					this.elements[i] = null; // Placeholder for uninitialized elements
+				}
+			}
+
+			// Read the last child position
+			long lastChildPos = file.readLong();
+			if (lastChildPos >= 0) {
+				this.children[pageCapacity] = new Page(lastChildPos);
+			} else {
+				this.children[pageCapacity] = null;
+			}
+
+			this.loaded = true;
 		}
 
-		// private void save() throws IOException {
-		// if (!isLoaded())
-		// return;
-		//
-		// file.seek(this.pos);
-		// file.writeInt(this.getNumElements());
-		// for (int i = 0; i < pageCapacity; ++i) {
-		// if (children[i] != null)
-		// file.writeLong(children[i].getPos());
-		// else
-		// file.writeLong(-1);
-		// if (elements[i] != null) {
-		// file.writeInt(elements[i].getId());
-		// file.writeLong(elements[i].getPos());
-		// } else {
-		// file.writeInt(-1);
-		// file.writeLong(-1);
-		// }
-		// }
-		//
-		// // Add a null check for the last child
-		// if (children[pageCapacity] != null) {
-		// file.writeLong(children[pageCapacity].getPos());
-		// } else {
-		// file.writeLong(-1);
-		// }
-		//
-		// for (int i = 0; i <= numElements; ++i)
-		// if (children[i] != null && children[i].isLoaded())
-		// children[i].save();
-		// }
-		//
+		private void save() throws IOException {
+			file.seek(this.pos);
+			file.writeInt(this.numElements);
+
+			long[] childrenPositions = new long[pageCapacity + 1];
+
+			// First, write all children positions and elements
+			for (int i = 0; i < pageCapacity; i++) {
+				if (this.children[i] != null) {
+					if (this.children[i].getPos() < 0) {
+						// Allocate a new position at the end of the file for the child
+						this.children[i].setPos(file.length());
+					}
+					childrenPositions[i] = this.children[i].getPos();
+				} else {
+					childrenPositions[i] = -1; // Placeholder for uninitialized children
+				}
+				file.writeLong(childrenPositions[i]);
+
+				if (i < this.numElements && this.elements[i] != null) {
+					this.elements[i].writeExternal(file);
+				} else {
+					new IndexRegister(-1, -1).writeExternal(
+							file); // Placeholder for uninitialized elements
+				}
+			}
+
+			// Handle the last child position
+			if (this.children[pageCapacity] != null) {
+				if (this.children[pageCapacity].getPos() < 0) {
+					this.children[pageCapacity].setPos(file.length());
+				}
+				childrenPositions[pageCapacity] = this.children[pageCapacity].getPos();
+			} else {
+				childrenPositions[pageCapacity] = -1;
+			}
+			file.writeLong(childrenPositions[pageCapacity]);
+
+			// After writing all data for the current page, recursively save loaded children
+			for (int i = 0; i <= pageCapacity; i++) {
+				if (this.children[i] != null && this.children[i].isLoaded()) {
+					this.children[i].save();
+				}
+			}
+		}
+
+		public void unload() {
+			this.elements = null;
+			this.children = null;
+			this.loaded = false;
+		}
+
 		public int getNumElements() throws IOException {
 			load();
 			return numElements;
@@ -118,49 +154,71 @@ public class BTree implements Index {
 			this.loaded = loaded;
 		}
 
-		// public long getPos() throws IOException {
-		// 	return pos;
-		// }
-		//
-		// public void setPos(long pos) throws IOException {
-		// 	this.pos = pos;
-		// }
+		public long getPos() throws IOException {
+			return pos;
+		}
+
+		public void setPos(long pos) throws IOException {
+			this.pos = pos;
+		}
 	}
 
 	private Page root;
 	private int halfPageCapacity, pageCapacity;
+	private String filePath;
 	private RandomAccessFile file;
-	private int pageSize;
 
-	// public BTree(String filePath) throws IOException {
-	// file = new RandomAccessFile(filePath + ".Btree.idx", "rw");
-	// file.seek(0);
-	// long rootPos = file.readLong();
-	// this.halfPageCapacity = file.readInt();
-	// this.pageCapacity = 2 * this.halfPageCapacity;
-	//
-	// this.pageSize = (Integer.SIZE / 8) + pageCapacity * IndexRegister.SIZE
-	// + (pageCapacity - 1) * (Long.SIZE / 8);
-	//
-	// root = new Page((long) rootPos);
-	// }
+	public BTree(String filePath) throws IOException {
+		this.filePath = filePath;
+		this.file = new RandomAccessFile(filePath, "rw");
+		file.seek(0);
+		long rootPos = file.readLong();
+		this.halfPageCapacity = file.readInt();
+		this.pageCapacity = 2 * this.halfPageCapacity;
+
+		if (rootPos >= 0) {
+			root = new Page(rootPos);
+		} else {
+			root = null;
+		}
+	}
 
 	public BTree(int m, String filePath) throws IOException {
-		file = new RandomAccessFile(filePath + ".Btree.idx", "rw");
+		this.filePath = filePath;
+		this.file = new RandomAccessFile(filePath, "rw");
 		this.root = null;
 		this.halfPageCapacity = m;
 		this.pageCapacity = 2 * m;
 
-		this.pageSize = (Integer.SIZE / 8) + pageCapacity * IndexRegister.SIZE
-				+ (pageCapacity - 1) * (Long.SIZE / 8);
-
 		file.seek(0);
 		file.writeLong(-1);
-		file.writeInt(pageCapacity);
+		file.writeInt(halfPageCapacity);
+	}
+
+	public void destruct() throws IOException {
+		file.close();
+		Files.delete(Paths.get(this.filePath));
+		this.root = null;
+		this.file = null;
+		this.filePath = null;
+	}
+
+	private void save() throws IOException {
+		if (root != null) {
+			file.seek(0);
+			file.writeLong(root.getPos());
+			root.save();
+		}
+	}
+
+	private void unload() {
+		root.unload();
 	}
 
 	public long search(int id) throws IOException {
 		IndexRegister res = this.search(new IndexRegister(id, -1));
+		this.save();
+		this.unload();
 		return (res != null) ? res.getPos() : -1;
 	}
 
@@ -185,10 +243,8 @@ public class BTree implements Index {
 
 	public void insert(int id, long pos) throws IOException {
 		this.insere(new IndexRegister(id, pos));
-
-		// file.seek(0);
-		// file.writeLong(root.pos);
-		// this.root.save();
+		this.save();
+		this.unload();
 	}
 
 	private void insere(IndexRegister reg) throws IOException {
@@ -267,6 +323,9 @@ public class BTree implements Index {
 
 	public void delete(int id) throws IOException {
 		delete(new IndexRegister(id, -1));
+
+		this.save();
+		this.unload();
 	}
 
 	private void delete(IndexRegister reg) throws IOException {
@@ -275,10 +334,6 @@ public class BTree implements Index {
 		if (diminuiu[0] && (this.root.getNumElements() == 0)) { // Árvore diminui na altura
 			this.root = this.root.getChildren()[0];
 		}
-
-		// file.seek(0);
-		// file.writeLong(root.pos);
-		// this.root.save();
 	}
 
 	private Page delete(IndexRegister reg, Page page, boolean[] shrunk) throws IOException {
@@ -398,5 +453,15 @@ public class BTree implements Index {
 			}
 		}
 		return shrunk;
+	}
+
+	public int getHalfPageCapacity() {
+		return halfPageCapacity;
+	}
+	public int getPageCapacity() {
+		return pageCapacity;
+	}
+	public String getFilePath() {
+		return filePath;
 	}
 }
