@@ -1190,19 +1190,19 @@ public class CommandLineInterface {
 		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
 		 */
 		static class IndexType {
-			@Option(names = "tree", description = "Habilita índice por Árvore B.")
+			@Option(names = "tree", description = "Habilita índice por Árvore B.", required = true)
 			boolean btree = false;
 
-			@Option(names = "hash", description = "Habilita índice por Hash Dinâmico.")
+			@Option(names = "hash", description = "Habilita índice por Hash Dinâmico.", required = true)
 			boolean hash = false;
 
-			@Option(names = "inverted", description = "Habilita índice por Lista Invertida.")
+			@Option(names = "inverted", description = "Habilita índice por Lista Invertida.", required = true)
 			boolean invertedList = false;
 
-			@Option(names = "disable", description = "Deleta o índice atual.")
+			@Option(names = "disable", description = "Deleta o índice atual.", required = true)
 			boolean disable = false;
 
-			@Option(names = "reindex", description = "Reindexa o arquivo inteiro.")
+			@Option(names = "reindex", description = "Reindexa o arquivo inteiro.", required = true)
 			boolean reindex = false;
 		}
 
