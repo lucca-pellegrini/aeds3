@@ -85,7 +85,7 @@ public class BalancedMergeSort {
 	 * registros e intercalação dos segmentos.
 	 *
 	 * Após a ordenação, o banco de dados original é substituído pelos dados
-	 * ordenados.
+	 * ordenados, e quaisquer índices serão reconstruídos.
 	 *
 	 * @throws IOException Se ocorrer algum erro de entrada/saída durante a
 	 *                     execução.
@@ -107,6 +107,17 @@ public class BalancedMergeSort {
 			db.append(t);
 		db.setLastId(saveLastId);
 		db.setOrdered(true);
+
+		// Se um índice está presente, é necessário reconstruí-lo.
+		if (db.isIndexed()) {
+			if (verbose) {
+				System.err.println("Reindexando arquivo.");
+				if (db.getNumTracks() >= 50000)
+					System.err.println("O arquivo tem muitos registros. Isso pode demorar...");
+			}
+
+			db.reindex();
+		}
 
 		// Deleta os arquivos temporários.
 		for (int i = 0; i < 2 * fanout; ++i) {
