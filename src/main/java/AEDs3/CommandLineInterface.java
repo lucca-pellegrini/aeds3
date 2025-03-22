@@ -404,6 +404,15 @@ public class CommandLineInterface {
 			parent.out.println(ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(numTracks));
 			parent.out.println(ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(numSpaces));
 
+			// Exibe o estado do índice.
+			tmp = ansi().bold().fgGreen().a("Indexed:\t").reset();
+			tmp = (parent.db.isIndexed()) ? parent.db.isBTreeIndex()
+			? tmp.fgBrightBlue().a("B-Tree")
+			: parent.db.isHashIndex() ? tmp.fgBrightBlue().a("Dynamic Hash")
+			: tmp.fgBrightBlue().a("Inverted List")
+			: tmp.fgBrightRed().a("false");
+			parent.out.println(tmp);
+
 			// Exibe o estado de ordenação.
 			tmp = ansi().bold().fgGreen().a("Ordered:\t").reset();
 			tmp = (parent.db.isOrdered()) ? tmp.fgBrightGreen().a("true")
