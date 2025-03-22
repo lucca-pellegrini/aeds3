@@ -1166,11 +1166,30 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Comando responsável por gerenciar o índice do banco de dados.
+	 *
+	 * <p>
+	 * Este comando permite ao usuário habilitar ou desabilitar diferentes tipos de
+	 * índices no banco de dados, como Árvore B, Hash Dinâmico e Lista Invertida.
+	 * Também é possível reindexar o arquivo inteiro ou deletar o índice atual.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see CliCommands
+	 */
 	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
 		@ArgGroup(exclusive = true)
 		private IndexType indexType = new IndexType();
 
+		/**
+		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
+		 */
 		static class IndexType {
 			@Option(names = "tree", description = "Habilita índice por Árvore B.")
 			boolean btree = false;
@@ -1188,13 +1207,39 @@ public class CommandLineInterface {
 			boolean reindex = false;
 		}
 
+		/**
+		 * Número máximo de filhos de uma página na Árvore B.
+		 * Deve ser um número par.
+		 */
 		@Option(names = { "-o", "--order" }, description = { "Número máximo de filhos de uma página na Árvore B.",
 				"(Deve ser par)" }, defaultValue = "16")
 		int order = 16;
 
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a operação de gerenciamento de índice no banco de dados.
+		 *
+		 * <p>
+		 * O comando verifica se o banco de dados está aberto e, em seguida, executa a
+		 * operação de índice especificada. Caso contrário, ele exibe uma mensagem de
+		 * erro apropriada.
+		 * </p>
+		 *
+		 * <p>
+		 * Se as condições forem atendidas, o comando habilita ou desabilita o índice
+		 * conforme a opção selecionada.
+		 * </p>
+		 *
+		 * @throws IllegalArgumentException Se um parâmetro inválido for recebido.
+		 * @throws IllegalStateException    Se ocorrer um erro ao executar a operação.
+		 * @throws IOException              Se ocorrer um erro de IO ao tentar indexar o
+		 *                                  banco de dados.
+		 */
 		public void run() {
 			if (parent.db == null) {
 				parent.error("Não há nenhum arquivo aberto.");
