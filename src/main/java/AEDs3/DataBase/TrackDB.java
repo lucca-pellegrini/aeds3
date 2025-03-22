@@ -749,26 +749,66 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return segmentFinished;
 	}
 
+	/**
+	 * Verifica se o banco de dados possui um índice.
+	 *
+	 * @return {@code true} se o banco de dados estiver indexado, {@code false} caso
+	 *         contrário.
+	 */
 	public boolean isIndexed() {
 		return index != null;
 	}
 
+	/**
+	 * Verifica se o banco de dados utiliza um índice do tipo Árvore B.
+	 *
+	 * @return {@code true} se o índice for do tipo Árvore B, {@code false} caso
+	 *         contrário.
+	 */
 	public boolean isBTreeIndex() {
 		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
 	}
 
+	/**
+	 * Verifica se o banco de dados utiliza um índice do tipo Hash.
+	 *
+	 * @return {@code true} se o índice for do tipo Hash, {@code false} caso
+	 *         contrário.
+	 */
 	public boolean isHashIndex() {
 		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
 	}
 
+	/**
+	 * Verifica se o banco de dados utiliza um índice de Lista Invertida.
+	 *
+	 * @return {@code true} se o índice for de Lista Invertida, {@code false} caso
+	 *         contrário.
+	 */
 	public boolean isInvertedIndex() {
 		return (flags & Flag.INDEXED_INVERSE_LIST.getBitmask()) != 0;
 	}
 
+	/**
+	 * Configura o uso de um índice do tipo Árvore B no banco de dados.
+	 *
+	 * @param value {@code true} para habilitar o índice Árvore B, {@code false}
+	 *              para desabilitar.
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void setBTreeIndex(boolean value) throws IOException {
 		setBTreeIndex(value, 16);
 	}
 
+	/**
+	 * Configura o uso de um índice do tipo Árvore B no banco de dados com uma ordem
+	 * específica.
+	 *
+	 * @param value {@code true} para habilitar o índice Árvore B, {@code false}
+	 *              para desabilitar.
+	 * @param order A ordem da Árvore B.
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void setBTreeIndex(boolean value, int order) throws IOException {
 		if (value) {
 			if (isBTreeIndex())
@@ -796,6 +836,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		updateHeader();
 	}
 
+	/**
+	 * Desabilita todos os índices no banco de dados.
+	 *
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void disableIndex() throws IOException {
 		if ((flags
 				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
@@ -807,6 +852,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		// setInvertedIndex(false);
 	}
 
+	/**
+	 * Reindexa o banco de dados, recriando o índice atual.
+	 *
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void reindex() throws IOException {
 		if ((flags
 				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
@@ -1043,8 +1093,28 @@ enum Flag {
 	 */
 	ORDERED(1L << 0), // Indica se o arquivo está ordenado.
 
+	/**
+	 * Indica que o banco de dados utiliza um índice do tipo Árvore B.
+	 * Esta flag é usada para otimizar operações de busca e escrita.
+	 *
+	 * O valor de bitmask associado a essa flag é {@code 1L << 1}.
+	 */
 	INDEXED_BTREE(1L << 1),
+
+	/**
+	 * Indica que o banco de dados utiliza um índice do tipo Hash Dinâmica.
+	 * Esta flag é usada para otimizar operações de busca e escrita.
+	 *
+	 * O valor de bitmask associado a essa flag é {@code 1L << 2}.
+	 */
 	INDEXED_HASH(1L << 2),
+
+	/**
+	 * Indica que o banco de dados utiliza um índice de Lista Invertida.
+	 * Esta flag é usada para otimizar operações de busca e escrita.
+	 *
+	 * O valor de bitmask associado a essa flag é {@code 1L << 3}.
+	 */
 	INDEXED_INVERSE_LIST(1L << 3);
 
 	private final long bitmask;
