@@ -9,9 +9,13 @@ import AEDs3.DataBase.Track;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.TrackDB;
 import AEDs3.DataBase.TrackDB.TrackFilter;
+import java.awt.Desktop;
+import java.awt.desktop.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -80,7 +84,7 @@ public class CommandLineInterface {
 			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-					UpdateCommand.class, SortCommand.class, IndexCommand.class })
+					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class })
 	class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -735,7 +739,7 @@ public class CommandLineInterface {
 	 * </p>
 	 *
 	 * <p>
-	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
 	 * nenhum arquivo aberto.
 	 * </p>
 	 *
@@ -764,7 +768,7 @@ public class CommandLineInterface {
 		 * <p>
 		 * Se o banco de dados estiver aberto, o comando tentará deletar a faixa
 		 * correspondente ao ID fornecido. Se o ID não for encontrado, uma mensagem de
-		 * erro será exibida. Caso ocorra outro erro, o comando irá relatar a falha na
+		 * erro será exibida. Caso ocorra outro erro, o comando relatará a falha na
 		 * operação.
 		 * </p>
 		 */
@@ -797,7 +801,7 @@ public class CommandLineInterface {
 	 * </p>
 	 *
 	 * <p>
-	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
 	 * nenhum arquivo aberto.
 	 * </p>
 	 *
@@ -897,7 +901,7 @@ public class CommandLineInterface {
 	 * </p>
 	 *
 	 * <p>
-	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
 	 * nenhum arquivo aberto.
 	 * </p>
 	 *
@@ -1075,6 +1079,85 @@ public class CommandLineInterface {
 	}
 
 	/**
+	 * Comando responsável por tocar uma faixa de música no Spotify.
+	 *
+	 * <p>
+	 * Este comando utiliza o ID da faixa para gerar um URL do Spotify e tenta
+	 * abrir esse URL no navegador padrão do sistema. Se o sistema não suportar
+	 * operações de desktop ou se o ID não for encontrado, uma mensagem de erro
+	 * será exibida.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see Track
+	 * @see CliCommands
+	 */
+	@Command(name = "play", mixinStandardHelpOptions = true, description = "Tocar a faixa no Spotify.")
+	static class PlayCommand implements Runnable {
+		/**
+		 * ID da faixa a tocar.
+		 *
+		 * @param id ID da chave primária da faixa no banco de dados.
+		 */
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
+		int id;
+
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		/**
+		 * Executa o comando para tocar a faixa no Spotify.
+		 *
+		 * <p>
+		 * O comando verifica se o banco de dados está aberto e se o sistema suporta
+		 * operações de desktop. Se as condições forem atendidas, ele tenta abrir a
+		 * URL da faixa no navegador padrão.
+		 * </p>
+		 *
+		 * @throws URISyntaxException Se a URL do Spotify não puder ser formatada
+		 *                            corretamente.
+		 * @throws IOException        Se ocorrer um erro de IO ao tentar ler o
+		 *                            registro ou abrir a URL.
+		 */
+		public void run() {
+			if (parent.db == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			try {
+				if (!Desktop.isDesktopSupported()) {
+					parent.error("Capabilidades de Desktop não são suportadas neste sistema.");
+					return;
+				}
+
+				Track t = parent.db.read(id);
+				if (t == null) {
+					parent.error("Nenhuma track com esse ID foi encontrada.");
+					return;
+				}
+
+				Desktop desktop = Desktop.getDesktop();
+				URI uri = new URI("https://open.spotify.com/track/" + new String(t.getTrackId()));
+				desktop.browse(uri);
+			} catch (URISyntaxException e) {
+				parent.error("Erro ao formatar URL: " + e.getMessage());
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao tentar ler o registro.");
+				return;
+			}
+		}
+	}
+
+	/**
 	 * Comando responsável por ordenar o banco de dados utilizando o algoritmo de
 	 * ordenação externa Balanced Merge Sort (intercalação balanceada).
 	 *
@@ -1192,7 +1275,7 @@ public class CommandLineInterface {
 	 * </p>
 	 *
 	 * <p>
-	 * Se o banco de dados não estiver aberto, o comando irá informar que não há
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
 	 * nenhum arquivo aberto.
 	 * </p>
 	 *
