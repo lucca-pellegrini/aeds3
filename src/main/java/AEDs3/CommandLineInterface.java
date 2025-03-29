@@ -552,7 +552,7 @@ public class CommandLineInterface {
 		 * - A opção de ler todas as faixas.
 		 */
 		@ArgGroup(exclusive = true)
-		private AllOrField allOrField = new AllOrField();
+		private final AllOrField allOrField = new AllOrField();
 
 		/**
 		 * Classe que contém as opções de filtro para a busca das faixas.
@@ -1283,7 +1283,7 @@ public class CommandLineInterface {
 	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
 		@ArgGroup(exclusive = true)
-		private IndexType indexType = new IndexType();
+		private final IndexType indexType = new IndexType();
 
 		/**
 		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
