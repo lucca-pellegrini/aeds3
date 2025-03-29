@@ -201,17 +201,6 @@ public class BTree implements Index {
 		}
 
 		/**
-		 * Define os elementos da página.
-		 *
-		 * @param elements Um array de registros de índice para definir na página.
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
-		 */
-		public void setElements(IndexRegister[] elements) throws IOException {
-			load();
-			this.elements = elements;
-		}
-
-		/**
 		 * Obtém os filhos da página.
 		 *
 		 * @return Um array de páginas filhas.
@@ -220,17 +209,6 @@ public class BTree implements Index {
 		public Page[] getChildren() throws IOException {
 			load();
 			return children;
-		}
-
-		/**
-		 * Define os filhos da página.
-		 *
-		 * @param children Um array de páginas filhas para definir.
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
-		 */
-		public void setChildren(Page[] children) throws IOException {
-			load();
-			this.children = children;
 		}
 
 		/**
@@ -701,24 +679,5 @@ public class BTree implements Index {
 	 */
 	public int getHalfPageCapacity() {
 		return halfPageCapacity;
-	}
-
-	/**
-	 * Obtém a capacidade total de uma página na Árvore B.
-	 *
-	 * @return A capacidade total de uma página, que é o número máximo de elementos
-	 *         que uma página pode conter.
-	 */
-	public int getPageCapacity() {
-		return pageCapacity;
-	}
-
-	/**
-	 * Obtém o caminho do arquivo onde a Árvore B está armazenada.
-	 *
-	 * @return O caminho do arquivo associado à Árvore B.
-	 */
-	public String getFilePath() {
-		return filePath;
 	}
 }
