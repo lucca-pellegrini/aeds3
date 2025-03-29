@@ -170,10 +170,6 @@ public class BalancedMergeSort {
 				System.err.println("Distribuindo ID " + lastId + ", peso: " + weight + ", arquivo: "
 						+ files[weight % fanout].getFilePath() + ", " + heap.size() + " itens no heap");
 		}
-
-		// Garante que o heap foi esvaziado corretamente.
-		if (heap.size() != 0)
-			throw new AssertionError("Erro interno na distribuição dos registros.");
 	}
 
 	/**
