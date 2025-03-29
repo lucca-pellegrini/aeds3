@@ -473,7 +473,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws EOFException Se o fim do arquivo for alcançado.
 	 * @throws IOException  Se ocorrer um erro de leitura no arquivo.
 	 */
-	protected BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
+	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
 		BinaryTrackReader result = null;
 
 		do
@@ -493,7 +493,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws EOFException Se o fim do arquivo for alcançado.
 	 * @throws IOException  Se ocorrer um erro de leitura no arquivo.
 	 */
-	protected BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
 		lastBinaryTrackPos = file.getFilePointer();
 		boolean tombstone = file.readBoolean();
 		int size = file.readInt();
