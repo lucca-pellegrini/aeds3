@@ -504,7 +504,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		} else {
 			byte[] buf = new byte[size];
 			file.read(buf);
-			return new BinaryTrackReader(tombstone, size, new ByteArrayInputStream(buf));
+			return new BinaryTrackReader(false, size, new ByteArrayInputStream(buf));
 		}
 	}
 
