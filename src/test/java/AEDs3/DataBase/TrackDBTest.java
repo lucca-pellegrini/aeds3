@@ -21,7 +21,6 @@ import org.junit.jupiter.api.io.TempDir;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestClassOrder(ClassOrderer.OrderAnnotation.class)
 class TrackDBTest implements AutoCloseable {
-	private Path tempDir;
 	private Path filePath;
 	private UUID dbId;
 	private TrackDB db;
@@ -29,7 +28,6 @@ class TrackDBTest implements AutoCloseable {
 
 	@BeforeAll
 	void setUp(@TempDir Path tempDir) {
-		this.tempDir = tempDir;
 		this.filePath = tempDir.resolve("TrackDBTest.db");
 	}
 
