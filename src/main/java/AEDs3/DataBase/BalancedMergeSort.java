@@ -147,7 +147,7 @@ public class BalancedMergeSort {
 			heap.add(new WeightedTrack(iterator.next(), weight));
 
 		// Distribui os elementos do arquivo inicial para os arquivos temporários.
-		while (heap.size() > 0) {
+		while (!heap.isEmpty()) {
 			// Remove um elemento, armazenando seu ID e atualizando o peso atual.
 			WeightedTrack tmp = heap.remove();
 			int lastId = tmp.track.getId();
@@ -250,7 +250,7 @@ public class BalancedMergeSort {
 						+ (group ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
 
 			// Itera até esgotarem-se os registros em cada segmento.
-			while (heap.size() > 0) {
+			while (!heap.isEmpty()) {
 				FileTrack tmp = heap.remove();
 				int origin = tmp.origin; // Armazena o arquivo de origem.
 
