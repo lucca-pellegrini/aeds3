@@ -445,7 +445,7 @@ public class CommandLineInterface {
 	 * <p>
 	 * Ao importar as faixas, o comando cria uma instância do {@link CSVManager}
 	 * para ler os dados do arquivo e insere cada faixa no banco de dados utilizando
-	 * o método {@link Database#create(Track)}.
+	 * o método {@link TrackDB#create(Track)}.
 	 * </p>
 	 *
 	 * <p>
@@ -460,7 +460,7 @@ public class CommandLineInterface {
 	 *
 	 * @see CSVManager
 	 * @see Track
-	 * @see Database
+	 * @see TrackDB
 	 */
 	@Command(name = "import", mixinStandardHelpOptions = true, description = "Importar faixas de um arquivo CSV.")
 	static class ImportCommand implements Runnable {
