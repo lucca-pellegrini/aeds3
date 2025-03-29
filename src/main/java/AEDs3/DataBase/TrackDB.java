@@ -1091,7 +1091,7 @@ enum Flag {
 	 *
 	 * O valor de bitmask associado a essa flag é {@code 1L << 0}.
 	 */
-	ORDERED(1L << 0), // Indica se o arquivo está ordenado.
+	ORDERED(1L), // Indica se o arquivo está ordenado.
 
 	/**
 	 * Indica que o banco de dados utiliza um índice do tipo Árvore B.
