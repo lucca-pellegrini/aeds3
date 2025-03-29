@@ -624,7 +624,7 @@ public class BTree implements Index {
 					this.pageInsert(page, aux.getElements()[j], aux.getChildren()[j + 1]);
 					aux.getChildren()[j + 1] = null; // Transfere a posse da memória.
 				}
-				aux = parentPage.getChildren()[parentIdx + 1] = null; // Libera aux.
+				parentPage.getChildren()[parentIdx + 1] = null; // Libera o filho.
 				for (int j = parentIdx; j < parentPage.getNumElements() - 1; j++) {
 					parentPage.getElements()[j] = parentPage.getElements()[j + 1];
 					parentPage.getChildren()[j + 1] = parentPage.getChildren()[j + 2];
@@ -660,7 +660,6 @@ public class BTree implements Index {
 					this.pageInsert(aux, page.getElements()[j], page.getChildren()[j + 1]);
 					page.getChildren()[j + 1] = null; // Transfere a posse da memória.
 				}
-				page = null; // Libera page.
 				parentPage.getChildren()[parentPage.getNumElements()] = null; // Transfere a posse da memória.
 				parentPage.setNumElements(parentPage.getNumElements() - 1);
 				shrunk = parentPage.getNumElements() < this.halfPageCapacity;
