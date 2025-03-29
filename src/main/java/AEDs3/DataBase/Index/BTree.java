@@ -532,7 +532,7 @@ public class BTree implements Index {
 	 */
 	private void delete(IndexRegister reg) throws IOException {
 		boolean diminuiu[] = new boolean[1];
-		this.root = this.delete(reg, this.root, diminuiu);
+		this.delete(reg, this.root, diminuiu);
 		if (diminuiu[0] && (this.root.getNumElements() == 0)) { // Árvore diminui na altura.
 			this.root = this.root.getChildren()[0];
 		}
