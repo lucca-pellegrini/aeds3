@@ -176,7 +176,7 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com um peso, para uso com o
 	 * PriorityQueue.
 	 */
-	private class WeightedTrack implements Comparable<WeightedTrack> {
+	private static class WeightedTrack implements Comparable<WeightedTrack> {
 		public Track track;
 		public int weight;
 
@@ -289,7 +289,7 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com o índice do arquivo em que está,
 	 * para uso com o PriorityQueue.
 	 */
-	private class FileTrack implements Comparable<FileTrack> {
+	private static class FileTrack implements Comparable<FileTrack> {
 		public Track track;
 		public int origin;
 
