@@ -112,11 +112,6 @@ public class BTree implements Index {
 		}
 
 		/**
-		 * Salva a página no arquivo.
-		 *
-		 * @throws IOException Se ocorrer um erro de I/O ao salvar a página.
-		 */
-		/**
 		 * Salva o estado atual da Árvore B no arquivo.
 		 *
 		 * @throws IOException Se ocorrer um erro de I/O ao escrever no arquivo.
