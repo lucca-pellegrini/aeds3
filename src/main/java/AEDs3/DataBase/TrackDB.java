@@ -455,7 +455,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (searchFilter == null)
 			return nextValidBinaryTrackReader().getTrack();
 
-		Track result = null;
+		Track result;
 
 		do
 			result = nextValidBinaryTrackReader().getTrack();
@@ -474,7 +474,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException  Se ocorrer um erro de leitura no arquivo.
 	 */
 	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
-		BinaryTrackReader result = null;
+		BinaryTrackReader result;
 
 		do
 			result = nextBinaryTrackReader();

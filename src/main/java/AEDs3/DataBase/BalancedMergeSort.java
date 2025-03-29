@@ -92,7 +92,7 @@ public class BalancedMergeSort {
 		distribute();
 
 		// Itera até o método `intercalar` retornar o BD ordenado.
-		TrackDB ordenado = null;
+		TrackDB ordenado;
 		do
 			ordenado = merge();
 		while (ordenado == null);

@@ -567,7 +567,7 @@ public class BTree implements Index {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
 	private boolean antecessor(Page page, int ind, Page parentPage) throws IOException {
-		boolean shrunk = true;
+		boolean shrunk;
 		// Se o último filho da página pai não for nulo, continua a busca pelo
 		// antecessor.
 		if (parentPage.getChildren()[parentPage.getNumElements()] != null) {
@@ -595,7 +595,7 @@ public class BTree implements Index {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
 	private boolean reconstruct(Page page, Page parentPage, int parentIdx) throws IOException {
-		boolean shrunk = true;
+		boolean shrunk;
 		// Se a página atual tiver um irmão à direita, tenta redistribuir ou fundir.
 		if (parentIdx < parentPage.getNumElements()) {
 			Page aux = parentPage.getChildren()[parentIdx + 1];
