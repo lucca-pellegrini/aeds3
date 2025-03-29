@@ -3,10 +3,7 @@ package AEDs3.DataBase;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
 
 /**
  * Classe responsável por realizar a ordenação externa por intercalação
@@ -228,12 +225,10 @@ public class BalancedMergeSort {
 		int firstDestinationId = fanout - firstSourceId;
 
 		// Popula as listas de fontes e destinos a partir dos arquivos temporários.
-		for (int i = firstSourceId; i < 2 * fanout - firstDestinationId; ++i) {
-			source.add(files[i]);
+		source.addAll(Arrays.asList(files).subList(firstSourceId, 2 * fanout - firstDestinationId));
+		destination.addAll(Arrays.asList(files).subList(firstDestinationId, 2 * fanout - firstSourceId));
+		for (int i = firstSourceId; i < 2 * fanout - firstDestinationId; ++i)
 			sourceIterators.add(files[i].iterator());
-		}
-		for (int i = firstDestinationId; i < 2 * fanout - firstSourceId; ++i)
-			destination.add(files[i]);
 
 		// Heap para encontrar o menor registro.
 		PriorityQueue<FileTrack> heap = new PriorityQueue<>(fanout);
