@@ -111,10 +111,10 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 						month = Integer.parseInt(list[1]);
 					} else {
 						year = Integer.parseInt(releaseDateRecord);
-						month = 01;
+						month = 1;
 					}
 
-					releaseDate = LocalDate.of(year, month, 01);
+					releaseDate = LocalDate.of(year, month, 1);
 				}
 
 				// Criando e retornando o objeto Track a partir dos dados do CSV
