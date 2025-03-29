@@ -243,7 +243,7 @@ public class Track implements Externalizable, Comparable<Track> {
 			case ID -> getId() == (int) value;
 			case ALBUM_RELEASE_DATE -> getAlbumReleaseDate().equals(value);
 			case ALBUM_TYPE -> getAlbumType().equals(value);
-			case EXPLICIT -> !(isExplicit() ^ (boolean) value);
+			case EXPLICIT -> isExplicit() == (boolean) value;
 			case TRACK_ID -> new String(getTrackId()).equals(value);
 			case POPULARITY -> getPopularity() == (int) value;
 			case KEY -> getKey() == (int) value;
