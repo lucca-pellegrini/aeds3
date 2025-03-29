@@ -131,6 +131,7 @@ public class BalancedMergeSort {
 	 * @throws IOException Se ocorrer um erro de entrada/saída durante a
 	 *                     distribuição.
 	 */
+	@SuppressWarnings("resource") // Não emite aviso por não fecharmos os arquivos temporários aqui.
 	private void distribute() throws IOException {
 		// Inicializa os arquivos temporários.
 		for (int i = 0; i < files.length; ++i)
