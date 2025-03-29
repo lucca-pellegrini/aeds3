@@ -84,7 +84,7 @@ public class CommandLineInterface {
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
 					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class })
-	class CliCommands implements Runnable {
+	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
 		AutosuggestionWidgets suggestions;
