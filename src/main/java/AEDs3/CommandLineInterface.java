@@ -707,10 +707,8 @@ public class CommandLineInterface {
 						parent.error("Não é possível buscar por valores de tipo booleano.");
 						throw new IllegalArgumentException();
 					}
-					case ID -> {
-						// ID é um caso especial, já tratado antes.
+					case ID -> // ID é um caso especial, já tratado antes.
 						throw new AssertionError();
-					}
 				};
 
 				// Aplica o novo filtro e exibe as faixas filtradas.
