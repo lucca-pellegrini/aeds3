@@ -29,12 +29,12 @@ public class BTree implements Index {
 		/**
 		 * Array de registros de índice armazenados na página.
 		 */
-		private IndexRegister elements[];
+		private IndexRegister[] elements;
 
 		/**
 		 * Array de filhos da página.
 		 */
-		private Page children[];
+		private Page[] children;
 
 		/**
 		 * Indica se a página está carregada na memória.
@@ -416,8 +416,8 @@ public class BTree implements Index {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de inserção.
 	 */
 	private void insere(IndexRegister reg) throws IOException {
-		IndexRegister regRetorno[] = new IndexRegister[1]; // Array para armazenar o registro retornado.
-		boolean cresceu[] = new boolean[1]; // Array para indicar se a árvore cresceu.
+		IndexRegister[] regRetorno = new IndexRegister[1]; // Array para armazenar o registro retornado.
+		boolean[] cresceu = new boolean[1]; // Array para indicar se a árvore cresceu.
 		Page apRetorno = this.insere(reg, this.root, regRetorno, cresceu); // Insere o registro na árvore.
 		if (cresceu[0]) { // Se a árvore cresceu, cria uma nova raiz.
 			Page apTemp = new Page(this.pageCapacity);
@@ -531,7 +531,7 @@ public class BTree implements Index {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de remoção.
 	 */
 	private void delete(IndexRegister reg) throws IOException {
-		boolean diminuiu[] = new boolean[1];
+		boolean[] diminuiu = new boolean[1];
 		this.delete(reg, this.root, diminuiu);
 		if (diminuiu[0] && (this.root.getNumElements() == 0)) { // Árvore diminui na altura.
 			this.root = this.root.getChildren()[0];
