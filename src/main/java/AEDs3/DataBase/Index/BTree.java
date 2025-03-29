@@ -256,7 +256,8 @@ public class BTree implements Index {
 	}
 
 	private Page root;
-	private int halfPageCapacity, pageCapacity;
+	private final int halfPageCapacity;
+	private final int pageCapacity;
 	private String filePath;
 	private RandomAccessFile file;
 
