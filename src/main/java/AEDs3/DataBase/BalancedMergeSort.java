@@ -285,26 +285,18 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com o índice do arquivo em que está,
 	 * para uso com o PriorityQueue.
 	 */
-	private static class FileTrack implements Comparable<FileTrack> {
-		public final Track track;
-		public final int origin;
-
-		public FileTrack(Track track, int origin) {
-			this.track = track;
-			this.origin = origin;
-		}
-
+		private record FileTrack(Track track, int origin) implements Comparable<FileTrack> {
 		/**
 		 * Compara duas instâncias de FileTrack com base no registro de Track.
 		 *
 		 * @param other O outro objeto FileTrack a ser comparado.
 		 * @return O valor da comparação entre os dois objetos.
 		 */
-		@Override
-		public int compareTo(FileTrack other) {
-			return track.compareTo(other.track);
+			@Override
+			public int compareTo(FileTrack other) {
+				return track.compareTo(other.track);
+			}
 		}
-	}
 
 	// Getters & Setters.
 
