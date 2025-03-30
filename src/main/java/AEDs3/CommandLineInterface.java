@@ -536,6 +536,7 @@ public class CommandLineInterface {
 	 * @see TrackFilter
 	 * @see Field
 	 */
+	@SuppressWarnings("CanBeFinal")
 	@Command(name = "read", mixinStandardHelpOptions = true, description = "Ler faixa(s) por campo ou por ID.", footer = {
 			"Exemplos:", "read 117 @|magenta (ler por ID 117)|@",
 			"read --field=GENRES pop rock @|magenta (ler faixas com Gêneros incluindo pop e "
@@ -559,6 +560,7 @@ public class CommandLineInterface {
 		 *
 		 * @see Field
 		 */
+		@SuppressWarnings("CanBeFinal")
 		static class AllOrField {
 			/**
 			 * Define o campo a ser usado para busca. O valor padrão é "ID".
@@ -1175,6 +1177,7 @@ public class CommandLineInterface {
 	 * @see CliCommands
 	 * @see BalancedMergeSort
 	 */
+	@SuppressWarnings("CanBeFinal")
 	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Ordenar o banco de dados.")
 	static class SortCommand implements Runnable {
 		/**
@@ -1278,6 +1281,7 @@ public class CommandLineInterface {
 	 *
 	 * @see CliCommands
 	 */
+	@SuppressWarnings("CanBeFinal")
 	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
 		@ArgGroup(exclusive = true)
@@ -1286,6 +1290,7 @@ public class CommandLineInterface {
 		/**
 		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
 		 */
+		@SuppressWarnings("CanBeFinal")
 		static class IndexType {
 			@Option(names = "--tree", description = "Habilita índice por Árvore B.", required = true)
 			boolean btree = false;
