@@ -650,7 +650,7 @@ public class CommandLineInterface {
 					case POPULARITY:
 					case KEY:
 						parent.error(
-								"O campo " + field.toString() + " exige exatamente um parâmetro.");
+								"O campo " + field + " exige exatamente um parâmetro.");
 						return;
 					default:
 				}
@@ -689,7 +689,7 @@ public class CommandLineInterface {
 					}
 					case TRACK_ID -> {
 						if (singleParam.length() != Track.getTrackIdNumChars()) {
-							parent.error(field.toString() + " deve conter exatamente "
+							parent.error(field + " deve conter exatamente "
 									+ Track.getTrackIdNumChars() + " caracteres.");
 							throw new IllegalArgumentException();
 						}
