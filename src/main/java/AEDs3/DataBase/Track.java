@@ -181,14 +181,14 @@ public class Track implements Externalizable, Comparable<Track> {
 		id = in.readInt();
 		name = in.readUTF();
 		int numArtists = in.readByte();
-		trackArtists = new ArrayList<String>(numArtists);
+		trackArtists = new ArrayList<>(numArtists);
 		for (int i = 0; i < numArtists; ++i)
 			trackArtists.add(in.readUTF());
 		albumName = in.readUTF();
 		albumReleaseDate = LocalDate.ofEpochDay(in.readLong() / 86400);
 		albumType = in.readUTF();
 		int numGenres = in.readByte();
-		genres = new ArrayList<String>(numGenres);
+		genres = new ArrayList<>(numGenres);
 		for (int i = 0; i < numGenres; ++i)
 			genres.add(in.readUTF());
 		explicit = in.readBoolean();

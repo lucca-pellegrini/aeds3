@@ -215,7 +215,7 @@ public class BalancedMergeSort {
 		List<TrackDB> destination = new ArrayList<>(fanout);
 
 		// Iteradores de cada BD, aqui por conveniência.
-		List<Iterator<Track>> sourceIterators = new ArrayList<Iterator<Track>>(fanout);
+		List<Iterator<Track>> sourceIterators = new ArrayList<>(fanout);
 
 		// Resultado que retornaremos.
 		TrackDB result = null;

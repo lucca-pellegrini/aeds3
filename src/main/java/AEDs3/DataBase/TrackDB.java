@@ -662,15 +662,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			throw new RuntimeException("Erro ao posicionar cursor no primeiro registro");
 		}
 
-		return new Iterator<Track>() {
+		return new Iterator<>() {
 			private Track currentTrack = null;
 
 			/**
 			 * Verifica se há uma próxima faixa no banco de dados.
 			 *
 			 * @return {@code true} se houver uma próxima faixa válida a ser retornada,
-			 *         correspondente ao filtro aplicado, se houver,
-			 *         {@code false} caso contrário.
+			 * correspondente ao filtro aplicado, se houver,
+			 * {@code false} caso contrário.
 			 */
 			@Override
 			public boolean hasNext() {

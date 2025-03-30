@@ -71,7 +71,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 	 */
 	@Override
 	public Iterator<Track> iterator() {
-		return new Iterator<Track>() {
+		return new Iterator<>() {
 			private final Iterator<CSVRecord> csvIterator = parser.iterator(); // Iterador do CSV
 
 			/**
@@ -86,7 +86,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 
 			/**
 			 * Retorna o próximo registro como um objeto {@link Track}.
-			 *
+			 * <p>
 			 * O método faz o parsing dos dados do CSV e os converte em um objeto
 			 * {@link Track}, incluindo a conversão de datas e divisão de listas de gêneros
 			 * e artistas.
@@ -102,7 +102,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 				// Método para quando tiver só o ano, forçar a data completa.
 				try {
 					releaseDate = LocalDate.parse(
-							releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+						releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 				} catch (DateTimeParseException e) {
 					int year, month;
 					if (releaseDateRecord.contains("-")) {
@@ -119,20 +119,20 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 
 				// Criando e retornando o objeto Track a partir dos dados do CSV
 				return new Track(releaseDate,
-						Arrays.stream(record.get("genres").split(","))
-								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
-								.collect(Collectors.toList()),
-						Arrays.stream(record.get("track_artists").split(","))
-								.map(s -> s.replaceAll("[\\[\\]']", "").trim())
-								.collect(Collectors.toList()),
-						record.get("album_name"), record.get("album_type"), record.get("name"),
-						Boolean.parseBoolean(record.get("explicit")),
-						record.get("track_id").toCharArray(), Float.parseFloat(record.get("loudness")),
-						Float.parseFloat(record.get("danceability")),
-						Float.parseFloat(record.get("energy")), Float.parseFloat(record.get("valence")),
-						Float.parseFloat(record.get("tempo")), Integer.parseInt(record.get("key")),
-						Integer.parseInt(record.get("popularity")),
-						Integer.MIN_VALUE // Índice nulo
+					Arrays.stream(record.get("genres").split(","))
+						.map(s -> s.replaceAll("[\\[\\]']", "").trim())
+						.collect(Collectors.toList()),
+					Arrays.stream(record.get("track_artists").split(","))
+						.map(s -> s.replaceAll("[\\[\\]']", "").trim())
+						.collect(Collectors.toList()),
+					record.get("album_name"), record.get("album_type"), record.get("name"),
+					Boolean.parseBoolean(record.get("explicit")),
+					record.get("track_id").toCharArray(), Float.parseFloat(record.get("loudness")),
+					Float.parseFloat(record.get("danceability")),
+					Float.parseFloat(record.get("energy")), Float.parseFloat(record.get("valence")),
+					Float.parseFloat(record.get("tempo")), Integer.parseInt(record.get("key")),
+					Integer.parseInt(record.get("popularity")),
+					Integer.MIN_VALUE // Índice nulo
 				);
 			}
 		};
