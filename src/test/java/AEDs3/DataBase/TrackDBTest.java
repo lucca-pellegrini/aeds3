@@ -45,16 +45,16 @@ class TrackDBTest implements AutoCloseable {
 
 		@Test
 		void testInitialValues() {
-			assertEquals(db.getLastId(), 0);
-			assertEquals(db.getNumTracks(), 0);
-			assertEquals(db.getNumSpaces(), 0);
+			assertEquals(0, db.getLastId());
+			assertEquals(0, db.getNumTracks());
+			assertEquals(0, db.getNumSpaces());
 			assertTrue(db.isOrdered());
 		}
 
 		@Test
 		void testInitialConditions() throws IOException {
 			assertEquals(db.file.getFilePointer(), db.file.length());
-			assertEquals(db.file.getFilePointer(), TrackDB.HEADER_SIZE);
+			assertEquals(TrackDB.HEADER_SIZE, db.file.getFilePointer());
 			assertThrows(EOFException.class, () -> db.nextTrack());
 			assertFalse(db.iterator().hasNext());
 			assertNull(db.read(1));
@@ -84,7 +84,7 @@ class TrackDBTest implements AutoCloseable {
 				for (Track t : csv)
 					assertEquals(++i, db.create(t));
 			}
-			assertEquals(db.getLastId(), 32);
+			assertEquals(32, db.getLastId());
 		}
 
 		@Test
@@ -96,7 +96,7 @@ class TrackDBTest implements AutoCloseable {
 			db.file.seek(TrackDB.HEADER_SIZE);
 			db.setFilter(Track.Field.ALBUM_NAME, Pattern.compile(".*2019 /.*2019 /.*2019"));
 			for (Track t : db)
-				assertEquals(t.getTrackArtists().get(0), "Johann Strauss II");
+				assertEquals("Johann Strauss II", t.getTrackArtists().get(0));
 			db.clearFilter();
 		}
 
@@ -106,7 +106,7 @@ class TrackDBTest implements AutoCloseable {
 			Track tmp;
 
 			tmp = db.read(25);
-			assertEquals(tmp.getName(), "i miss you");
+			assertEquals("i miss you", tmp.getName());
 			tmp.setName("shorter");
 			db.update(25, tmp);
 			assertTrue(db.isOrdered());
@@ -114,7 +114,7 @@ class TrackDBTest implements AutoCloseable {
 			db.update(25, tmp);
 			assertFalse(db.isOrdered());
 			assertEquals(db.getNumTracks() + 1, db.getNumSpaces());
-			assertEquals(db.getLastId(), 32);
+			assertEquals(32, db.getLastId());
 		}
 
 		@Test
