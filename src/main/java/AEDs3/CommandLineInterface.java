@@ -552,7 +552,7 @@ public class CommandLineInterface {
 		 * - Um campo específico para busca (como ID, NAME, GENRES, etc.).
 		 * - A opção de ler todas as faixas.
 		 */
-		@ArgGroup(exclusive = true)
+		@ArgGroup()
 		private final AllOrField allOrField = new AllOrField();
 
 		/**
@@ -1284,7 +1284,7 @@ public class CommandLineInterface {
 	@SuppressWarnings("CanBeFinal")
 	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
-		@ArgGroup(exclusive = true)
+		@ArgGroup()
 		private final IndexType indexType = new IndexType();
 
 		/**
