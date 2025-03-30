@@ -499,7 +499,6 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ler o CSV.");
-				return;
 			}
 		}
 	}
@@ -768,7 +767,6 @@ public class CommandLineInterface {
 				parent.db.delete(id);
 			} catch (NoSuchElementException e) {
 				parent.error("O ID " + id + " não existe nesse arquivo.");
-				return;
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao deletar " + id);
@@ -1127,7 +1125,6 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ler o registro.");
-				return;
 			}
 		}
 	}
@@ -1229,7 +1226,6 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				e.printStackTrace();
 				parent.error("Erro fatal de IO ao tentar ordenar o banco de dados.");
-				return;
 			}
 		}
 	}
