@@ -1100,11 +1100,6 @@ public class CommandLineInterface {
 		 * operações de desktop. Se as condições forem atendidas, ele tenta abrir a
 		 * URL da faixa no navegador padrão.
 		 * </p>
-		 *
-		 * @throws URISyntaxException Se a URL do Spotify não puder ser formatada
-		 *                            corretamente.
-		 * @throws IOException        Se ocorrer um erro de IO ao tentar ler o
-		 *                            registro ou abrir a URL.
 		 */
 		public void run() {
 			if (parent.db == null) {
@@ -1309,11 +1304,6 @@ public class CommandLineInterface {
 		 * Se as condições forem atendidas, o comando habilita ou desabilita o índice
 		 * conforme a opção selecionada.
 		 * </p>
-		 *
-		 * @throws IllegalArgumentException Se um parâmetro inválido for recebido.
-		 * @throws IllegalStateException    Se ocorrer um erro ao executar a operação.
-		 * @throws IOException              Se ocorrer um erro de IO ao tentar indexar o
-		 *                                  banco de dados.
 		 */
 		public void run() {
 			if (parent.db == null) {
