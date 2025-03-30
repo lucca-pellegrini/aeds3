@@ -48,7 +48,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 				.setSkipHeaderRecord(true) // Ignora o cabeçalho do arquivo CSV
 				.get() // Obtém o formatador CSV configurado
 				.parse(new InputStreamReader(
-						new FileInputStream(new File(fileName)), StandardCharsets.UTF_8));
+						new FileInputStream(fileName), StandardCharsets.UTF_8));
 	}
 
 	/**
