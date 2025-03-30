@@ -12,11 +12,11 @@ import java.util.*;
  * eficiente de grandes quantidades de dados que não cabem na memória RAM de uma
  * vez. A ordenação é realizada usando 2N arquivos temporários e o algoritmo de
  * intercalação balanceada.
- *
+ * <p>
  * A classe utiliza a classe {@link TrackDB} para ler e gravar os registros de
  * faixas de música, realizando a ordenação dos dados através de múltiplos
  * arquivos temporários.
- *
+ * <p>
  * A ordenação ocorre em duas fases:
  * 1. Distribuição inicial dos registros em 2N arquivos temporários.
  * 2. Intercalação dos arquivos temporários, ordenando os dados e escrevendo-os
@@ -80,7 +80,7 @@ public class BalancedMergeSort {
 	 * Inicia o processo de ordenação do banco de dados utilizando o algoritmo de
 	 * intercalação balanceada. O processo é feito em duas fases: distribuição dos
 	 * registros e intercalação dos segmentos.
-	 *
+	 * <p>
 	 * Após a ordenação, o banco de dados original é substituído pelos dados
 	 * ordenados, e quaisquer índices serão reconstruídos.
 	 *

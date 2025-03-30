@@ -122,7 +122,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	/**
 	 * Abre o banco de dados a partir do arquivo especificado, inicializando
 	 * os metadados e o cabeçalho do banco de dados.
-	 *
+	 * <p>
 	 * Se o arquivo já contiver dados, o banco será carregado e os metadados
 	 * serão lidos. Caso contrário, será gerado um novo UUID e o cabeçalho
 	 * será inicializado com valores padrão.
@@ -1075,11 +1075,11 @@ class BinaryTrackWriter extends BinaryTrack {
  * banco de dados. As flags são representadas por um valor de bitmask e são
  * usadas para indicar diferentes propriedades ou estados do arquivo de banco de
  * dados.
- *
+ * <p>
  * No momento, há apenas uma flag disponível:
  * - {@link Flag#ORDERED}: Indica que os registros no banco de dados estão
  * sequencialmente ordenados por ID.
- *
+ * <p>
  * A utilização de bitmasks permite que novas flags sejam adicionadas no futuro,
  * se necessário, sem impactar a estrutura existente do banco de dados.
  */
@@ -1088,7 +1088,7 @@ enum Flag {
 	 * Indica que o arquivo de banco de dados está ordenado, ou seja, os registros
 	 * estão armazenados de maneira sequencial, ordenados por ID. Esta flag é usada
 	 * para otimizar operações de busca e escrita.
-	 *
+	 * <p>
 	 * O valor de bitmask associado a essa flag é {@code 1L << 0}.
 	 */
 	ORDERED(1L), // Indica se o arquivo está ordenado.
@@ -1096,7 +1096,7 @@ enum Flag {
 	/**
 	 * Indica que o banco de dados utiliza um índice do tipo Árvore B.
 	 * Esta flag é usada para otimizar operações de busca e escrita.
-	 *
+	 * <p>
 	 * O valor de bitmask associado a essa flag é {@code 1L << 1}.
 	 */
 	INDEXED_BTREE(1L << 1),
@@ -1104,7 +1104,7 @@ enum Flag {
 	/**
 	 * Indica que o banco de dados utiliza um índice do tipo Hash Dinâmica.
 	 * Esta flag é usada para otimizar operações de busca e escrita.
-	 *
+	 * <p>
 	 * O valor de bitmask associado a essa flag é {@code 1L << 2}.
 	 */
 	INDEXED_HASH(1L << 2),
@@ -1112,7 +1112,7 @@ enum Flag {
 	/**
 	 * Indica que o banco de dados utiliza um índice de Lista Invertida.
 	 * Esta flag é usada para otimizar operações de busca e escrita.
-	 *
+	 * <p>
 	 * O valor de bitmask associado a essa flag é {@code 1L << 3}.
 	 */
 	INDEXED_INVERSE_LIST(1L << 3);

@@ -10,7 +10,7 @@ import java.nio.file.Paths;
  * Esta classe fornece métodos para gerenciar uma estrutura de Árvore B,
  * que é uma estrutura de dados auto-balanceada que mantém dados ordenados
  * e permite operações eficientes de inserção, exclusão e busca.
- *
+ * <p>
  * A Árvore B é armazenada em um arquivo, permitindo o armazenamento persistente
  * da estrutura da árvore. Cada nó na Árvore B é representado por uma Página,
  * que contém elementos e páginas filhas. Páginas só são mantidas na memória

@@ -15,12 +15,12 @@ import java.util.regex.Pattern;
 
 /**
  * Representa uma faixa de música no banco de dados.
- *
+ * <p>
  * A classe {@link Track} implementa a interface {@link Externalizable},
  * permitindo a leitura e escrita dos dados da faixa de forma binária. Ela
  * também implementa {@link Comparable} para comparação das faixas com base no
  * ID.
- *
+ * <p>
  * Esta classe contém metadados relacionados a uma faixa de música, como nome da
  * faixa, artistas, data de lançamento do álbum, entre outros.
  */

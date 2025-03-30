@@ -21,10 +21,10 @@ import org.apache.commons.csv.CSVRecord;
  * de faixas de música. A classe implementa a interface {@link Iterable} para
  * fornecer uma maneira conveniente de iterar sobre os registros de faixas
  * presentes no arquivo CSV.
- *
+ * <p>
  * A classe também implementa {@link AutoCloseable}, garantindo que o recurso
  * CSVParser seja fechado automaticamente quando não for mais necessário.
- *
+ * <p>
  * Utiliza a biblioteca Apache Commons CSV para ler e parsear o arquivo CSV.
  */
 public class CSVManager implements Iterable<Track>, AutoCloseable {
@@ -33,7 +33,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 
 	/**
 	 * Construtor da classe {@link CSVManager}.
-	 *
+	 * <p>
 	 * Inicializa o parser do arquivo CSV e configura o padrão de leitura para
 	 * ignorar o cabeçalho e utilizar a codificação UTF-8.
 	 *
@@ -63,7 +63,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 	/**
 	 * Implementação do método {@link Iterable#iterator()} que fornece um iterador
 	 * para iterar sobre as faixas de música presentes no arquivo CSV.
-	 *
+	 * <p>
 	 * O iterador converte cada registro do CSV em um objeto {@link Track}, que
 	 * representa uma faixa de música com seus metadados.
 	 *
