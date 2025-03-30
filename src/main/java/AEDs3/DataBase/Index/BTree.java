@@ -124,15 +124,7 @@ public class BTree implements Index {
 
 			// Primeiro, escrevemos todos os filhos e todas as posições.
 			for (int i = 0; i < pageCapacity; i++) {
-				if (this.children[i] != null) {
-					if (this.children[i].getPos() < 0)
-						// Aloca uma nova posição para o filho no fim do arquivo.
-						this.children[i].setPos(file.length());
-					childrenPositions[i] = this.children[i].getPos();
-				} else {
-					childrenPositions[i] = -1; // Placeholder para filhos não inicializados.
-				}
-				file.writeLong(childrenPositions[i]);
+				saveChildren(childrenPositions, i);
 
 				if (i < this.numElements && this.elements[i] != null)
 					this.elements[i].writeExternal(file);
@@ -142,20 +134,25 @@ public class BTree implements Index {
 			}
 
 			// Salva a posição do último filho.
-			if (this.children[pageCapacity] != null) {
-				if (this.children[pageCapacity].getPos() < 0)
-					this.children[pageCapacity].setPos(file.length());
-				childrenPositions[pageCapacity] = this.children[pageCapacity].getPos();
-			} else {
-				childrenPositions[pageCapacity] = -1;
-			}
-			file.writeLong(childrenPositions[pageCapacity]);
+			saveChildren(childrenPositions, pageCapacity);
 
 			// Apenas após salvar a página atual, salvamos recusivamente os filhos.
 			// Isso é necessário para impedir posições inválidas no RandomAccessFile.
 			for (int i = 0; i <= pageCapacity; i++)
 				if (this.children[i] != null && this.children[i].isLoaded())
 					this.children[i].save();
+		}
+
+		private void saveChildren(long[] childrenPositions, int i) throws IOException {
+			if (this.children[i] != null) {
+				if (this.children[i].getPos() < 0)
+					// Aloca uma nova posição para o filho no fim do arquivo.
+					this.children[i].setPos(file.length());
+				childrenPositions[i] = this.children[i].getPos();
+			} else {
+				childrenPositions[i] = -1; // Placeholder para filhos não inicializados.
+			}
+			file.writeLong(childrenPositions[i]);
 		}
 
 		/**
