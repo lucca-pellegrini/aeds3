@@ -44,7 +44,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	/**
 	 * Caminho para o arquivo de banco de dados.
 	 */
-	protected String filePath;
+	protected final String filePath;
 
 	protected Index index;
 

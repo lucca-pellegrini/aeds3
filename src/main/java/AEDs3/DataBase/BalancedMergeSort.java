@@ -175,7 +175,7 @@ public class BalancedMergeSort {
 	 * PriorityQueue.
 	 */
 	private static class WeightedTrack implements Comparable<WeightedTrack> {
-		public Track track;
+		public final Track track;
 		public int weight;
 
 		public WeightedTrack(Track track, int weight) {
@@ -286,8 +286,8 @@ public class BalancedMergeSort {
 	 * para uso com o PriorityQueue.
 	 */
 	private static class FileTrack implements Comparable<FileTrack> {
-		public Track track;
-		public int origin;
+		public final Track track;
+		public final int origin;
 
 		public FileTrack(Track track, int origin) {
 			this.track = track;
