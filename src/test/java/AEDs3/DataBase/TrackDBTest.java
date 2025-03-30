@@ -51,7 +51,7 @@ class TrackDBTest implements AutoCloseable {
 		}
 
 		@Test
-		void testInitialConditions() throws IOException, ClassNotFoundException {
+		void testInitialConditions() throws IOException {
 			assertEquals(db.file.getFilePointer(), db.file.length());
 			assertEquals(db.file.getFilePointer(), TrackDB.HEADER_SIZE);
 			assertThrows(EOFException.class, () -> db.nextTrack());

@@ -175,11 +175,9 @@ public class Track implements Externalizable, Comparable<Track> {
 	 *
 	 * @param in Fluxo de entrada de dados.
 	 * @throws IOException            Caso ocorra erro durante a leitura dos dados.
-	 * @throws ClassNotFoundException Caso não seja possível encontrar uma classe
-	 *                                correspondendo a um dado que foi serializado.
 	 */
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(ObjectInput in) throws IOException {
 		id = in.readInt();
 		name = in.readUTF();
 		int numArtists = in.readByte();

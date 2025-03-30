@@ -213,9 +213,8 @@ public class BTree implements Index {
 		 *
 		 * @return {@code true} se a página estiver carregada, caso contrário
 		 *         {@code false}.
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
 		 */
-		public boolean isLoaded() throws IOException {
+		public boolean isLoaded() {
 			return loaded;
 		}
 
@@ -225,9 +224,8 @@ public class BTree implements Index {
 		 * @param loaded {@code true} para marcar a página como carregada, caso
 		 *               contrário {@code
 		 *     false} .
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
 		 */
-		public void setLoaded(boolean loaded) throws IOException {
+		public void setLoaded(boolean loaded) {
 			this.loaded = loaded;
 		}
 
@@ -235,9 +233,8 @@ public class BTree implements Index {
 		 * Obtém a posição da página no arquivo.
 		 *
 		 * @return A posição da página no arquivo.
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
 		 */
-		public long getPos() throws IOException {
+		public long getPos() {
 			return pos;
 		}
 
@@ -245,9 +242,8 @@ public class BTree implements Index {
 		 * Define a posição da página no arquivo.
 		 *
 		 * @param pos A nova posição da página no arquivo.
-		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
 		 */
-		public void setPos(long pos) throws IOException {
+		public void setPos(long pos) {
 			this.pos = pos;
 		}
 	}
