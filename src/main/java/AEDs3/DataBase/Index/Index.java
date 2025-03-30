@@ -13,7 +13,7 @@ public interface Index {
 	 * @return A posição do registro no arquivo.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
-	public long search(int id) throws IOException;
+	long search(int id) throws IOException;
 
 	/**
 	 * Insere um novo registro no índice.
@@ -22,7 +22,7 @@ public interface Index {
 	 * @param pos A posição do registro no arquivo.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
-	public void insert(int id, long pos) throws IOException;
+	void insert(int id, long pos) throws IOException;
 
 	/**
 	 * Remove um registro do índice pelo ID.
@@ -30,12 +30,12 @@ public interface Index {
 	 * @param id O ID do registro a ser removido.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
-	public void delete(int id) throws IOException;
+	void delete(int id) throws IOException;
 
 	/**
 	 * Destrói o índice, liberando recursos associados.
 	 *
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
-	public void destruct() throws IOException;
+	void destruct() throws IOException;
 }
