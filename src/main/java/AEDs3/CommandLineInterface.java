@@ -1000,7 +1000,7 @@ public class CommandLineInterface {
 		private Track updateFields(int id, Field[] fields) throws IOException {
 			Track t = parent.db.read(id);
 
-			for (Field field : Arrays.asList(fields)) {
+			for (Field field : fields) {
 				switch (field) {
 					case NAME:
 						t.setName(read("Name"));
