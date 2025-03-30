@@ -467,8 +467,6 @@ public class CommandLineInterface {
 		/**
 		 * Caminho para o arquivo CSV de origem a ser importado.
 		 * O caminho é passado como parâmetro ao executar o comando.
-		 *
-		 * @param param Caminho do arquivo CSV a ser importado.
 		 */
 		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo CSV de origem.")
 		private Path param;
@@ -564,16 +562,12 @@ public class CommandLineInterface {
 		static class AllOrField {
 			/**
 			 * Define o campo a ser usado para busca. O valor padrão é "ID".
-			 *
-			 * @param field O campo a ser usado para a busca.
 			 */
 			@Option(names = { "-f", "--field" }, description = "Campo a ser usado para busca.", defaultValue = "ID")
 			Field field = ID;
 
 			/**
 			 * Se ativado, lê todas as faixas no banco de dados, sem aplicar filtros.
-			 *
-			 * @param all Se verdadeiro, todas as faixas serão lidas.
 			 */
 			@Option(names = { "-a", "--all" }, description = "Ler todos os registros.", defaultValue = "false")
 			boolean all = false;
@@ -582,9 +576,6 @@ public class CommandLineInterface {
 		/**
 		 * Se ativado, a busca por nome da faixa ou do álbum será realizada utilizando
 		 * expressões regulares.
-		 *
-		 * @param regex Se verdadeiro, a busca será feita utilizando uma expressão
-		 *              regular.
 		 */
 		@Option(names = { "-r",
 				"--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
@@ -593,8 +584,6 @@ public class CommandLineInterface {
 		/**
 		 * Parâmetros para a busca. O valor depende do campo escolhido. Pode ser um
 		 * único valor ou múltiplos.
-		 *
-		 * @param params Valor(es) utilizado(s) para a busca.
 		 */
 		@Parameters(paramLabel = "<valor>", description = "Valor a ser buscado.")
 		String[] params;
@@ -749,8 +738,6 @@ public class CommandLineInterface {
 	static class DeleteCommand implements Runnable {
 		/**
 		 * ID da faixa a ser deletada.
-		 *
-		 * @param id ID da chave primária da faixa no banco de dados.
 		 */
 		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
 		int id;
@@ -915,16 +902,12 @@ public class CommandLineInterface {
 		/**
 		 * Campos que devem ser atualizados. Se não fornecido, todos os campos serão
 		 * atualizados.
-		 *
-		 * @param field Lista de campos a serem atualizados.
 		 */
 		@Option(names = { "-f", "--field" }, description = "Campos a serem atualizados.")
 		Field[] field;
 
 		/**
 		 * ID da faixa a ser atualizada.
-		 *
-		 * @param id ID da chave primária da faixa no banco de dados.
 		 */
 		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
 		int id;
@@ -1099,8 +1082,6 @@ public class CommandLineInterface {
 	static class PlayCommand implements Runnable {
 		/**
 		 * ID da faixa a tocar.
-		 *
-		 * @param id ID da chave primária da faixa no banco de dados.
 		 */
 		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
 		int id;
@@ -1183,8 +1164,6 @@ public class CommandLineInterface {
 		/**
 		 * O fanout especifica o número de elementos que são intercalados de cada vez
 		 * durante a ordenação. O valor padrão é 8.
-		 *
-		 * @param order O número de elementos a serem intercalados de cada vez.
 		 */
 		@Option(names = { "-f", "--fanout" }, description = { "Fanout para o algoritmo Balanced Merge Sort.",
 				"(Número de elementos mesclados de cada vez.)" }, defaultValue = "8")
@@ -1193,8 +1172,6 @@ public class CommandLineInterface {
 		/**
 		 * O tamanho máximo da pilha em memória a ser usada durante a ordenação.
 		 * O valor padrão é 64.
-		 *
-		 * @param maxHeapSize O número máximo de elementos na pilha em memória.
 		 */
 		@Option(names = { "-n", "--num" }, description = { "Número máximo de elementos na pilha em memória",
 				"a ser utilizado durante a ordenação." }, defaultValue = "64")
@@ -1202,9 +1179,6 @@ public class CommandLineInterface {
 
 		/**
 		 * Ativa ou desativa a saída detalhada durante a ordenação.
-		 *
-		 * @param verbose Se ativado, imprime informações detalhadas sobre o processo de
-		 *                ordenação.
 		 */
 		@Option(names = { "-v", "--verbose" }, description = "Ativar saída detalhada.")
 		boolean verbose = false;
