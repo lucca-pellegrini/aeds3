@@ -969,10 +969,8 @@ class BinaryTrackReader extends BinaryTrack {
 	 *
 	 * @throws IOException            Se ocorrer um erro durante a leitura dos
 	 *                                dados.
-	 * @throws ClassNotFoundException Se a classe {@link Track} não for encontrada
-	 *                                durante a desserialização.
 	 */
-	private void readTrack() throws IOException, ClassNotFoundException {
+	private void readTrack() throws IOException {
 		track = new Track();
 		track.readExternal(new ObjectInputStream(stream));
 	}
