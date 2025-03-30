@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,7 @@ class CSVManagerTest implements AutoCloseable {
 	@BeforeEach
 	void setUp() throws IOException {
 		manager = new CSVManager(
-				getClass().getClassLoader().getResource("CSVManagerTestDataset.csv").getPath());
+				Objects.requireNonNull(getClass().getClassLoader().getResource("CSVManagerTestDataset.csv")).getPath());
 		trackIterator = manager.iterator();
 	}
 

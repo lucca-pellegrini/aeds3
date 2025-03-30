@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -78,7 +79,7 @@ class TrackDBTest implements AutoCloseable {
 		@Order(1)
 		void testCreate() throws IOException {
 			try (CSVManager csv = new CSVManager(
-					getClass().getClassLoader().getResource("TrackDBTest.csv").getPath())) {
+					Objects.requireNonNull(getClass().getClassLoader().getResource("TrackDBTest.csv")).getPath())) {
 				int i = 0;
 				for (Track t : csv)
 					assertEquals(++i, db.create(t));
