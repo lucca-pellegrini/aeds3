@@ -41,7 +41,7 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException           Se ocorrer algum erro de entrada/saída durante
 	 *                               a leitura do arquivo.
 	 */
-	public CSVManager(String fileName) throws FileNotFoundException, IOException {
+	public CSVManager(String fileName) throws IOException {
 		parser = CSVFormat.RFC4180.builder()
 				.setHeader() // Configura o cabeçalho
 				.setSkipHeaderRecord(true) // Ignora o cabeçalho do arquivo CSV
