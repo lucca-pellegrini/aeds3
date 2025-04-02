@@ -1282,6 +1282,12 @@ public class CommandLineInterface {
 		int order = 16;
 
 		/**
+		 * Número máximo de elementos de um bucket na Tabela Hash.
+		 */
+		@Option(names = { "-b", "--bucket" }, description = "Número máximo de elementos de um bucket na Tabela Hash.", defaultValue = "16")
+		int bucketSize = 16;
+
+		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
 		@ParentCommand
@@ -1319,8 +1325,7 @@ public class CommandLineInterface {
 				if (indexType.btree)
 					parent.db.setBTreeIndex(true, order);
 				else if (indexType.hash)
-					// parent.db.setHashIndex(true, bucketSize);
-					parent.error("Tipo de índice ainda não implementado");
+					parent.db.setHashIndex(true, bucketSize);
 				else if (indexType.invertedList)
 					// parent.db.setInvertedIndex(true);
 					parent.error("Tipo de índice ainda não implementado");
