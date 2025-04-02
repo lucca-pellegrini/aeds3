@@ -53,15 +53,19 @@ public class HashTableIndex implements Index {
 
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			ObjectOutputStream out = new ObjectOutputStream(baos);
-			out.writeByte(profundidadeLocal);
-			out.writeShort(quantidade);
-			int i;
-			for (i = 0; i < quantidade; ++i)
-				elementos.get(i).writeExternal(out);
+			DataOutputStream dos = new DataOutputStream(baos);
+			dos.writeByte(profundidadeLocal);
+			dos.writeShort(quantidade);
+			int i = 0;
+			while (i < quantidade) {
+				dos.write(elementos.get(i).toByteArray());
+				i++;
+			}
 			byte[] vazio = new byte[bytesPorElemento];
-			while (i++ < quantidadeMaxima)
-				out.write(vazio);
+			while (i < quantidadeMaxima) {
+				dos.write(vazio);
+				i++;
+			}
 			return baos.toByteArray();
 		}
 
@@ -77,7 +81,7 @@ public class HashTableIndex implements Index {
 			while (i < quantidadeMaxima) {
 				dis.read(dados);
 				elem = new IndexRegister();
-				elem.readExternal(new ObjectInputStream(new ByteArrayInputStream(dados)));
+				elem.fromByteArray(dados);
 				elementos.add(elem);
 				i++;
 			}

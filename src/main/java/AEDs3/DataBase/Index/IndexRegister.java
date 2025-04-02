@@ -34,8 +34,8 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	 *
 	 * @param other O outro registro de índice a ser comparado.
 	 * @return Um valor negativo, zero ou positivo conforme este registro seja
-	 * menor, igual ou maior
-	 * que o outro.
+	 *         menor, igual ou maior
+	 *         que o outro.
 	 */
 	public int compareTo(IndexRegister other) {
 		return Integer.compare(id, other.getId());
@@ -83,6 +83,37 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeInt(id);
 		out.writeLong(pos);
+	}
+
+	/**
+	 * Converte o registro de índice em um array de bytes.
+	 *
+	 * @return Um array de bytes representando o registro de índice.
+	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
+	 */
+	public byte[] toByteArray() throws IOException {
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		DataOutputStream dataOut = new DataOutputStream(out);
+		dataOut.writeInt(id);
+		dataOut.writeLong(pos);
+		return out.toByteArray();
+	}
+
+	/**
+	 * Reconstrói o registro de índice a partir de um array de bytes.
+	 *
+	 * @param in O array de bytes de onde ler os dados.
+	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
+	 */
+	public void fromByteArray(byte[] in) throws IOException {
+		ByteArrayInputStream byteIn = new ByteArrayInputStream(in);
+		DataInputStream dataIn = new DataInputStream(byteIn);
+		id = dataIn.readInt();
+		pos = dataIn.readLong();
+	}
+
+	public short size() {
+		return SIZE;
 	}
 
 	/**
