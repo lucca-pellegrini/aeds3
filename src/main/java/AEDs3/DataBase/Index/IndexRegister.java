@@ -30,6 +30,33 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	}
 
 	/**
+	 * Retorna o código hash para este registro de índice.
+	 *
+	 * @return O código hash calculado com base no ID do registro.
+	 */
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(id);
+	}
+
+	/**
+	 * Compara este registro de índice com o objeto especificado para igualdade.
+	 *
+	 * @param obj O objeto a ser comparado para igualdade.
+	 * @return true se o objeto especificado for igual a este registro de índice,
+	 *         caso contrário, false.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		IndexRegister other = (IndexRegister) obj;
+		return this.id == other.id;
+	}
+
+	/**
 	 * Compara este registro de índice com outro baseado no ID.
 	 *
 	 * @param other O outro registro de índice a ser comparado.
