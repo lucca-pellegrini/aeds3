@@ -150,7 +150,7 @@ public class HashTableIndex implements Index {
 		}
 
 		public boolean updateAddresses(int pos, long newAddress) {
-			if (pos > Math.pow(2, globalDepth))
+			if (pos > 1 << globalDepth)
 				return false;
 			addresses[pos] = newAddress;
 			return true;
@@ -160,7 +160,7 @@ public class HashTableIndex implements Index {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
 			dos.writeByte(globalDepth);
-			int n = (int) Math.pow(2, globalDepth);
+			int n = 1 << globalDepth;
 			int i = 0;
 			while (i < n) {
 				dos.writeLong(addresses[i]);
@@ -173,7 +173,7 @@ public class HashTableIndex implements Index {
 			ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 			DataInputStream dis = new DataInputStream(bais);
 			globalDepth = dis.readByte();
-			int n = (int) Math.pow(2, globalDepth);
+			int n = 1 << globalDepth;
 			addresses = new long[n];
 			int i = 0;
 			while (i < n) {
@@ -183,7 +183,7 @@ public class HashTableIndex implements Index {
 		}
 
 		protected long address(int pos) {
-			if (pos > Math.pow(2, globalDepth))
+			if (pos > 1 << globalDepth)
 				return -1;
 			return addresses[pos];
 		}
@@ -192,8 +192,8 @@ public class HashTableIndex implements Index {
 			if (globalDepth == 0xFF / 2)
 				return false;
 			globalDepth++;
-			int q1 = (int) Math.pow(2, globalDepth - 1.);
-			int q2 = (int) Math.pow(2, globalDepth);
+			int q1 = 1 << (globalDepth - 1);
+			int q2 = 1 << globalDepth;
 			long[] newAddresses = new long[q2];
 			int i = 0;
 			while (i < q1) { // copia o vetor anterior para a primeiro metade do novo vetor
@@ -211,12 +211,12 @@ public class HashTableIndex implements Index {
 		// Para efeito de determinar o cesto em que o elemento deve ser inserido,
 		// só serão considerados valores absolutos da chave.
 		protected int hash(int chave) {
-			return Math.abs(chave) % (int) Math.pow(2, globalDepth);
+			return Math.abs(chave) % (1 << globalDepth);
 		}
 
 		// Método auxiliar para atualizar endereço ao duplicar o diretório
 		protected int localHash(int id, int localDepth) { // cálculo do hash para uma dada profundidade local
-			return Math.abs(id) % (int) Math.pow(2, localDepth);
+			return Math.abs(id) % (1 << localDepth);
 		}
 	}
 
@@ -340,8 +340,8 @@ public class HashTableIndex implements Index {
 
 		// Atualiza os dados no diretório
 		int begin = directory.localHash(elem.hashCode(), bucket.localDepth);
-		int displacement = (int) Math.pow(2, localDepth);
-		int max = (int) Math.pow(2, globalDepth);
+		int displacement = 1 << localDepth;
+		int max = 1 << globalDepth;
 		boolean troca = false;
 		for (int j = begin; j < max; j += displacement) {
 			if (troca)
