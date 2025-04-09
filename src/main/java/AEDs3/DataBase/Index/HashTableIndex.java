@@ -15,275 +15,275 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class HashTableIndex implements Index {
-	String nomeArquivoDiretorio;
-	String nomeArquivoCestos;
-	String nomeArquivoMeta;
-	RandomAccessFile arqDiretorio;
-	RandomAccessFile arqCestos;
-	int quantidadeDadosPorCesto;
-	Diretorio diretorio;
+	String dirFilePath;
+	String bucketFilePath;
+	String metaFilePath;
+	RandomAccessFile dirFile;
+	RandomAccessFile bucketFile;
+	int bucketNumElements;
+	Directory directory;
 
-	public class Cesto {
-		short quantidadeMaxima; // quantidade máxima de elementos que o cesto pode conter
-		short bytesPorElemento; // tamanho fixo de cada elemento em bytes
-		short bytesPorCesto; // tamanho fixo do cesto em bytes
+	private class Bucket {
+		short maxElements; // quantidade máxima de elementos que o cesto pode conter
+		short elementSize; // tamanho fixo de cada elemento em bytes
+		short bucketSize; // tamanho fixo do cesto em bytes
 
-		byte profundidadeLocal; // profundidade local do cesto
-		short quantidade; // quantidade de elementos presentes no cesto
-		ArrayList<IndexRegister> elementos; // sequência de elementos armazenados
+		byte localDepth; // profundidade local do cesto
+		short numElements; // quantidade de elementos presentes no cesto
+		ArrayList<IndexRegister> elements; // sequência de elementos armazenados
 
-		public Cesto(int qtdmax) {
-			this(qtdmax, 0);
+		public Bucket(int maxElements) {
+			this(maxElements, 0);
 		}
 
-		public Cesto(int qtdmax, int pl) {
-			if (qtdmax > Short.MAX_VALUE)
+		public Bucket(int maxElements, int localDepth) {
+			if (maxElements > Short.MAX_VALUE)
 				throw new IllegalArgumentException(
 						"Quantidade máxima de " + Short.MAX_VALUE + " elementos");
-			if (pl > 0xFF / 2)
+			if (localDepth > 0xFF / 2)
 				throw new IllegalArgumentException(
 						"Profundidade local máxima de " + 0xFF / 2 + " bits");
-			profundidadeLocal = (byte) pl;
-			quantidade = 0;
-			quantidadeMaxima = (short) qtdmax;
-			elementos = new ArrayList<>(quantidadeMaxima);
-			bytesPorElemento = IndexRegister.SIZE;
-			bytesPorCesto = (short) (bytesPorElemento * quantidadeMaxima + 3);
+			this.localDepth = (byte) localDepth;
+			this.numElements = 0;
+			this.maxElements = (short) maxElements;
+			this.elements = new ArrayList<>(maxElements);
+			this.elementSize = IndexRegister.SIZE;
+			this.bucketSize = (short) (elementSize * maxElements + 3);
 		}
 
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeByte(profundidadeLocal);
-			dos.writeShort(quantidade);
+			dos.writeByte(localDepth);
+			dos.writeShort(numElements);
 			int i = 0;
-			while (i < quantidade) {
-				dos.write(elementos.get(i).toByteArray());
+			while (i < numElements) {
+				dos.write(elements.get(i).toByteArray());
 				i++;
 			}
-			byte[] vazio = new byte[bytesPorElemento];
-			while (i < quantidadeMaxima) {
+			byte[] vazio = new byte[elementSize];
+			while (i < maxElements) {
 				dos.write(vazio);
 				i++;
 			}
 			return baos.toByteArray();
 		}
 
-		public void fromByteArray(byte[] ba) throws IOException {
-			ByteArrayInputStream bais = new ByteArrayInputStream(ba);
+		public void fromByteArray(byte[] buf) throws IOException {
+			ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 			DataInputStream dis = new DataInputStream(bais);
-			profundidadeLocal = dis.readByte();
-			quantidade = dis.readShort();
+			localDepth = dis.readByte();
+			numElements = dis.readShort();
 			int i = 0;
-			elementos = new ArrayList<>(quantidadeMaxima);
-			byte[] dados = new byte[bytesPorElemento];
-			IndexRegister elem;
-			while (i < quantidadeMaxima) {
-				dis.read(dados);
-				elem = new IndexRegister();
-				elem.fromByteArray(dados);
-				elementos.add(elem);
+			elements = new ArrayList<>(maxElements);
+			byte[] newBuf = new byte[elementSize];
+			IndexRegister element;
+			while (i < maxElements) {
+				dis.read(newBuf);
+				element = new IndexRegister();
+				element.fromByteArray(newBuf);
+				elements.add(element);
 				i++;
 			}
 		}
 
 		// Inserir elementos no cesto
-		public void insert(IndexRegister elem) {
-			if (full())
+		public void insert(IndexRegister register) {
+			if (isFull())
 				throw new IllegalStateException("Bucket já está cheio.");
-			int i = quantidade - 1; // posição do último elemento no cesto
-			while (i >= 0 && elem.hashCode() < elementos.get(i).hashCode())
+			int i = numElements - 1; // posição do último elemento no cesto
+			while (i >= 0 && register.hashCode() < elements.get(i).hashCode())
 				i--;
-			elementos.add(i + 1, elem);
-			quantidade += 1;
+			elements.add(i + 1, register);
+			numElements += 1;
 		}
 
 		// Buscar um elemento no cesto
-		public IndexRegister search(int chave) {
-			if (empty())
+		public IndexRegister search(int id) {
+			if (isEmpty())
 				return null;
 			int i = 0;
-			while (i < quantidade && chave > elementos.get(i).hashCode())
+			while (i < numElements && id > elements.get(i).hashCode())
 				i++;
-			if (i < quantidade && chave == elementos.get(i).hashCode())
-				return elementos.get(i);
+			if (i < numElements && id == elements.get(i).hashCode())
+				return elements.get(i);
 			else
 				return null;
 		}
 
 		// pagar um elemento do cesto
-		public boolean delete(int chave) {
-			if (empty())
+		public boolean delete(int id) {
+			if (isEmpty())
 				return false;
 			int i = 0;
-			while (i < quantidade && chave > elementos.get(i).hashCode())
+			while (i < numElements && id > elements.get(i).hashCode())
 				i++;
-			if (chave == elementos.get(i).hashCode()) {
-				elementos.remove(i);
-				quantidade--;
+			if (id == elements.get(i).hashCode()) {
+				elements.remove(i);
+				numElements--;
 				return true;
 			} else
 				return false;
 		}
 
-		public boolean empty() {
-			return quantidade == 0;
+		public boolean isEmpty() {
+			return numElements == 0;
 		}
 
-		public boolean full() {
-			return quantidade == quantidadeMaxima;
+		public boolean isFull() {
+			return numElements == maxElements;
 		}
 
-		public int size() {
-			return bytesPorCesto;
+		public int getSize() {
+			return bucketSize;
 		}
 	}
 
-	protected class Diretorio {
-		byte profundidadeGlobal;
-		long[] enderecos;
+	protected class Directory {
+		byte globalDepth;
+		long[] addresses;
 
-		public Diretorio() {
-			profundidadeGlobal = 0;
-			enderecos = new long[1];
-			enderecos[0] = 0;
+		public Directory() {
+			globalDepth = 0;
+			addresses = new long[1];
+			addresses[0] = 0;
 		}
 
-		public boolean atualizaEndereco(int p, long e) {
-			if (p > Math.pow(2, profundidadeGlobal))
+		public boolean updateAddresses(int pos, long newAddress) {
+			if (pos > Math.pow(2, globalDepth))
 				return false;
-			enderecos[p] = e;
+			addresses[pos] = newAddress;
 			return true;
 		}
 
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeByte(profundidadeGlobal);
-			int quantidade = (int) Math.pow(2, profundidadeGlobal);
+			dos.writeByte(globalDepth);
+			int n = (int) Math.pow(2, globalDepth);
 			int i = 0;
-			while (i < quantidade) {
-				dos.writeLong(enderecos[i]);
+			while (i < n) {
+				dos.writeLong(addresses[i]);
 				i++;
 			}
 			return baos.toByteArray();
 		}
 
-		public void fromByteArray(byte[] ba) throws IOException {
-			ByteArrayInputStream bais = new ByteArrayInputStream(ba);
+		public void fromByteArray(byte[] buf) throws IOException {
+			ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 			DataInputStream dis = new DataInputStream(bais);
-			profundidadeGlobal = dis.readByte();
-			int quantidade = (int) Math.pow(2, profundidadeGlobal);
-			enderecos = new long[quantidade];
+			globalDepth = dis.readByte();
+			int n = (int) Math.pow(2, globalDepth);
+			addresses = new long[n];
 			int i = 0;
-			while (i < quantidade) {
-				enderecos[i] = dis.readLong();
+			while (i < n) {
+				addresses[i] = dis.readLong();
 				i++;
 			}
 		}
 
-		protected long address(int p) {
-			if (p > Math.pow(2, profundidadeGlobal))
+		protected long address(int pos) {
+			if (pos > Math.pow(2, globalDepth))
 				return -1;
-			return enderecos[p];
+			return addresses[pos];
 		}
 
-		protected boolean duplica() {
-			if (profundidadeGlobal == 0xFF / 2)
+		protected boolean duplicate() {
+			if (globalDepth == 0xFF / 2)
 				return false;
-			profundidadeGlobal++;
-			int q1 = (int) Math.pow(2, profundidadeGlobal - 1.);
-			int q2 = (int) Math.pow(2, profundidadeGlobal);
-			long[] novosEnderecos = new long[q2];
+			globalDepth++;
+			int q1 = (int) Math.pow(2, globalDepth - 1.);
+			int q2 = (int) Math.pow(2, globalDepth);
+			long[] newAddresses = new long[q2];
 			int i = 0;
 			while (i < q1) { // copia o vetor anterior para a primeiro metade do novo vetor
-				novosEnderecos[i] = enderecos[i];
+				newAddresses[i] = addresses[i];
 				i += 1;
 			}
 			while (i < q2) { // copia o vetor anterior para a segunda metade do novo vetor
-				novosEnderecos[i] = enderecos[i - q1];
+				newAddresses[i] = addresses[i - q1];
 				i += 1;
 			}
-			enderecos = novosEnderecos;
+			addresses = newAddresses;
 			return true;
 		}
 
 		// Para efeito de determinar o cesto em que o elemento deve ser inserido,
 		// só serão considerados valores absolutos da chave.
 		protected int hash(int chave) {
-			return Math.abs(chave) % (int) Math.pow(2, profundidadeGlobal);
+			return Math.abs(chave) % (int) Math.pow(2, globalDepth);
 		}
 
 		// Método auxiliar para atualizar endereço ao duplicar o diretório
-		protected int hash2(int chave, int pl) { // cálculo do hash para uma dada profundidade local
-			return Math.abs(chave) % (int) Math.pow(2, pl);
+		protected int localHash(int id, int localDepth) { // cálculo do hash para uma dada profundidade local
+			return Math.abs(id) % (int) Math.pow(2, localDepth);
 		}
 	}
 
 	public HashTableIndex(String nc, String nd, String nm) throws IOException {
 		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(nm))) {
-			quantidadeDadosPorCesto = in.readInt();
+			bucketNumElements = in.readInt();
 		}
 
-		nomeArquivoDiretorio = nd;
-		nomeArquivoCestos = nc;
-		nomeArquivoMeta = nm;
+		dirFilePath = nd;
+		bucketFilePath = nc;
+		metaFilePath = nm;
 
-		arqDiretorio = new RandomAccessFile(nomeArquivoDiretorio, "rw");
-		arqCestos = new RandomAccessFile(nomeArquivoCestos, "rw");
+		dirFile = new RandomAccessFile(dirFilePath, "rw");
+		bucketFile = new RandomAccessFile(bucketFilePath, "rw");
 
 		// Se o diretório ou os cestos estiverem vazios, cria um novo diretório e lista
 		// de cestos
-		if (arqDiretorio.length() == 0 || arqCestos.length() == 0) {
+		if (dirFile.length() == 0 || bucketFile.length() == 0) {
 			// Cria um novo diretório, com profundidade de 0 bits (1 único elemento)
-			diretorio = new Diretorio();
-			byte[] bd = diretorio.toByteArray();
-			arqDiretorio.write(bd);
+			directory = new Directory();
+			byte[] bd = directory.toByteArray();
+			dirFile.write(bd);
 
 			// Cria um cesto vazio, já apontado pelo único elemento do diretório
-			Cesto c = new Cesto(quantidadeDadosPorCesto);
+			Bucket c = new Bucket(bucketNumElements);
 			bd = c.toByteArray();
-			arqCestos.seek(0);
-			arqCestos.write(bd);
+			bucketFile.seek(0);
+			bucketFile.write(bd);
 		}
 	}
 
 	public HashTableIndex(int n, String nc, String nd, String nm) throws IOException {
-		quantidadeDadosPorCesto = n;
-		nomeArquivoDiretorio = nd;
-		nomeArquivoCestos = nc;
-		nomeArquivoMeta = nm;
+		bucketNumElements = n;
+		dirFilePath = nd;
+		bucketFilePath = nc;
+		metaFilePath = nm;
 
-		arqDiretorio = new RandomAccessFile(nomeArquivoDiretorio, "rw");
-		arqCestos = new RandomAccessFile(nomeArquivoCestos, "rw");
+		dirFile = new RandomAccessFile(dirFilePath, "rw");
+		bucketFile = new RandomAccessFile(bucketFilePath, "rw");
 
 		// Se o diretório ou os cestos estiverem vazios, cria um novo diretório e lista
 		// de cestos
-		if (arqDiretorio.length() == 0 || arqCestos.length() == 0) {
+		if (dirFile.length() == 0 || bucketFile.length() == 0) {
 			try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(nm))) {
-				out.writeInt(quantidadeDadosPorCesto);
+				out.writeInt(bucketNumElements);
 			}
 
 			// Cria um novo diretório, com profundidade de 0 bits (1 único elemento)
-			diretorio = new Diretorio();
-			byte[] bd = diretorio.toByteArray();
-			arqDiretorio.write(bd);
+			directory = new Directory();
+			byte[] bd = directory.toByteArray();
+			dirFile.write(bd);
 
 			// Cria um cesto vazio, já apontado pelo único elemento do diretório
-			Cesto c = new Cesto(quantidadeDadosPorCesto);
+			Bucket c = new Bucket(bucketNumElements);
 			bd = c.toByteArray();
-			arqCestos.seek(0);
-			arqCestos.write(bd);
+			bucketFile.seek(0);
+			bucketFile.write(bd);
 		}
 	}
 
 	public void destruct() throws IOException {
-		arqDiretorio.close();
-		arqCestos.close();
+		dirFile.close();
+		bucketFile.close();
 
-		Files.delete(Paths.get(nomeArquivoCestos));
-		Files.delete(Paths.get(nomeArquivoDiretorio));
-		Files.delete(Paths.get(nomeArquivoMeta));
+		Files.delete(Paths.get(bucketFilePath));
+		Files.delete(Paths.get(dirFilePath));
+		Files.delete(Paths.get(metaFilePath));
 	}
 
 	public void insert(int id, long pos) throws IOException {
@@ -291,127 +291,127 @@ public class HashTableIndex implements Index {
 	}
 
 	private void insert(IndexRegister elem) throws IOException {
-		byte[] bd = new byte[(int) arqDiretorio.length()];
-		arqDiretorio.seek(0);
-		arqDiretorio.read(bd);
-		diretorio = new Diretorio();
-		diretorio.fromByteArray(bd);
+		byte[] bd = new byte[(int) dirFile.length()];
+		dirFile.seek(0);
+		dirFile.read(bd);
+		directory = new Directory();
+		directory.fromByteArray(bd);
 
 		// Identifica a hash do diretório,
-		int i = diretorio.hash(elem.hashCode());
+		int i = directory.hash(elem.hashCode());
 
 		// Recupera o cesto
-		long enderecoCesto = diretorio.address(i);
-		Cesto c = new Cesto(quantidadeDadosPorCesto);
-		byte[] ba = new byte[c.size()];
-		arqCestos.seek(enderecoCesto);
-		arqCestos.read(ba);
-		c.fromByteArray(ba);
+		long bucketAddress = directory.address(i);
+		Bucket bucket = new Bucket(bucketNumElements);
+		byte[] buf = new byte[bucket.getSize()];
+		bucketFile.seek(bucketAddress);
+		bucketFile.read(buf);
+		bucket.fromByteArray(buf);
 
 		// Testa se a chave já não existe no cesto
-		if (c.search(elem.hashCode()) != null)
+		if (bucket.search(elem.hashCode()) != null)
 			throw new IllegalStateException("Elemento já existe");
 
 		// Testa se o cesto já não está cheio
 		// Se não estiver, insert o par de chave e dado
-		if (!c.full()) {
+		if (!bucket.isFull()) {
 			// Insere a chave no cesto e o atualiza
-			c.insert(elem);
-			arqCestos.seek(enderecoCesto);
-			arqCestos.write(c.toByteArray());
+			bucket.insert(elem);
+			bucketFile.seek(bucketAddress);
+			bucketFile.write(bucket.toByteArray());
 			return;
 		}
 
 		// Duplica o diretório
-		byte pl = c.profundidadeLocal;
-		if (pl >= diretorio.profundidadeGlobal)
-			diretorio.duplica();
-		byte pg = diretorio.profundidadeGlobal;
+		byte localDepth = bucket.localDepth;
+		if (localDepth >= directory.globalDepth)
+			directory.duplicate();
+		byte globalDepth = directory.globalDepth;
 
 		// Cria os novos cestos, com os seus dados no arquivo de cestos
-		Cesto c1 = new Cesto(quantidadeDadosPorCesto, pl + 1);
-		arqCestos.seek(enderecoCesto);
-		arqCestos.write(c1.toByteArray());
+		Bucket bucket1 = new Bucket(bucketNumElements, localDepth + 1);
+		bucketFile.seek(bucketAddress);
+		bucketFile.write(bucket1.toByteArray());
 
-		Cesto c2 = new Cesto(quantidadeDadosPorCesto, pl + 1);
-		long novoEndereco = arqCestos.length();
-		arqCestos.seek(novoEndereco);
-		arqCestos.write(c2.toByteArray());
+		Bucket bucket2 = new Bucket(bucketNumElements, localDepth + 1);
+		long newAddress = bucketFile.length();
+		bucketFile.seek(newAddress);
+		bucketFile.write(bucket2.toByteArray());
 
 		// Atualiza os dados no diretório
-		int inicio = diretorio.hash2(elem.hashCode(), c.profundidadeLocal);
-		int deslocamento = (int) Math.pow(2, pl);
-		int max = (int) Math.pow(2, pg);
+		int begin = directory.localHash(elem.hashCode(), bucket.localDepth);
+		int displacement = (int) Math.pow(2, localDepth);
+		int max = (int) Math.pow(2, globalDepth);
 		boolean troca = false;
-		for (int j = inicio; j < max; j += deslocamento) {
+		for (int j = begin; j < max; j += displacement) {
 			if (troca)
-				diretorio.atualizaEndereco(j, novoEndereco);
+				directory.updateAddresses(j, newAddress);
 			troca = !troca;
 		}
 
 		// Atualiza o arquivo do diretório
-		bd = diretorio.toByteArray();
-		arqDiretorio.seek(0);
-		arqDiretorio.write(bd);
+		bd = directory.toByteArray();
+		dirFile.seek(0);
+		dirFile.write(bd);
 
 		// Reinsere as chaves do cesto antigo
-		for (int j = 0; j < c.quantidade; j++) {
-			insert(c.elementos.get(j));
+		for (int j = 0; j < bucket.numElements; j++) {
+			insert(bucket.elements.get(j));
 		}
 		insert(elem); // insere o nome elemento
 	}
 
-	public long search(int chave) throws IOException {
+	public long search(int id) throws IOException {
 		// Carrega o diretório
-		byte[] bd = new byte[(int) arqDiretorio.length()];
-		arqDiretorio.seek(0);
-		arqDiretorio.read(bd);
-		diretorio = new Diretorio();
-		diretorio.fromByteArray(bd);
+		byte[] bd = new byte[(int) dirFile.length()];
+		dirFile.seek(0);
+		dirFile.read(bd);
+		directory = new Directory();
+		directory.fromByteArray(bd);
 
 		// Identifica a hash do diretório,
-		int i = diretorio.hash(chave);
+		int i = directory.hash(id);
 
 		// Recupera o cesto
-		long enderecoCesto = diretorio.address(i);
-		Cesto c = new Cesto(quantidadeDadosPorCesto);
-		byte[] ba = new byte[c.size()];
-		arqCestos.seek(enderecoCesto);
-		arqCestos.read(ba);
+		long enderecoCesto = directory.address(i);
+		Bucket c = new Bucket(bucketNumElements);
+		byte[] ba = new byte[c.getSize()];
+		bucketFile.seek(enderecoCesto);
+		bucketFile.read(ba);
 		c.fromByteArray(ba);
 
-		IndexRegister res = c.search(chave);
+		IndexRegister res = c.search(id);
 		return res != null ? res.getPos() : -1;
 	}
 
-	public void delete(int chave) throws IOException {
+	public void delete(int id) throws IOException {
 		// Carrega o diretório
-		byte[] bd = new byte[(int) arqDiretorio.length()];
-		arqDiretorio.seek(0);
-		arqDiretorio.read(bd);
-		diretorio = new Diretorio();
-		diretorio.fromByteArray(bd);
+		byte[] bd = new byte[(int) dirFile.length()];
+		dirFile.seek(0);
+		dirFile.read(bd);
+		directory = new Directory();
+		directory.fromByteArray(bd);
 
 		// Identifica a hash do diretório,
-		int i = diretorio.hash(chave);
+		int i = directory.hash(id);
 
 		// Recupera o cesto
-		long enderecoCesto = diretorio.address(i);
-		Cesto c = new Cesto(quantidadeDadosPorCesto);
-		byte[] ba = new byte[c.size()];
-		arqCestos.seek(enderecoCesto);
-		arqCestos.read(ba);
+		long enderecoCesto = directory.address(i);
+		Bucket c = new Bucket(bucketNumElements);
+		byte[] ba = new byte[c.getSize()];
+		bucketFile.seek(enderecoCesto);
+		bucketFile.read(ba);
 		c.fromByteArray(ba);
 
 		// delete a chave
-		if (c.delete(chave)) {
+		if (c.delete(id)) {
 			// Atualiza o cesto
-			arqCestos.seek(enderecoCesto);
-			arqCestos.write(c.toByteArray());
+			bucketFile.seek(enderecoCesto);
+			bucketFile.write(c.toByteArray());
 		}
 	}
 
 	public int getBucketCapacity() {
-		return this.quantidadeDadosPorCesto;
+		return this.bucketNumElements;
 	}
 }
