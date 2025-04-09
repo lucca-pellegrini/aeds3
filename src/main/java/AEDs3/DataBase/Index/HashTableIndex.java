@@ -56,16 +56,11 @@ public class HashTableIndex implements Index {
 			DataOutputStream dos = new DataOutputStream(baos);
 			dos.writeByte(localDepth);
 			dos.writeShort(numElements);
-			int i = 0;
-			while (i < numElements) {
+			for (int i = 0; i < numElements; i++)
 				dos.write(elements.get(i).toByteArray());
-				i++;
-			}
-			byte[] vazio = new byte[elementSize];
-			while (i < maxElements) {
-				dos.write(vazio);
-				i++;
-			}
+			byte[] buf = new byte[elementSize];
+			for (int i = numElements; i < maxElements; i++)
+				dos.write(buf);
 			return baos.toByteArray();
 		}
 
@@ -74,16 +69,14 @@ public class HashTableIndex implements Index {
 			DataInputStream dis = new DataInputStream(bais);
 			localDepth = dis.readByte();
 			numElements = dis.readShort();
-			int i = 0;
 			elements = new ArrayList<>(maxElements);
 			byte[] newBuf = new byte[elementSize];
 			IndexRegister element;
-			while (i < maxElements) {
+			for (int i = 0; i < maxElements; ++i) {
 				dis.read(newBuf);
 				element = new IndexRegister();
 				element.fromByteArray(newBuf);
 				elements.add(element);
-				i++;
 			}
 		}
 
@@ -91,9 +84,9 @@ public class HashTableIndex implements Index {
 		public void insert(IndexRegister register) {
 			if (isFull())
 				throw new IllegalStateException("Bucket já está cheio.");
-			int i = numElements - 1; // posição do último elemento no cesto
-			while (i >= 0 && register.hashCode() < elements.get(i).hashCode())
-				i--;
+			int i;
+			for (i = numElements - 1; i >= 0 && register.hashCode() < elements.get(i).hashCode(); --i)
+				;
 			elements.add(i + 1, register);
 			numElements += 1;
 		}
@@ -102,9 +95,9 @@ public class HashTableIndex implements Index {
 		public IndexRegister search(int id) {
 			if (isEmpty())
 				return null;
-			int i = 0;
-			while (i < numElements && id > elements.get(i).hashCode())
-				i++;
+			int i;
+			for (i = 0; i < numElements && id > elements.get(i).hashCode(); ++i)
+				;
 			if (i < numElements && id == elements.get(i).hashCode())
 				return elements.get(i);
 			else
@@ -115,15 +108,15 @@ public class HashTableIndex implements Index {
 		public boolean delete(int id) {
 			if (isEmpty())
 				return false;
-			int i = 0;
-			while (i < numElements && id > elements.get(i).hashCode())
-				i++;
+			int i;
+			for (i = 0; i < numElements && id > elements.get(i).hashCode(); ++i)
+				;
 			if (id == elements.get(i).hashCode()) {
 				elements.remove(i);
-				numElements--;
+				numElements -= 1;
 				return true;
-			} else
-				return false;
+			}
+			return false;
 		}
 
 		public boolean isEmpty() {
@@ -161,11 +154,8 @@ public class HashTableIndex implements Index {
 			DataOutputStream dos = new DataOutputStream(baos);
 			dos.writeByte(globalDepth);
 			int n = 1 << globalDepth;
-			int i = 0;
-			while (i < n) {
+			for (int i = 0; i < n; ++i)
 				dos.writeLong(addresses[i]);
-				i++;
-			}
 			return baos.toByteArray();
 		}
 
@@ -175,11 +165,8 @@ public class HashTableIndex implements Index {
 			globalDepth = dis.readByte();
 			int n = 1 << globalDepth;
 			addresses = new long[n];
-			int i = 0;
-			while (i < n) {
+			for (int i = 0; i < n; ++i)
 				addresses[i] = dis.readLong();
-				i++;
-			}
 		}
 
 		protected long address(int pos) {
@@ -191,31 +178,30 @@ public class HashTableIndex implements Index {
 		protected boolean duplicate() {
 			if (globalDepth == 0xFF / 2)
 				return false;
-			globalDepth++;
+			globalDepth += 1;
 			int q1 = 1 << (globalDepth - 1);
 			int q2 = 1 << globalDepth;
 			long[] newAddresses = new long[q2];
-			int i = 0;
-			while (i < q1) { // copia o vetor anterior para a primeiro metade do novo vetor
-				newAddresses[i] = addresses[i];
-				i += 1;
-			}
-			while (i < q2) { // copia o vetor anterior para a segunda metade do novo vetor
+
+			// Copia o vetor anterior para a primeira metade do novo vetor
+			System.arraycopy(addresses, 0, newAddresses, 0, q1);
+
+			// Copia o vetor anterior para a segunda metade do novo vetor
+			for (int i = q1; i < q2; i++)
 				newAddresses[i] = addresses[i - q1];
-				i += 1;
-			}
+
 			addresses = newAddresses;
 			return true;
 		}
 
 		// Para efeito de determinar o cesto em que o elemento deve ser inserido,
 		// só serão considerados valores absolutos da chave.
-		protected int hash(int chave) {
-			return Math.abs(chave) % (1 << globalDepth);
+		protected int hash(int id) {
+			return Math.abs(id) % (1 << globalDepth);
 		}
 
 		// Método auxiliar para atualizar endereço ao duplicar o diretório
-		protected int localHash(int id, int localDepth) { // cálculo do hash para uma dada profundidade local
+		protected int localHash(int id, int localDepth) {
 			return Math.abs(id) % (1 << localDepth);
 		}
 	}
@@ -237,14 +223,14 @@ public class HashTableIndex implements Index {
 		if (dirFile.length() == 0 || bucketFile.length() == 0) {
 			// Cria um novo diretório, com profundidade de 0 bits (1 único elemento)
 			directory = new Directory();
-			byte[] bd = directory.toByteArray();
-			dirFile.write(bd);
+			byte[] dirBuf = directory.toByteArray();
+			dirFile.write(dirBuf);
 
 			// Cria um cesto vazio, já apontado pelo único elemento do diretório
-			Bucket c = new Bucket(bucketNumElements);
-			bd = c.toByteArray();
+			Bucket bucket = new Bucket(bucketNumElements);
+			dirBuf = bucket.toByteArray();
 			bucketFile.seek(0);
-			bucketFile.write(bd);
+			bucketFile.write(dirBuf);
 		}
 	}
 
@@ -266,14 +252,14 @@ public class HashTableIndex implements Index {
 
 			// Cria um novo diretório, com profundidade de 0 bits (1 único elemento)
 			directory = new Directory();
-			byte[] bd = directory.toByteArray();
-			dirFile.write(bd);
+			byte[] dirBuf = directory.toByteArray();
+			dirFile.write(dirBuf);
 
 			// Cria um cesto vazio, já apontado pelo único elemento do diretório
-			Bucket c = new Bucket(bucketNumElements);
-			bd = c.toByteArray();
+			Bucket bucket = new Bucket(bucketNumElements);
+			dirBuf = bucket.toByteArray();
 			bucketFile.seek(0);
-			bucketFile.write(bd);
+			bucketFile.write(dirBuf);
 		}
 	}
 
@@ -291,11 +277,11 @@ public class HashTableIndex implements Index {
 	}
 
 	private void insert(IndexRegister elem) throws IOException {
-		byte[] bd = new byte[(int) dirFile.length()];
+		byte[] dirBuf = new byte[(int) dirFile.length()];
 		dirFile.seek(0);
-		dirFile.read(bd);
+		dirFile.read(dirBuf);
 		directory = new Directory();
-		directory.fromByteArray(bd);
+		directory.fromByteArray(dirBuf);
 
 		// Identifica a hash do diretório,
 		int i = directory.hash(elem.hashCode());
@@ -350,9 +336,9 @@ public class HashTableIndex implements Index {
 		}
 
 		// Atualiza o arquivo do diretório
-		bd = directory.toByteArray();
+		dirBuf = directory.toByteArray();
 		dirFile.seek(0);
-		dirFile.write(bd);
+		dirFile.write(dirBuf);
 
 		// Reinsere as chaves do cesto antigo
 		for (int j = 0; j < bucket.numElements; j++) {
@@ -363,51 +349,51 @@ public class HashTableIndex implements Index {
 
 	public long search(int id) throws IOException {
 		// Carrega o diretório
-		byte[] bd = new byte[(int) dirFile.length()];
+		byte[] dirBuf = new byte[(int) dirFile.length()];
 		dirFile.seek(0);
-		dirFile.read(bd);
+		dirFile.read(dirBuf);
 		directory = new Directory();
-		directory.fromByteArray(bd);
+		directory.fromByteArray(dirBuf);
 
 		// Identifica a hash do diretório,
 		int i = directory.hash(id);
 
 		// Recupera o cesto
 		long enderecoCesto = directory.address(i);
-		Bucket c = new Bucket(bucketNumElements);
-		byte[] ba = new byte[c.getSize()];
+		Bucket bucket = new Bucket(bucketNumElements);
+		byte[] ba = new byte[bucket.getSize()];
 		bucketFile.seek(enderecoCesto);
 		bucketFile.read(ba);
-		c.fromByteArray(ba);
+		bucket.fromByteArray(ba);
 
-		IndexRegister res = c.search(id);
+		IndexRegister res = bucket.search(id);
 		return res != null ? res.getPos() : -1;
 	}
 
 	public void delete(int id) throws IOException {
 		// Carrega o diretório
-		byte[] bd = new byte[(int) dirFile.length()];
+		byte[] dirBuf = new byte[(int) dirFile.length()];
 		dirFile.seek(0);
-		dirFile.read(bd);
+		dirFile.read(dirBuf);
 		directory = new Directory();
-		directory.fromByteArray(bd);
+		directory.fromByteArray(dirBuf);
 
 		// Identifica a hash do diretório,
 		int i = directory.hash(id);
 
 		// Recupera o cesto
 		long enderecoCesto = directory.address(i);
-		Bucket c = new Bucket(bucketNumElements);
-		byte[] ba = new byte[c.getSize()];
+		Bucket bucket = new Bucket(bucketNumElements);
+		byte[] ba = new byte[bucket.getSize()];
 		bucketFile.seek(enderecoCesto);
 		bucketFile.read(ba);
-		c.fromByteArray(ba);
+		bucket.fromByteArray(ba);
 
 		// delete a chave
-		if (c.delete(id)) {
+		if (bucket.delete(id)) {
 			// Atualiza o cesto
 			bucketFile.seek(enderecoCesto);
-			bucketFile.write(c.toByteArray());
+			bucketFile.write(bucket.toByteArray());
 		}
 	}
 
