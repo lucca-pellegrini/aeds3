@@ -237,7 +237,7 @@ public class BalancedMergeSort {
 
 		// Itera para cada conjunto de segmentos, enquanto pelo menos um arquivo fonte
 		// ainda tiver registros.
-		while (source.stream().anyMatch(db -> !db.isFinished())) {
+		while (source.stream().anyMatch(tempFile -> !tempFile.isFinished())) {
 			// Popula o heap com o primeiro elemento de cada segmento.
 			for (int i = 0; i < fanout; ++i) {
 				Iterator<Track> currentSegment = sourceIterators.get(i);

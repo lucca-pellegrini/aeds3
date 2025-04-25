@@ -1034,11 +1034,8 @@ class BinaryTrackReader extends BinaryTrack {
 	 *
 	 * @return A faixa desserializada.
 	 * @throws IOException            Se ocorrer um erro ao ler os dados da faixa.
-	 * @throws ClassNotFoundException Se a classe {@link Track} não for encontrada
-	 *                                durante a
-	 *                                desserialização.
 	 */
-	public Track getTrack() throws IOException, ClassNotFoundException {
+	public Track getTrack() throws IOException {
 		if (track == null)
 			readTrack();
 

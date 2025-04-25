@@ -142,11 +142,10 @@ public class HashTableIndex implements Index {
 			addresses[0] = 0;
 		}
 
-		public boolean updateAddresses(int pos, long newAddress) {
+		public void updateAddresses(int pos, long newAddress) {
 			if (pos > 1 << globalDepth)
-				return false;
+				return;
 			addresses[pos] = newAddress;
-			return true;
 		}
 
 		public byte[] toByteArray() throws IOException {
@@ -175,9 +174,9 @@ public class HashTableIndex implements Index {
 			return addresses[pos];
 		}
 
-		protected boolean duplicate() {
+		protected void duplicate() {
 			if (globalDepth == 0xFF / 2)
-				return false;
+				return;
 			globalDepth += 1;
 			int q1 = 1 << (globalDepth - 1);
 			int q2 = 1 << globalDepth;
@@ -191,7 +190,6 @@ public class HashTableIndex implements Index {
 				newAddresses[i] = addresses[i - q1];
 
 			addresses = newAddresses;
-			return true;
 		}
 
 		// Para efeito de determinar o cesto em que o elemento deve ser inserido,

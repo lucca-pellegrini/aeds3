@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.builtins.ConfigurationPath;
@@ -631,16 +630,9 @@ public class CommandLineInterface {
 			} else if (params.length > 1) {
 				// Validações específicas de campo.
 				switch (field) {
-					case ID:
-					case NAME:
-					case ALBUM_NAME:
-					case ALBUM_RELEASE_DATE:
-					case ALBUM_TYPE:
-					case TRACK_ID:
-					case POPULARITY:
-					case KEY:
-						parent.error(
-								"O campo " + field + " exige exatamente um parâmetro.");
+					case ID, NAME, ALBUM_NAME, ALBUM_RELEASE_DATE, ALBUM_TYPE, TRACK_ID, POPULARITY,
+							KEY:
+						parent.error("O campo " + field + " exige exatamente um parâmetro.");
 						return;
 					default:
 				}
@@ -841,13 +833,13 @@ public class CommandLineInterface {
 				t.setName(read("Name"));
 				t.setTrackArtists(Arrays.stream(read("Artists").split(","))
 						.map(String::trim)
-						.collect(Collectors.toList()));
+						.toList());
 				t.setAlbumName(read("Album"));
 				t.setAlbumReleaseDate(LocalDate.parse(read("Release Date (YYYY-MM-DD)")));
 				t.setAlbumType(read("Album Type"));
 				t.setGenres(Arrays.stream(read("Genres").split(","))
 						.map(String::trim)
-						.collect(Collectors.toList()));
+						.toList());
 				t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
 				t.setTrackId(read("Spotify ID (22 characters)").toCharArray());
 				t.setKey(Integer.parseInt(read("Key")));
@@ -1006,7 +998,7 @@ public class CommandLineInterface {
 					case TRACK_ARTISTS:
 						t.setTrackArtists(Arrays.stream(read("Artists").split(","))
 								.map(String::trim)
-								.collect(Collectors.toList()));
+								.toList());
 						break;
 					case ALBUM_NAME:
 						t.setAlbumName(read("Album"));
@@ -1020,7 +1012,7 @@ public class CommandLineInterface {
 					case GENRES:
 						t.setGenres(Arrays.stream(read("Genres").split(","))
 								.map(String::trim)
-								.collect(Collectors.toList()));
+								.toList());
 						break;
 					case EXPLICIT:
 						t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
@@ -1284,7 +1276,8 @@ public class CommandLineInterface {
 		/**
 		 * Número máximo de elementos de um bucket na Tabela Hash.
 		 */
-		@Option(names = { "-b", "--bucket" }, description = "Número máximo de elementos de um bucket na Tabela Hash.", defaultValue = "16")
+		@Option(names = { "-b",
+				"--bucket" }, description = "Número máximo de elementos de um bucket na Tabela Hash.", defaultValue = "16")
 		int bucketSize = 16;
 
 		/**
@@ -1450,7 +1443,7 @@ public class CommandLineInterface {
 					systemRegistry.trace(e);
 				}
 			}
-		} catch (Throwable t) {
+		} catch (Exception t) {
 			t.printStackTrace();
 		} finally {
 			// Remove o suporte ao console ao encerrar.
