@@ -935,12 +935,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		String[] nameParts = Arrays.stream(t.getName().split(" "))
 								 .map(String::trim)
 								 .map(String::toLowerCase)
-								 .filter(s -> s.length() >= 3)
+								 .filter(s -> s.length() > 3 && s.matches("[\\p{L}]+"))
 								 .toArray(String[] ::new);
 		String[] albumParts = Arrays.stream(t.getAlbumName().split(" "))
 								  .map(String::trim)
 								  .map(String::toLowerCase)
-								  .filter(s -> s.length() >= 3)
+								  .filter(s -> s.length() > 3 && s.matches("[\\p{L}]+"))
 								  .toArray(String[] ::new);
 		List<String> artistPartsList = new ArrayList<>();
 		for (String artist : t.getTrackArtists()) {
@@ -950,7 +950,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		String[] artistParts = artistPartsList.stream()
 								   .map(String::trim)
 								   .map(String::toLowerCase)
-								   .filter(s -> s.length() >= 3)
+								   .filter(s -> s.length() > 3 && s.matches("[\\p{L}]+"))
 								   .toArray(String[] ::new);
 		String[][] res = new String[3][];
 		res[0] = nameParts;
