@@ -549,7 +549,7 @@ public class CommandLineInterface {
 		 * - A opção de ler todas as faixas.
 		 */
 		@ArgGroup()
-		private final AllOrField allOrField = new AllOrField();
+		private final ReadCommandType type = new ReadCommandType();
 
 		/**
 		 * Classe que contém as opções de filtro para a busca das faixas.
@@ -557,7 +557,7 @@ public class CommandLineInterface {
 		 * @see Field
 		 */
 		@SuppressWarnings("CanBeFinal")
-		static class AllOrField {
+		static class ReadCommandType {
 			/**
 			 * Define o campo a ser usado para busca. O valor padrão é "ID".
 			 */
@@ -569,21 +569,33 @@ public class CommandLineInterface {
 			 */
 			@Option(names = { "-a", "--all" }, description = "Ler todos os registros.", defaultValue = "false")
 			boolean all = false;
+
+			/**
+			 * Realizar busca por listas invertidas.
+			 */
+			@Option(names = { "-l", "--list" }, description = "Realizar busca por listas invertidas.", defaultValue = "false")
+			boolean invertedList = false;
 		}
 
 		/**
 		 * Se ativado, a busca por nome da faixa ou do álbum será realizada utilizando
 		 * expressões regulares.
 		 */
-		@Option(names = { "-r",
-				"--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
+		@Option(names = { "-r", "--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
 		boolean regex = false;
+
+		@Option(names = "--name", description = "Termo de busca para lista invertida de nomes.")
+		String nameList;
+		@Option(names = "--album", description = "Termo de busca para lista invertida de álbuns.")
+		String albumList;
+		@Option(names = "--artist", description = "Termo de busca para lista invertida de artistas.")
+		String artistList;
 
 		/**
 		 * Parâmetros para a busca. O valor depende do campo escolhido. Pode ser um
 		 * único valor ou múltiplos.
 		 */
-		@Parameters(paramLabel = "<valor>", description = "Valor a ser buscado.")
+		@Parameters(paramLabel = "<valor>...", description = "Valor(es) a ser(em) buscado(s).")
 		String[] params;
 
 		/**
@@ -609,7 +621,7 @@ public class CommandLineInterface {
 			}
 
 			// Se a opção --all foi selecionada, exibe todas as faixas.
-			if (allOrField.all) {
+			if (type.all) {
 				TrackFilter oldFilter = parent.db.getFilter();
 				try {
 					parent.db.clearFilter();
@@ -620,7 +632,35 @@ public class CommandLineInterface {
 				return;
 			}
 
-			Field field = allOrField.field;
+			// Se a opção --list foi selecionada, readliza busca por listas invertidas.
+			if (type.invertedList) {
+				if (!parent.db.isInvertedIndex()) {
+					parent.error("Os índices por listas invertidas não estão habilitados.");
+					return;
+				}
+
+				if (nameList == null && albumList == null && artistList == null) {
+					parent.error("Pelo menos um termo de busca deve ser especificado para as listas invertidas.");
+					return;
+				}
+
+				try {
+					int[] ids = parent.db.readInvertedIndexes(nameList, albumList, artistList);
+					if (ids.length == 0) {
+						parent.error("Nenhuma track atendendo estes termos foi encontrada.");
+						return;
+					}
+
+					for (int id : ids)
+						parent.printTrack(parent.db.read(id));
+				} catch (IOException e) {
+					e.printStackTrace();
+					parent.error("Erro fatal de IO ao tentar ler os registros.");
+					return;
+				}
+			}
+
+			Field field = type.field;
 
 			// Se os parâmetros de busca não foram fornecidos ou são inválidos, exibe o uso
 			// correto.
@@ -1320,8 +1360,7 @@ public class CommandLineInterface {
 				else if (indexType.hash)
 					parent.db.setHashIndex(true, bucketSize);
 				else if (indexType.invertedList)
-					// parent.db.setInvertedIndex(true);
-					parent.error("Tipo de índice ainda não implementado");
+					parent.db.setInvertedIndex(true);
 				else if (indexType.disable)
 					parent.db.disableIndex();
 				else if (indexType.reindex)

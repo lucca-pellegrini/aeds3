@@ -11,7 +11,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -46,6 +50,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	protected final String filePath;
 
 	protected Index index;
+	protected InvertedListIndex nameIndex;
+	protected InvertedListIndex albumIndex;
+	protected InvertedListIndex artistIndex;
 
 	/**
 	 * Posição do último registro de faixa no banco de dados.
@@ -155,7 +162,17 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (isBTreeIndex())
 			index = new BTree(filePath + ".BTree");
 		else if (isHashIndex())
-			index = new HashTableIndex(filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
+			index = new HashTableIndex(
+				filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
+
+		if (isInvertedIndex()) {
+			nameIndex =
+				new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
+			albumIndex = new InvertedListIndex(
+				filePath + ".album.list.dir", filePath + ".album.list.blocks");
+			artistIndex = new InvertedListIndex(
+				filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+		}
 	}
 
 	/**
@@ -182,6 +199,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		if (index != null)
 			index.insert(lastId, file.length());
+
+		if (isInvertedIndex())
+			insertInvertedIndexes(track);
 
 		return append(track);
 	}
@@ -281,12 +301,19 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws NoSuchElementException Se não houver uma faixa com o ID fornecido.
 	 */
 	public void update(int id, Track updated) throws IOException {
-		if (read(id) == null)
+		Track oldTrack;
+
+		if ((oldTrack = read(id)) == null)
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		updated.setId(id);
-		file.seek(lastBinaryTrackPos);
 
+		if (isInvertedIndex()) {
+			deleteInvertedIndexes(oldTrack);
+			insertInvertedIndexes(updated);
+		}
+
+		file.seek(lastBinaryTrackPos);
 		file.skipBytes(1); // Pula a lápide, pois .read() já validou o registro.
 		int oldSize = file.readInt(); // Lê o tamanho do registro antigo
 		BinaryTrackWriter writer = new BinaryTrackWriter(updated);
@@ -335,7 +362,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws NoSuchElementException Se não houver uma faixa com o ID fornecido.
 	 */
 	public void delete(int id) throws IOException {
-		if (read(id) == null)
+		Track deletedTrack;
+
+		if ((deletedTrack = read(id)) == null)
 			throw new NoSuchElementException("Não há elemento com ID " + id);
 
 		file.seek(lastBinaryTrackPos); // Volta para o começo do registro
@@ -343,6 +372,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		if (index != null)
 			index.delete(id);
+
+		if (isInvertedIndex())
+			deleteInvertedIndexes(deletedTrack);
 
 		numTracks -= 1; // Decrementa o contador de faixas.
 		updateHeader(); // Atualiza o cabeçalho.
@@ -436,8 +468,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public void printAll() throws IOException {
 		file.seek(HEADER_SIZE); // Posiciona o cursor no primeiro registro.
 
-		for (Track t : this)
-			System.out.println(t); // Imprime cada faixa do banco de dados
+		for (Track t : this) System.out.println(t); // Imprime cada faixa do banco de dados
 	}
 
 	/**
@@ -458,8 +489,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		Track result;
 
-		do
-			result = nextValidBinaryTrackReader().getTrack();
+		do result = nextValidBinaryTrackReader().getTrack();
 		while (!(result.matchesField(searchFilter.searchField, searchFilter.searchValue)));
 
 		return result;
@@ -477,8 +507,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
 		BinaryTrackReader result;
 
-		do
-			result = nextBinaryTrackReader();
+		do result = nextBinaryTrackReader();
 		while (result == null);
 
 		return result;
@@ -815,16 +844,17 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			if (isBTreeIndex())
 				throw new IllegalStateException("O índice por Árvore B já está habilitado.");
 			if (order <= 2)
-				throw new InvalidBTreeOrderException(order, InvalidBTreeOrderException.Reason.TOO_SMALL);
+				throw new InvalidBTreeOrderException(
+					order, InvalidBTreeOrderException.Reason.TOO_SMALL);
 			if (order % 2 != 0)
-				throw new InvalidBTreeOrderException(order, InvalidBTreeOrderException.Reason.NOT_EVEN);
+				throw new InvalidBTreeOrderException(
+					order, InvalidBTreeOrderException.Reason.NOT_EVEN);
 
 			flags |= Flag.INDEXED_BTREE.getBitmask();
 			setHashIndex(false);
 
 			index = new BTree(order / 2, filePath + ".BTree");
-			for (Track t : this)
-				index.insert(t.getId(), lastBinaryTrackPos);
+			for (Track t : this) index.insert(t.getId(), lastBinaryTrackPos);
 		} else {
 			flags &= ~Flag.INDEXED_BTREE.getBitmask();
 
@@ -844,20 +874,119 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			if (isHashIndex())
 				throw new IllegalStateException("O índice por tabela hash já está habilitado.");
 			if (bucketCapacity >= Short.MAX_VALUE)
-				throw new InvalidHashTableCapacityException(bucketCapacity, InvalidHashTableCapacityException.Reason.TOO_LARGE);
+				throw new InvalidHashTableCapacityException(
+					bucketCapacity, InvalidHashTableCapacityException.Reason.TOO_LARGE);
 
 			flags |= Flag.INDEXED_HASH.getBitmask();
 			setBTreeIndex(false);
 
-			index = new HashTableIndex(bucketCapacity, filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
-			for (Track t : this)
-				index.insert(t.getId(), lastBinaryTrackPos);
+			index = new HashTableIndex(bucketCapacity, filePath + ".buckets", filePath + ".dir",
+				filePath + ".buckets.meta");
+			for (Track t : this) index.insert(t.getId(), lastBinaryTrackPos);
 		} else {
 			flags &= ~Flag.INDEXED_HASH.getBitmask();
 
 			if (index != null)
 				index.destruct();
 			index = null;
+		}
+		updateHeader();
+	}
+
+	public int[] readInvertedIndexes(String name, String album, String artist) throws IOException {
+		int[] matchingName = nameIndex.read(name);
+		int[] matchingAlbum = albumIndex.read(album);
+		int[] matchingArtist = artistIndex.read(artist);
+		return findIntersection(matchingName, matchingAlbum, matchingArtist);
+	}
+
+	/**
+	 * Encontra a intersecção de N arrays, podendo ser nulos.
+	 */
+	private static int[] findIntersection(int[]... arrays) {
+		HashSet<Integer> intersectionSet = new HashSet<>();
+
+		// Check for non-null arrays and add the first non-null array to the intersection set
+		for (int[] array : arrays)
+			if (array != null && intersectionSet.isEmpty())
+				for (int num : array) intersectionSet.add(num);
+
+		// For each subsequent non-null array, retain only elements that are already in the
+		// intersection set
+		for (int[] array : arrays) {
+			if (array != null) {
+				HashSet<Integer> currentSet = new HashSet<>();
+				for (int num : array)
+					if (intersectionSet.contains(num))
+						currentSet.add(num);
+				intersectionSet.retainAll(currentSet);
+			}
+		}
+
+		// Convert the intersection set to an array
+		int[] result = new int[intersectionSet.size()];
+		int index = 0;
+		for (int num : intersectionSet) result[index++] = num;
+
+		return result;
+	}
+
+	private static String[][] invertedIndexSplit(Track t) {
+		String[] nameParts = t.getName().split(" ");
+		String[] albumParts = t.getAlbumName().split(" ");
+		List<String> artistPartsList = new ArrayList<>(t.getTrackArtists());
+		for (String artist : t.getTrackArtists()) {
+			String[] parts = artist.split(" ");
+			artistPartsList.addAll(Arrays.asList(parts));
+		}
+		String[] artistParts = artistPartsList.toArray(new String[0]);
+		String[][] res = new String[3][];
+		res[0] = nameParts;
+		res[1] = albumParts;
+		res[2] = artistParts;
+		return res;
+	}
+
+	private void insertInvertedIndexes(Track t) throws IOException {
+		int id = t.getId();
+		String[][] parts = invertedIndexSplit(t);
+		for (String s : parts[0]) nameIndex.create(s, id);
+		for (String s : parts[1]) albumIndex.create(s, id);
+		for (String s : parts[2]) artistIndex.create(s, id);
+	}
+
+	private void deleteInvertedIndexes(Track t) throws IOException {
+		int id = t.getId();
+		String[][] parts = invertedIndexSplit(t);
+		for (String s : parts[0]) nameIndex.delete(s, id);
+		for (String s : parts[1]) albumIndex.delete(s, id);
+		for (String s : parts[2]) artistIndex.delete(s, id);
+	}
+
+	public void setInvertedIndex(boolean value) throws IOException {
+		if (value) {
+			if (isInvertedIndex())
+				throw new IllegalStateException(
+					"Os índices por listas invertidas já estão habilitados.");
+
+			flags |= Flag.INDEXED_INVERSE_LIST.getBitmask();
+
+			nameIndex =
+				new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
+			albumIndex = new InvertedListIndex(
+				filePath + ".album.list.dir", filePath + ".album.list.blocks");
+			artistIndex = new InvertedListIndex(
+				filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+			for (Track t : this) insertInvertedIndexes(t);
+		} else {
+			flags &= ~Flag.INDEXED_INVERSE_LIST.getBitmask();
+
+			if (index != null) {
+				nameIndex.destruct();
+				albumIndex.destruct();
+				artistIndex.destruct();
+			}
+			nameIndex = albumIndex = artistIndex = null;
 		}
 		updateHeader();
 	}
@@ -870,12 +999,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public void disableIndex() throws IOException {
 		if ((flags
 				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
-						| Flag.INDEXED_INVERSE_LIST.getBitmask())) == 0)
+					| Flag.INDEXED_INVERSE_LIST.getBitmask()))
+			== 0)
 			throw new IllegalStateException("Nenhum índice está habilitado.");
 
 		setBTreeIndex(false);
 		setHashIndex(false);
-		// setInvertedIndex(false);
+		setInvertedIndex(false);
 	}
 
 	/**
@@ -886,7 +1016,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public void reindex() throws IOException {
 		if ((flags
 				& (Flag.INDEXED_BTREE.getBitmask() | Flag.INDEXED_HASH.getBitmask()
-						| Flag.INDEXED_INVERSE_LIST.getBitmask())) == 0)
+					| Flag.INDEXED_INVERSE_LIST.getBitmask()))
+			== 0)
 			throw new IllegalStateException("Nenhum índice está habilitado.");
 
 		if (isBTreeIndex()) {
@@ -897,8 +1028,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			index.destruct();
 			index = new BTree(saveOrder, filePath + ".BTree");
 
-			for (Track t : this)
-				index.insert(t.getId(), lastBinaryTrackPos);
+			for (Track t : this) index.insert(t.getId(), lastBinaryTrackPos);
 
 		} else if (isHashIndex()) {
 			if (!(index instanceof HashTableIndex))
@@ -906,10 +1036,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 			int saveCapacity = ((HashTableIndex) index).getBucketCapacity();
 			index.destruct();
-			index = new HashTableIndex(saveCapacity, filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
+			index = new HashTableIndex(
+				saveCapacity, filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
 
-			for (Track t : this)
-				index.insert(t.getId(), lastBinaryTrackPos);
+			for (Track t : this) index.insert(t.getId(), lastBinaryTrackPos);
 		}
 
 		// if (isInvertedIndex()) {
