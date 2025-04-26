@@ -894,9 +894,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	}
 
 	public int[] readInvertedIndexes(String name, String album, String artist) throws IOException {
-		int[] matchingName = nameIndex.read(name);
-		int[] matchingAlbum = albumIndex.read(album);
-		int[] matchingArtist = artistIndex.read(artist);
+		int[] matchingName = nameIndex.read(name != null ? name.toLowerCase() : null);
+		int[] matchingAlbum = albumIndex.read(album != null ? album.toLowerCase() : null);
+		int[] matchingArtist = artistIndex.read(artist != null ? artist.toLowerCase() : null);
 		return findIntersection(matchingName, matchingAlbum, matchingArtist);
 	}
 
@@ -932,14 +932,26 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	}
 
 	private static String[][] invertedIndexSplit(Track t) {
-		String[] nameParts = t.getName().split(" ");
-		String[] albumParts = t.getAlbumName().split(" ");
-		List<String> artistPartsList = new ArrayList<>(t.getTrackArtists());
+		String[] nameParts = Arrays.stream(t.getName().split(" "))
+								 .map(String::trim)
+								 .map(String::toLowerCase)
+								 .filter(s -> s.length() >= 3)
+								 .toArray(String[] ::new);
+		String[] albumParts = Arrays.stream(t.getAlbumName().split(" "))
+								  .map(String::trim)
+								  .map(String::toLowerCase)
+								  .filter(s -> s.length() >= 3)
+								  .toArray(String[] ::new);
+		List<String> artistPartsList = new ArrayList<>();
 		for (String artist : t.getTrackArtists()) {
 			String[] parts = artist.split(" ");
 			artistPartsList.addAll(Arrays.asList(parts));
 		}
-		String[] artistParts = artistPartsList.toArray(new String[0]);
+		String[] artistParts = artistPartsList.stream()
+								   .map(String::trim)
+								   .map(String::toLowerCase)
+								   .filter(s -> s.length() >= 3)
+								   .toArray(String[] ::new);
 		String[][] res = new String[3][];
 		res[0] = nameParts;
 		res[1] = albumParts;
@@ -977,7 +989,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 				filePath + ".album.list.dir", filePath + ".album.list.blocks");
 			artistIndex = new InvertedListIndex(
 				filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
-			for (Track t : this) insertInvertedIndexes(t);
+			int i = 0;
+			for (Track t : this) {
+				System.err.println(
+					"Inserindo elemento " + ++i + "/" + numTracks + "\tID: " + t.getId());
+				insertInvertedIndexes(t);
+			}
 		} else {
 			flags &= ~Flag.INDEXED_INVERSE_LIST.getBitmask();
 

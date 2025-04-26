@@ -15,7 +15,7 @@ public class InvertedListIndex {
 	String nomeArquivoBlocos;
 	RandomAccessFile arqDicionario;
 	RandomAccessFile arqBlocos;
-	private static final int quantidadeDadosPorBloco = 64;
+	private static final int quantidadeDadosPorBloco = 4;
 
 	class Bloco {
 		short quantidade; // quantidade de dados presentes na lista
