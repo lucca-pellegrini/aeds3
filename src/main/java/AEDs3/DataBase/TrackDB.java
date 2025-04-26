@@ -998,7 +998,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		} else {
 			flags &= ~Flag.INDEXED_INVERSE_LIST.getBitmask();
 
-			if (index != null) {
+			if (nameIndex != null) {
 				nameIndex.destruct();
 				albumIndex.destruct();
 				artistIndex.destruct();
