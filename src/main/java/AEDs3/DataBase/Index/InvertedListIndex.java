@@ -291,7 +291,7 @@ public class InvertedListIndex {
 
 			// Acrescenta cada valor à lista
 			ElementoLista[] lb = b.list();
-			for (int i = 0; i < lb.length; i++) lista.add(lb[i]);
+			Collections.addAll(lista, lb);
 
 			// Avança para o próximo bloco
 			endereco = b.next();
