@@ -94,16 +94,17 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 			 */
 			@Override
 			public Track next() {
-				CSVRecord record = csvIterator.next(); // Obtém o próximo registro CSV
+				CSVRecord nextRecord = csvIterator.next(); // Obtém o próximo registro CSV
 				LocalDate releaseDate;
-				String releaseDateRecord = record.get("album_release_date");
+				String releaseDateRecord = nextRecord.get("album_release_date");
 
 				// Método para quando tiver só o ano, forçar a data completa.
 				try {
 					releaseDate = LocalDate.parse(
 						releaseDateRecord, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 				} catch (DateTimeParseException e) {
-					int year, month;
+					int year;
+					int month;
 					if (releaseDateRecord.contains("-")) {
 						String[] list = releaseDateRecord.split("-");
 						year = Integer.parseInt(list[0]);
@@ -118,19 +119,19 @@ public class CSVManager implements Iterable<Track>, AutoCloseable {
 
 				// Criando e retornando o objeto Track a partir dos dados do CSV
 				return new Track(releaseDate,
-					Arrays.stream(record.get("genres").split(","))
+					Arrays.stream(nextRecord.get("genres").split(","))
 						.map(s -> s.replaceAll("[\\[\\]']", "").trim())
-						.collect(Collectors.toList()),
-					Arrays.stream(record.get("track_artists").split(","))
+						.toList(),
+					Arrays.stream(nextRecord.get("track_artists").split(","))
 						.map(s -> s.replaceAll("[\\[\\]']", "").trim())
-						.collect(Collectors.toList()),
-					record.get("album_name"), record.get("album_type"), record.get("name"),
-					Boolean.parseBoolean(record.get("explicit")),
-					record.get("track_id").toCharArray(), Float.parseFloat(record.get("loudness")),
-					Float.parseFloat(record.get("danceability")),
-					Float.parseFloat(record.get("energy")), Float.parseFloat(record.get("valence")),
-					Float.parseFloat(record.get("tempo")), Integer.parseInt(record.get("key")),
-					Integer.parseInt(record.get("popularity")),
+						.toList(),
+					nextRecord.get("album_name"), nextRecord.get("album_type"), nextRecord.get("name"),
+					Boolean.parseBoolean(nextRecord.get("explicit")),
+					nextRecord.get("track_id").toCharArray(), Float.parseFloat(nextRecord.get("loudness")),
+					Float.parseFloat(nextRecord.get("danceability")),
+					Float.parseFloat(nextRecord.get("energy")), Float.parseFloat(nextRecord.get("valence")),
+					Float.parseFloat(nextRecord.get("tempo")), Integer.parseInt(nextRecord.get("key")),
+					Integer.parseInt(nextRecord.get("popularity")),
 					Integer.MIN_VALUE // Índice nulo
 				);
 			}
