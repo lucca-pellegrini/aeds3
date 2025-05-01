@@ -9,13 +9,14 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class InvertedListIndex {
 	String nomeArquivoDicionario;
 	String nomeArquivoBlocos;
 	RandomAccessFile arqDicionario;
 	RandomAccessFile arqBlocos;
-	private static final int quantidadeDadosPorBloco = 4;
+	private static final int BLOCK_CAPACITY = 4;
 
 	class Bloco {
 		short quantidade; // quantidade de dados presentes na lista
@@ -201,7 +202,7 @@ public class InvertedListIndex {
 		// Se não encontrou, cria um novo bloco para essa chave
 		if (!jaExiste) {
 			// Cria um novo bloco
-			Bloco b = new Bloco(quantidadeDadosPorBloco);
+			Bloco b = new Bloco(BLOCK_CAPACITY);
 			endereco = arqBlocos.length();
 			arqBlocos.seek(endereco);
 			arqBlocos.write(b.toByteArray());
@@ -213,7 +214,7 @@ public class InvertedListIndex {
 		}
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(quantidadeDadosPorBloco);
+		Bloco b = new Bloco(BLOCK_CAPACITY);
 		byte[] bd;
 		while (endereco != -1) {
 			long proximo = -1;
@@ -232,7 +233,7 @@ public class InvertedListIndex {
 				proximo = b.next();
 				if (proximo == -1) {
 					// Se não existir um novo bloco, cria esse novo bloco
-					Bloco b1 = new Bloco(quantidadeDadosPorBloco);
+					Bloco b1 = new Bloco(BLOCK_CAPACITY);
 					proximo = arqBlocos.length();
 					arqBlocos.seek(proximo);
 					arqBlocos.write(b1.toByteArray());
@@ -282,7 +283,7 @@ public class InvertedListIndex {
 			return new ElementoLista[0];
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(quantidadeDadosPorBloco);
+		Bloco b = new Bloco(BLOCK_CAPACITY);
 		byte[] bd;
 		while (endereco != -1) {
 			// Carrega o bloco
@@ -326,7 +327,7 @@ public class InvertedListIndex {
 			return false;
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(quantidadeDadosPorBloco);
+		Bloco b = new Bloco(BLOCK_CAPACITY);
 		byte[] bd;
 		while (endereco != -1) {
 			// Carrega o bloco
