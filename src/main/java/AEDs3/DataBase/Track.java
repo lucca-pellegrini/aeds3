@@ -279,8 +279,8 @@ public class Track implements Externalizable, Comparable<Track> {
 			case NAME -> {
 				if (value instanceof String)
 					yield getName().equals(value);
-				else if (value instanceof Pattern)
-					yield ((Pattern) value).matcher(getName()).find();
+				else if (value instanceof Pattern pattern)
+					yield pattern.matcher(getName()).find();
 				else
 					throw new InvalidParameterException(
 							"Tipo inválido. Esperava String ou Pattern.");
@@ -288,8 +288,8 @@ public class Track implements Externalizable, Comparable<Track> {
 			case ALBUM_NAME -> {
 				if (value instanceof String)
 					yield getAlbumName().equals(value);
-				else if (value instanceof Pattern)
-					yield ((Pattern) value).matcher(getAlbumName()).find();
+				else if (value instanceof Pattern pattern)
+					yield pattern.matcher(getAlbumName()).find();
 				else
 					throw new InvalidParameterException(
 							"Tipo inválido. Esperava String ou Pattern.");
@@ -297,7 +297,7 @@ public class Track implements Externalizable, Comparable<Track> {
 			case TRACK_ARTISTS -> {
 				if (!(value instanceof Collection<?>))
 					yield false;
-				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
+				if (((Collection<?>) value).stream().allMatch(String.class::isInstance))
 					yield getTrackArtists().containsAll((Collection<String>) value);
 				else
 					throw new InvalidParameterException(
@@ -306,7 +306,7 @@ public class Track implements Externalizable, Comparable<Track> {
 			case GENRES -> {
 				if (!(value instanceof Collection<?>))
 					yield false;
-				if (((Collection<?>) value).stream().allMatch(element -> element instanceof String))
+				if (((Collection<?>) value).stream().allMatch(String.class::isInstance))
 					yield getGenres().containsAll((Collection<String>) value);
 				else
 					throw new InvalidParameterException(
