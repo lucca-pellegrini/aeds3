@@ -237,6 +237,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException Se ocorrer um erro de leitura no arquivo.
 	 */
 	public Track read(int id) throws IOException {
+		// Verifica se o ID buscado é maior do que o lastId.
+		if (id > this.lastId)
+			return null;
+
+		// Se temos um índice primário, usamo-lo.
 		if (index != null) {
 			long pos = index.search(id);
 			if (pos < 0)
