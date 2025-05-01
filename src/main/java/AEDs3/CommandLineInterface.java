@@ -947,7 +947,7 @@ public class CommandLineInterface {
 		 * atualizados.
 		 */
 		@Option(names = {"-f", "--field"}, description = "Campos a serem atualizados.")
-		Field[] field;
+		Field[] selectedFields;
 
 		/**
 		 * ID da faixa a ser atualizada.
@@ -994,8 +994,8 @@ public class CommandLineInterface {
 			try {
 				parent.suggestions.disable();
 				parent.db.update(id,
-					(field == null || field.length == 0) ? updateFull(id)
-														 : updateFields(id, field));
+					(selectedFields == null || selectedFields.length == 0) ? updateFull(id)
+														 : updateFields(id, selectedFields));
 			} catch (NoSuchElementException e) {
 				parent.error("O ID " + id + " não existe nesse arquivo.");
 			} catch (IllegalArgumentException e) {
