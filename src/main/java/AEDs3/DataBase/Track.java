@@ -216,6 +216,32 @@ public class Track implements Externalizable, Comparable<Track> {
 	}
 
 	/**
+	 * Determina igualdade desta faixa com outra baseada no ID.
+	 *
+	 * @param other Faixa a ser comparada.
+	 * @return Resultado da comparação entre os IDs das faixas.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+		Track other = (Track) obj;
+		return this.id == other.id;
+	}
+
+	/**
+	 * Determina a hash de uma Track.
+	 *
+	 * @return Resultado da hash baseada no ID.
+	 */
+	@Override
+	public int hashCode() {
+		return Integer.hashCode(this.id);
+	}
+
+	/**
 	 * Representação em formato de string da faixa.
 	 *
 	 * @return String representando a faixa.
