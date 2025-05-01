@@ -1039,7 +1039,10 @@ public class CommandLineInterface {
 		 *                     dados.
 		 */
 		private Track updateFields(int id, Field[] fields) throws IOException {
-			Track t = parent.db.read(id);
+			Track t;
+
+			if ((t = parent.db.read(id)) == null)
+				throw new NoSuchElementException();
 
 			for (Field field : fields) {
 				switch (field) {
