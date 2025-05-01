@@ -25,7 +25,7 @@ public class InvertedListIndex {
 		long proximo; // ponteiro para o bloco sequinte da mesma chave
 		short bytesPorBloco; // size fixo do cesto em bytes
 
-		public Bloco(int qtdmax) throws IOException {
+		public Bloco(int qtdmax) {
 			quantidade = 0;
 			quantidadeMaxima = (short) qtdmax;
 			elementos = new ElementoLista[quantidadeMaxima];
