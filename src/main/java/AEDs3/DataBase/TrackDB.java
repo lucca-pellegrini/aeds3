@@ -5,7 +5,6 @@ import AEDs3.DataBase.Track.Field;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -116,11 +115,10 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * Constrói uma instância do banco de dados a partir de um arquivo.
 	 *
 	 * @param fileName Caminho para o arquivo do banco de dados.
-	 * @throws FileNotFoundException Se o arquivo não for encontrado.
 	 * @throws IOException           Se ocorrer um erro de leitura ou gravação no
 	 *                               arquivo.
 	 */
-	public TrackDB(String fileName) throws FileNotFoundException, IOException {
+	public TrackDB(String fileName) throws IOException {
 		this.filePath = fileName;
 		this.open();
 	}
@@ -159,13 +157,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			updateHeader();
 		}
 
-		if (isBTreeIndex())
+		if (hasBTreeIndex())
 			index = new BTree(filePath + ".BTree");
-		else if (isHashIndex())
+		else if (hasDynamicHashIndex())
 			index = new HashTableIndex(
 					filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
 
-		if (isInvertedIndex()) {
+		if (hasInvertedListIndex()) {
 			nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
 			albumIndex = new InvertedListIndex(
 					filePath + ".album.list.dir", filePath + ".album.list.blocks");
@@ -199,7 +197,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (index != null)
 			index.insert(lastId, file.length());
 
-		if (isInvertedIndex())
+		if (hasInvertedListIndex())
 			insertInvertedIndexes(track);
 
 		return append(track);
@@ -307,7 +305,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 		updated.setId(id);
 
-		if (isInvertedIndex()) {
+		if (hasInvertedListIndex()) {
 			deleteInvertedIndexes(oldTrack);
 			insertInvertedIndexes(updated);
 		}
@@ -372,7 +370,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (index != null)
 			index.delete(id);
 
-		if (isInvertedIndex())
+		if (hasInvertedListIndex())
 			deleteInvertedIndexes(deletedTrack);
 
 		numTracks -= 1; // Decrementa o contador de faixas.
@@ -483,7 +481,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException            Se ocorrer um erro de leitura no arquivo.
 	 * @throws ClassNotFoundException Se ocorrer um erro ao ler a classe da faixa.
 	 */
-	protected Track nextTrack() throws EOFException, IOException, ClassNotFoundException {
+	protected Track nextTrack() throws IOException, ClassNotFoundException {
 		if (searchFilter == null)
 			return nextValidBinaryTrackReader().getTrack();
 
@@ -505,7 +503,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws EOFException Se o fim do arquivo for alcançado.
 	 * @throws IOException  Se ocorrer um erro de leitura no arquivo.
 	 */
-	private BinaryTrackReader nextValidBinaryTrackReader() throws EOFException, IOException {
+	private BinaryTrackReader nextValidBinaryTrackReader() throws IOException {
 		BinaryTrackReader result;
 
 		do
@@ -525,7 +523,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws EOFException Se o fim do arquivo for alcançado.
 	 * @throws IOException  Se ocorrer um erro de leitura no arquivo.
 	 */
-	private BinaryTrackReader nextBinaryTrackReader() throws EOFException, IOException {
+	private BinaryTrackReader nextBinaryTrackReader() throws IOException {
 		lastBinaryTrackPos = file.getFilePointer();
 		boolean tombstone = file.readBoolean();
 		int size = file.readInt();
@@ -652,7 +650,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * Classe interna que representa um filtro de busca para faixas.
 	 * O filtro consiste em um campo da faixa e um valor a ser comparado.
 	 */
-	static public class TrackFilter {
+	public static class TrackFilter {
 		public Track.Field searchField;
 		public Object searchValue;
 
@@ -787,7 +785,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @return {@code true} se o banco de dados estiver indexado, {@code false} caso
 	 *         contrário.
 	 */
-	public boolean isIndexed() {
+	public boolean hasPrimaryIndex() {
 		return index != null;
 	}
 
@@ -797,7 +795,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @return {@code true} se o índice for do tipo Árvore B, {@code false} caso
 	 *         contrário.
 	 */
-	public boolean isBTreeIndex() {
+	public boolean hasBTreeIndex() {
 		return (flags & Flag.INDEXED_BTREE.getBitmask()) != 0;
 	}
 
@@ -807,7 +805,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @return {@code true} se o índice for do tipo Hash, {@code false} caso
 	 *         contrário.
 	 */
-	public boolean isHashIndex() {
+	public boolean hasDynamicHashIndex() {
 		return (flags & Flag.INDEXED_HASH.getBitmask()) != 0;
 	}
 
@@ -817,7 +815,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @return {@code true} se o índice for de Lista Invertida, {@code false} caso
 	 *         contrário.
 	 */
-	public boolean isInvertedIndex() {
+	public boolean hasInvertedListIndex() {
 		return (flags & Flag.INDEXED_INVERSE_LIST.getBitmask()) != 0;
 	}
 
@@ -843,7 +841,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	public void setBTreeIndex(boolean value, int order) throws IOException {
 		if (value) {
-			if (isBTreeIndex())
+			if (hasBTreeIndex())
 				throw new IllegalStateException("O índice por Árvore B já está habilitado.");
 			if (order <= 2)
 				throw new InvalidBTreeOrderException(
@@ -853,7 +851,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 						order, InvalidBTreeOrderException.Reason.NOT_EVEN);
 
 			flags |= Flag.INDEXED_BTREE.getBitmask();
-			setHashIndex(false);
+			setDynamicHashIndex(false);
 
 			index = new BTree(order / 2, filePath + ".BTree");
 			for (Track t : this)
@@ -868,13 +866,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		updateHeader();
 	}
 
-	public void setHashIndex(boolean value) throws IOException {
-		setHashIndex(value, 16);
+	public void setDynamicHashIndex(boolean value) throws IOException {
+		setDynamicHashIndex(value, 16);
 	}
 
-	public void setHashIndex(boolean value, int bucketCapacity) throws IOException {
+	public void setDynamicHashIndex(boolean value, int bucketCapacity) throws IOException {
 		if (value) {
-			if (isHashIndex())
+			if (hasDynamicHashIndex())
 				throw new IllegalStateException("O índice por tabela hash já está habilitado.");
 			if (bucketCapacity >= Short.MAX_VALUE)
 				throw new InvalidHashTableCapacityException(
@@ -901,13 +899,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		int[] matchingName = nameIndex.read(name != null ? name.toLowerCase() : null);
 		int[] matchingAlbum = albumIndex.read(album != null ? album.toLowerCase() : null);
 		int[] matchingArtist = artistIndex.read(artist != null ? artist.toLowerCase() : null);
-		return findIntersection(matchingName, matchingAlbum, matchingArtist);
+		return resultsIntersection(matchingName, matchingAlbum, matchingArtist);
 	}
 
 	/**
-	 * Encontra a intersecção de N arrays, podendo ser nulos.
+	 * Encontra a intersecção de N arrays, podendo incluir arrays nulos.
 	 */
-	private static int[] findIntersection(int[]... arrays) {
+	private static int[] resultsIntersection(int[]... arrays) {
 		HashSet<Integer> intersectionSet = new HashSet<>();
 
 		// Verifique se há arrays não nulos e adicione o primeiro array não nulo ao
@@ -988,9 +986,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			artistIndex.delete(s, id);
 	}
 
-	public void setInvertedIndex(boolean value) throws IOException {
+	public void setInvertedListIndex(boolean value) throws IOException {
 		if (value) {
-			if (isInvertedIndex())
+			if (hasInvertedListIndex())
 				throw new IllegalStateException(
 						"Os índices por listas invertidas já estão habilitados.");
 
@@ -1032,8 +1030,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			throw new IllegalStateException("Nenhum índice está habilitado.");
 
 		setBTreeIndex(false);
-		setHashIndex(false);
-		setInvertedIndex(false);
+		setDynamicHashIndex(false);
+		setInvertedListIndex(false);
 	}
 
 	/**
@@ -1047,7 +1045,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 						| Flag.INDEXED_INVERSE_LIST.getBitmask())) == 0)
 			throw new IllegalStateException("Nenhum índice está habilitado.");
 
-		if (isBTreeIndex()) {
+		if (hasBTreeIndex()) {
 			if (!(index instanceof BTree))
 				throw new AssertionError("Índice tem tipo inválido!");
 
@@ -1058,7 +1056,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			for (Track t : this)
 				index.insert(t.getId(), lastBinaryTrackPos);
 
-		} else if (isHashIndex()) {
+		} else if (hasDynamicHashIndex()) {
 			if (!(index instanceof HashTableIndex))
 				throw new AssertionError("Índice tem tipo inválido!");
 
@@ -1070,8 +1068,6 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			for (Track t : this)
 				index.insert(t.getId(), lastBinaryTrackPos);
 		}
-
-		// if (isInvertedIndex()) {
 	}
 
 	public boolean isOrdered() {

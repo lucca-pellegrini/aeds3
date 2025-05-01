@@ -174,7 +174,7 @@ public class Track implements Externalizable, Comparable<Track> {
 	 * Método responsável pela leitura dos dados da faixa em formato binário.
 	 *
 	 * @param in Fluxo de entrada de dados.
-	 * @throws IOException            Caso ocorra erro durante a leitura dos dados.
+	 * @throws IOException Caso ocorra erro durante a leitura dos dados.
 	 */
 	@Override
 	public void readExternal(ObjectInput in) throws IOException {

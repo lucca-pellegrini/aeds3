@@ -39,7 +39,7 @@ public class BalancedMergeSort {
 	 * Indica se estamos intercalando segmentos do grupo A (primeiro conjunto de N
 	 * arquivos) para o grupo B (segundo grupo) ou vice-versa.
 	 */
-	boolean group;
+	boolean mergingFromFirstGroup;
 
 	/**
 	 * Indica se deve exibir em `System.err` os passos da execução durante a
@@ -71,7 +71,7 @@ public class BalancedMergeSort {
 		this.db = db;
 		this.fanout = fanout;
 		this.maxHeapNodes = maxHeapNodes;
-		this.group = true; // Começamos no grupo A (arquivos 0–(N - 1)).
+		this.mergingFromFirstGroup = true; // Começamos no grupo A (arquivos 0–(N - 1)).
 		this.verbose = false;
 		files = new TrackDB[fanout * 2];
 	}
@@ -106,7 +106,7 @@ public class BalancedMergeSort {
 		db.setOrdered(true);
 
 		// Se um índice está presente, é necessário reconstruí-lo.
-		if (db.isIndexed()) {
+		if (db.hasPrimaryIndex()) {
 			if (verbose) {
 				System.err.println("Reindexando arquivo.");
 				if (db.getNumTracks() >= 50000)
@@ -222,7 +222,7 @@ public class BalancedMergeSort {
 
 		// Determina se a fonte e o destino são, respectivamente, os arquivos numerados
 		// 0–(N - 1), ou N–(2N - 1).
-		int firstSourceId = (group) ? 0 : fanout;
+		int firstSourceId = (mergingFromFirstGroup) ? 0 : fanout;
 		int firstDestinationId = fanout - firstSourceId;
 
 		// Popula as listas de fontes e destinos a partir dos arquivos temporários.
@@ -247,7 +247,7 @@ public class BalancedMergeSort {
 
 			if (verbose)
 				System.err.println("\rIntercalando segmento " + currentDestination + ", grupo: "
-						+ (group ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
+						+ (mergingFromFirstGroup ? 'A' : 'B') + ", arquivo: " + currentDestination % fanout);
 
 			// Itera até esgotarem-se os registros em cada segmento.
 			while (!heap.isEmpty()) {
@@ -275,7 +275,7 @@ public class BalancedMergeSort {
 			d.truncate();
 
 		// Inverte o grupo, trocando a direção da intercalação.
-		group = !group;
+		mergingFromFirstGroup = !mergingFromFirstGroup;
 
 		// Retorna o BD com os dados ordenados, se a intercalação estiver completa.
 		return (currentDestination == 1) ? result : null;
@@ -332,12 +332,12 @@ public class BalancedMergeSort {
 		this.maxHeapNodes = maxHeapNodes;
 	}
 
-	public boolean isGroup() {
-		return group;
+	public boolean isMergingFromFirstGroup() {
+		return mergingFromFirstGroup;
 	}
 
-	public void setGroup(boolean grupo) {
-		this.group = grupo;
+	public void setMergingFromFirstGroup(boolean grupo) {
+		this.mergingFromFirstGroup = grupo;
 	}
 
 	public boolean isVerbose() {

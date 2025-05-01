@@ -409,7 +409,7 @@ public class CommandLineInterface {
 
 			// Exibe o estado dos índices.
 			tmp = ansi().bold().fgGreen().a("Forward index:\t").reset();
-			tmp = (parent.db.isIndexed()) ? parent.db.isBTreeIndex()
+			tmp = (parent.db.hasPrimaryIndex()) ? parent.db.hasBTreeIndex()
 					? tmp.fgBrightBlue().a("B-Tree")
 					: tmp.fgBrightBlue().a("Dynamic Hash")
 										  : tmp.fgBrightRed().a("false");
@@ -417,7 +417,7 @@ public class CommandLineInterface {
 
 			// Exibe o estado dos índices invertidos
 			tmp = ansi().bold().fgGreen().a("Inverted index:\t").reset();
-			tmp = (parent.db.isInvertedIndex()) ? tmp.fgBrightBlue().a("true")
+			tmp = (parent.db.hasInvertedListIndex()) ? tmp.fgBrightBlue().a("true")
 												: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
@@ -494,7 +494,7 @@ public class CommandLineInterface {
 				return;
 			}
 
-			if (parent.db.isInvertedIndex()) {
+			if (parent.db.hasInvertedListIndex()) {
 				parent.warn("Importando com lista invertida habilitada. Isso pode demorar algumas horas.");
 				parent.out.flush();
 			}
@@ -649,7 +649,7 @@ public class CommandLineInterface {
 
 			// Se a opção --list foi selecionada, readliza busca por listas invertidas.
 			if (type.invertedList) {
-				if (!parent.db.isInvertedIndex()) {
+				if (!parent.db.hasInvertedListIndex()) {
 					parent.error("Os índices por listas invertidas não estão habilitados.");
 					return;
 				}
@@ -1254,7 +1254,7 @@ public class CommandLineInterface {
 
 			// Avisa que a operação pode demorar. Forçamos saída antes de iniciar indexação,
 			// para garantir que o aviso será exibido.
-			if (parent.db.isIndexed() && parent.db.getNumTracks() >= 50000) {
+			if (parent.db.hasPrimaryIndex() && parent.db.getNumTracks() >= 50000) {
 				parent.warn("Ordenando arquivo com muitos elementos. Será necessário reindexar. "
 					+ "Isso pode demorar.");
 				parent.out.flush();
@@ -1377,9 +1377,9 @@ public class CommandLineInterface {
 				if (indexType.btree)
 					parent.db.setBTreeIndex(true, order);
 				else if (indexType.hash)
-					parent.db.setHashIndex(true, bucketSize);
+					parent.db.setDynamicHashIndex(true, bucketSize);
 				else if (indexType.invertedList)
-					parent.db.setInvertedIndex(true);
+					parent.db.setInvertedListIndex(true);
 				else if (indexType.disable)
 					parent.db.disableIndex();
 				else if (indexType.reindex)

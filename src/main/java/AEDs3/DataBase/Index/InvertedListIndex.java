@@ -387,7 +387,7 @@ class ElementoLista implements Comparable<ElementoLista>, Cloneable {
 		} catch (CloneNotSupportedException e) {
 			// Tratamento de exceção se a clonagem falhar
 			e.printStackTrace();
-			return null;
+			throw new AssertionError();
 		}
 	}
 

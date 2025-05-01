@@ -24,13 +24,13 @@ public class HashTableIndex implements Index {
 	Directory directory;
 
 	private class Bucket {
-		short maxElements; // quantidade máxima de elementos que o cesto pode conter
-		short elementSize; // tamanho fixo de cada elemento em bytes
-		short bucketSize; // tamanho fixo do cesto em bytes
+		short maxElements;
+		short elementSize;
+		short bucketSize;
 
-		byte localDepth; // profundidade local do cesto
-		short numElements; // quantidade de elementos presentes no cesto
-		ArrayList<IndexRegister> elements; // sequência de elementos armazenados
+		byte localDepth;
+		short numElements;
+		ArrayList<IndexRegister> elements;
 
 		public Bucket(int maxElements) {
 			this(maxElements, 0);
@@ -80,7 +80,6 @@ public class HashTableIndex implements Index {
 			}
 		}
 
-		// Inserir elementos no cesto
 		public void insert(IndexRegister register) {
 			if (isFull())
 				throw new IllegalStateException("Bucket já está cheio.");
@@ -91,7 +90,6 @@ public class HashTableIndex implements Index {
 			numElements += 1;
 		}
 
-		// Buscar um elemento no cesto
 		public IndexRegister search(int id) {
 			if (isEmpty())
 				return null;
@@ -104,7 +102,6 @@ public class HashTableIndex implements Index {
 				return null;
 		}
 
-		// pagar um elemento do cesto
 		public boolean delete(int id) {
 			if (isEmpty())
 				return false;
@@ -182,10 +179,10 @@ public class HashTableIndex implements Index {
 			int q2 = 1 << globalDepth;
 			long[] newAddresses = new long[q2];
 
-			// Copia o vetor anterior para a primeira metade do novo vetor
+			// Copia o vetor anterior para a primeira metade do novo vetor.
 			System.arraycopy(addresses, 0, newAddresses, 0, q1);
 
-			// Copia o vetor anterior para a segunda metade do novo vetor
+			// Copia o vetor anterior para a segunda metade do novo vetor.
 			for (int i = q1; i < q2; i++)
 				newAddresses[i] = addresses[i - q1];
 
