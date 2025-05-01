@@ -12,246 +12,253 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class InvertedListIndex {
-	String nomeArquivoDicionario;
-	String nomeArquivoBlocos;
-	RandomAccessFile arqDicionario;
-	RandomAccessFile arqBlocos;
+	String dictionaryFilePath;
+	String blockFilePath;
+	RandomAccessFile dict;
+	RandomAccessFile blocks;
 	private static final int BLOCK_CAPACITY = 4;
 
-	class Bloco {
-		short quantidade; // quantidade de dados presentes na lista
-		short quantidadeMaxima; // quantidade máxima de dados que a lista pode conter
-		ElementoLista[] elementos; // sequência de dados armazenados no bloco
-		long proximo; // ponteiro para o bloco sequinte da mesma chave
-		short bytesPorBloco; // size fixo do cesto em bytes
+	static class InvertedListRegister implements Comparable<InvertedListRegister> {
+		private int id;
 
-		public Bloco(int qtdmax) {
-			quantidade = 0;
-			quantidadeMaxima = (short) qtdmax;
-			elementos = new ElementoLista[quantidadeMaxima];
-			proximo = -1;
-			bytesPorBloco = (short) (2 + 4 * quantidadeMaxima + 8);
+		public InvertedListRegister(int i) {
+			this.id = i;
+		}
+
+		public int getId() {
+			return id;
+		}
+
+		public void setId(int id) {
+			this.id = id;
+		}
+
+		public InvertedListRegister(InvertedListRegister other) {
+			this.id = other.id;
+		}
+
+		@Override
+		public int compareTo(InvertedListRegister other) {
+			return Integer.compare(this.id, other.id);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null || getClass() != obj.getClass())
+				return false;
+			InvertedListRegister other = (InvertedListRegister) obj;
+			return this.id == other.id;
+		}
+
+		@Override
+		public int hashCode() {
+			return Integer.hashCode(this.id);
+		}
+	}
+
+	static class Block {
+		short num; // quantidade de dados presentes na lista
+		short max; // quantidade máxima de dados que a lista pode conter
+		InvertedListRegister[] items;
+		long next;
+		short bytesPerBlock;
+
+		public Block(int qtdmax) {
+			num = 0;
+			max = (short) qtdmax;
+			items = new InvertedListRegister[max];
+			next = -1;
+			bytesPerBlock = (short) (2 + 4 * max + 8);
 		}
 
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeShort(quantidade);
+			dos.writeShort(num);
 			int i = 0;
-			while (i < quantidade) {
-				dos.writeInt(elementos[i].getId());
-				i++;
-			}
-			while (i < quantidadeMaxima) {
+			for (i = 0; i < num; ++i)
+				dos.writeInt(items[i].getId());
+			for (; i < max; ++i)
 				dos.writeInt(-1);
-				i++;
-			}
-			dos.writeLong(proximo);
+			dos.writeLong(next);
 			return baos.toByteArray();
 		}
 
 		public void fromByteArray(byte[] ba) throws IOException {
 			ByteArrayInputStream bais = new ByteArrayInputStream(ba);
 			DataInputStream dis = new DataInputStream(bais);
-			quantidade = dis.readShort();
-			int i = 0;
-			while (i < quantidadeMaxima) {
-				elementos[i] = new ElementoLista(dis.readInt());
-				i++;
-			}
-			proximo = dis.readLong();
+			num = dis.readShort();
+			for (int i = 0; i < max; ++i)
+				items[i] = new InvertedListRegister(dis.readInt());
+			next = dis.readLong();
 		}
 
-		// Insere um valor no bloco
-		public boolean create(ElementoLista e) {
+		public boolean create(InvertedListRegister e) {
 			if (full())
 				return false;
-			int i = quantidade - 1;
-			while (i >= 0 && e.getId() < elementos[i].getId()) {
-				elementos[i + 1] = elementos[i];
-				i--;
-			}
-			i++;
-			elementos[i] = e.clone();
-			quantidade++;
+			int i;
+			for (i = num - 1; i >= 0 && e.getId() < items[i].getId(); --i)
+				items[i + 1] = items[i];
+			items[++i] = new InvertedListRegister(e);
+			num += 1;
 			return true;
 		}
 
-		// Lê um valor no bloco
 		public boolean test(int id) {
 			if (empty())
 				return false;
-			int i = 0;
-			while (i < quantidade && id > elementos[i].getId()) i++;
-			return i < quantidade && id == elementos[i].getId();
+			int i;
+			for (i = 0; i < num && id > items[i].getId(); ++i)
+				;
+			return i < num && id == items[i].getId();
 		}
 
-		// Remove um valor do bloco
 		public boolean delete(int id) {
 			if (empty())
 				return false;
-			int i = 0;
-			while (i < quantidade && id > elementos[i].getId()) i++;
-			if (id == elementos[i].getId()) {
-				while (i < quantidade - 1) {
-					elementos[i] = elementos[i + 1];
-					i++;
-				}
-				quantidade--;
+			int i;
+			for (i = 0; i < num && id > items[i].getId(); ++i)
+				;
+			if (id == items[i].getId()) {
+				for (; i < num - 1; ++i)
+					items[i] = items[i + 1];
+				num -= 1;
 				return true;
-			} else
+			} else {
 				return false;
+			}
 		}
 
-		public ElementoLista last() {
-			return elementos[quantidade - 1];
+		public InvertedListRegister last() {
+			return items[num - 1];
 		}
 
-		public ElementoLista[] list() {
-			ElementoLista[] lista = new ElementoLista[quantidade];
-			for (int i = 0; i < quantidade; i++) lista[i] = elementos[i].clone();
-			return lista;
+		public InvertedListRegister[] list() {
+			InvertedListRegister[] res = new InvertedListRegister[num];
+			for (int i = 0; i < num; i++)
+				res[i] = new InvertedListRegister(items[i]);
+			return res;
 		}
 
 		public boolean empty() {
-			return quantidade == 0;
+			return num == 0;
 		}
 
 		public boolean full() {
-			return quantidade == quantidadeMaxima;
+			return num == max;
 		}
 
 		public long next() {
-			return proximo;
+			return next;
 		}
 
 		public void setNext(long p) {
-			proximo = p;
+			next = p;
 		}
 
 		public int size() {
-			return bytesPorBloco;
+			return bytesPerBlock;
 		}
 	}
 
-	public InvertedListIndex(String nd, String nc) throws IOException {
-		nomeArquivoDicionario = nd;
-		nomeArquivoBlocos = nc;
+	public InvertedListIndex(String dictionaryFilePath, String blockFilePath) throws IOException {
+		this.dictionaryFilePath = dictionaryFilePath;
+		this.blockFilePath = blockFilePath;
 
-		arqDicionario = new RandomAccessFile(nomeArquivoDicionario, "rw");
-		if (arqDicionario.length() < 4) { // cabeçalho do arquivo com número de entidades
-			arqDicionario.seek(0);
-			arqDicionario.writeInt(0);
+		dict = new RandomAccessFile(dictionaryFilePath, "rw");
+		if (dict.length() < 4) { // cabeçalho do arquivo com número de entidades
+			dict.seek(0);
+			dict.writeInt(0);
 		}
-		arqBlocos = new RandomAccessFile(nomeArquivoBlocos, "rw");
+		blocks = new RandomAccessFile(blockFilePath, "rw");
 	}
 
-	// Incrementa o número de entidades
-	public void incrementaEntidades() throws IOException {
-		arqDicionario.seek(0);
-		int n = arqDicionario.readInt();
-		arqDicionario.seek(0);
-		arqDicionario.writeInt(n + 1);
-	}
-
-	// Decrementa o número de entidades
-	public void decrementaEntidades() throws IOException {
-		arqDicionario.seek(0);
-		int n = arqDicionario.readInt();
-		arqDicionario.seek(0);
-		arqDicionario.writeInt(n - 1);
-	}
-
-	// Retorna o número de entidades
-	public int numeroEntidades() throws IOException {
-		arqDicionario.seek(0);
-		return arqDicionario.readInt();
-	}
-
-	public boolean create(String c, int id) throws IOException {
-		return this.create(c, new ElementoLista(id));
+	public boolean create(String word, int id) throws IOException {
+		return this.create(word, new InvertedListRegister(id));
 	}
 
 	// Insere um dado na lista da chave de forma NÃO ORDENADA
-	private boolean create(String c, ElementoLista e) throws IOException {
+	private boolean create(String word, InvertedListRegister reg) throws IOException {
 		// Percorre toda a lista testando se já não existe
 		// o dado associado a essa chave
-		ElementoLista[] lista = readElement(c);
-		for (int i = 0; i < lista.length; i++)
-			if (lista[i].getId() == e.getId())
+		InvertedListRegister[] elements = readElement(word);
+		for (int i = 0; i < elements.length; i++)
+			if (elements[i].getId() == reg.getId())
 				return false;
 
-		String chave = "";
-		long endereco = -1;
-		boolean jaExiste = false;
+		String key = "";
+		long address = -1;
+		boolean exists = false;
 
 		// localiza a chave no dicionário
-		arqDicionario.seek(4);
-		while (arqDicionario.getFilePointer() != arqDicionario.length()) {
-			chave = arqDicionario.readUTF();
-			endereco = arqDicionario.readLong();
-			if (chave.compareTo(c) == 0) {
-				jaExiste = true;
+		dict.seek(4);
+		while (dict.getFilePointer() != dict.length()) {
+			key = dict.readUTF();
+			address = dict.readLong();
+			if (key.compareTo(word) == 0) {
+				exists = true;
 				break;
 			}
 		}
 
 		// Se não encontrou, cria um novo bloco para essa chave
-		if (!jaExiste) {
+		if (!exists) {
 			// Cria um novo bloco
-			Bloco b = new Bloco(BLOCK_CAPACITY);
-			endereco = arqBlocos.length();
-			arqBlocos.seek(endereco);
-			arqBlocos.write(b.toByteArray());
+			Block b = new Block(BLOCK_CAPACITY);
+			address = blocks.length();
+			blocks.seek(address);
+			blocks.write(b.toByteArray());
 
 			// Insere a nova chave no dicionário
-			arqDicionario.seek(arqDicionario.length());
-			arqDicionario.writeUTF(c);
-			arqDicionario.writeLong(endereco);
+			dict.seek(dict.length());
+			dict.writeUTF(word);
+			dict.writeLong(address);
 		}
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(BLOCK_CAPACITY);
+		Block b = new Block(BLOCK_CAPACITY);
 		byte[] bd;
-		while (endereco != -1) {
-			long proximo = -1;
+		while (address != -1) {
+			long next = -1;
 
 			// Carrega o bloco
-			arqBlocos.seek(endereco);
+			blocks.seek(address);
 			bd = new byte[b.size()];
-			arqBlocos.read(bd);
+			blocks.read(bd);
 			b.fromByteArray(bd);
 
 			// Testa se o dado cabe nesse bloco
 			if (!b.full()) {
-				b.create(e);
+				b.create(reg);
 			} else {
 				// Avança para o próximo bloco
-				proximo = b.next();
-				if (proximo == -1) {
+				next = b.next();
+				if (next == -1) {
 					// Se não existir um novo bloco, cria esse novo bloco
-					Bloco b1 = new Bloco(BLOCK_CAPACITY);
-					proximo = arqBlocos.length();
-					arqBlocos.seek(proximo);
-					arqBlocos.write(b1.toByteArray());
+					Block b1 = new Block(BLOCK_CAPACITY);
+					next = blocks.length();
+					blocks.seek(next);
+					blocks.write(b1.toByteArray());
 
 					// Atualiza o ponteiro do bloco anterior
-					b.setNext(proximo);
+					b.setNext(next);
 				}
 			}
 
 			// Atualiza o bloco atual
-			arqBlocos.seek(endereco);
-			arqBlocos.write(b.toByteArray());
-			endereco = proximo;
+			blocks.seek(address);
+			blocks.write(b.toByteArray());
+			address = next;
 		}
 		return true;
 	}
 
-	public int[] read(String c) throws IOException {
-		if (c == null)
+	public int[] read(String word) throws IOException {
+		if (word == null)
 			return null;
-		ElementoLista[] elementos = readElement(c);
+		InvertedListRegister[] elementos = readElement(word);
 		int[] ids = new int[elementos.length];
 		for (int i = 0; i < ids.length; ++i)
 			ids[i] = elementos[i].getId();
@@ -259,38 +266,38 @@ public class InvertedListIndex {
 	}
 
 	// Retorna a lista de dados de uma determinada chave
-	private ElementoLista[] readElement(String c) throws IOException {
-		ArrayList<ElementoLista> lista = new ArrayList<>();
+	private InvertedListRegister[] readElement(String c) throws IOException {
+		ArrayList<InvertedListRegister> lista = new ArrayList<>();
 
 		String chave = "";
 		long endereco = -1;
 		boolean jaExiste = false;
 
 		// localiza a chave no dicionário
-		arqDicionario.seek(4);
-		while (arqDicionario.getFilePointer() != arqDicionario.length()) {
-			chave = arqDicionario.readUTF();
-			endereco = arqDicionario.readLong();
+		dict.seek(4);
+		while (dict.getFilePointer() != dict.length()) {
+			chave = dict.readUTF();
+			endereco = dict.readLong();
 			if (chave.compareTo(c) == 0) {
 				jaExiste = true;
 				break;
 			}
 		}
 		if (!jaExiste)
-			return new ElementoLista[0];
+			return new InvertedListRegister[0];
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(BLOCK_CAPACITY);
+		Block b = new Block(BLOCK_CAPACITY);
 		byte[] bd;
 		while (endereco != -1) {
 			// Carrega o bloco
-			arqBlocos.seek(endereco);
+			blocks.seek(endereco);
 			bd = new byte[b.size()];
-			arqBlocos.read(bd);
+			blocks.read(bd);
 			b.fromByteArray(bd);
 
 			// Acrescenta cada valor à lista
-			ElementoLista[] lb = b.list();
+			InvertedListRegister[] lb = b.list();
 			Collections.addAll(lista, lb);
 
 			// Avança para o próximo bloco
@@ -299,8 +306,9 @@ public class InvertedListIndex {
 
 		// Constrói o vetor de respostas
 		lista.sort(null);
-		ElementoLista[] resposta = new ElementoLista[lista.size()];
-		for (int j = 0; j < lista.size(); j++) resposta[j] = lista.get(j);
+		InvertedListRegister[] resposta = new InvertedListRegister[lista.size()];
+		for (int j = 0; j < lista.size(); j++)
+			resposta[j] = lista.get(j);
 		return resposta;
 	}
 
@@ -311,10 +319,10 @@ public class InvertedListIndex {
 		boolean jaExiste = false;
 
 		// localiza a chave no dicionário
-		arqDicionario.seek(4);
-		while (arqDicionario.getFilePointer() != arqDicionario.length()) {
-			chave = arqDicionario.readUTF();
-			endereco = arqDicionario.readLong();
+		dict.seek(4);
+		while (dict.getFilePointer() != dict.length()) {
+			chave = dict.readUTF();
+			endereco = dict.readLong();
 			if (chave.compareTo(c) == 0) {
 				jaExiste = true;
 				break;
@@ -324,20 +332,20 @@ public class InvertedListIndex {
 			return false;
 
 		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Bloco b = new Bloco(BLOCK_CAPACITY);
+		Block b = new Block(BLOCK_CAPACITY);
 		byte[] bd;
 		while (endereco != -1) {
 			// Carrega o bloco
-			arqBlocos.seek(endereco);
+			blocks.seek(endereco);
 			bd = new byte[b.size()];
-			arqBlocos.read(bd);
+			blocks.read(bd);
 			b.fromByteArray(bd);
 
 			// Testa se o valor está neste bloco e sai do laço
 			if (b.test(id)) {
 				b.delete(id);
-				arqBlocos.seek(endereco);
-				arqBlocos.write(b.toByteArray());
+				blocks.seek(endereco);
+				blocks.write(b.toByteArray());
 				return true;
 			}
 
@@ -350,49 +358,17 @@ public class InvertedListIndex {
 	}
 
 	public void destruct() throws IOException {
-		arqBlocos.close();
-		arqDicionario.close();
-		Files.delete(Paths.get(nomeArquivoBlocos));
-		Files.delete(Paths.get(nomeArquivoDicionario));
+		blocks.close();
+		dict.close();
+		Files.delete(Paths.get(blockFilePath));
+		Files.delete(Paths.get(dictionaryFilePath));
 	}
 
 	public String getDirFilePath() {
-		return this.nomeArquivoDicionario;
+		return this.dictionaryFilePath;
 	}
 
 	public String getBlockFilePath() {
-		return this.nomeArquivoBlocos;
-	}
-}
-
-class ElementoLista implements Comparable<ElementoLista>, Cloneable {
-	private int id;
-
-	public ElementoLista(int i) {
-		this.id = i;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	@Override
-	public ElementoLista clone() {
-		try {
-			return (ElementoLista) super.clone();
-		} catch (CloneNotSupportedException e) {
-			// Tratamento de exceção se a clonagem falhar
-			e.printStackTrace();
-			throw new AssertionError();
-		}
-	}
-
-	@Override
-	public int compareTo(ElementoLista outro) {
-		return Integer.compare(this.id, outro.id);
+		return this.blockFilePath;
 	}
 }
