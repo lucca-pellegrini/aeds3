@@ -83,10 +83,7 @@ public class InvertedListIndex {
 				return false;
 			int i = 0;
 			while (i < quantidade && id > elementos[i].getId()) i++;
-			if (i < quantidade && id == elementos[i].getId())
-				return true;
-			else
-				return false;
+			return i < quantidade && id == elementos[i].getId();
 		}
 
 		// Remove um valor do bloco
