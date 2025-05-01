@@ -430,7 +430,7 @@ public class CommandLineInterface {
 			// Exibe a eficiência com a cor correspondente.
 			tmp = ansi().bold().fgGreen().a("Efficiency:\t").reset();
 			tmp = (efficiency >= 0.9) ? tmp.fgBrightGreen()
-				: (efficiency >= 0.5) ? tmp.fgBrightYellow()
+				: (efficiency >= 0.8) ? tmp.fgBrightYellow()
 									  : tmp.fgBrightRed();
 			parent.out.println(tmp.a(100. * efficiency + "%"));
 		}
