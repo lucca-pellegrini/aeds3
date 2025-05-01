@@ -906,13 +906,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	private static int[] findIntersection(int[]... arrays) {
 		HashSet<Integer> intersectionSet = new HashSet<>();
 
-		// Check for non-null arrays and add the first non-null array to the intersection set
+		// Verifique se há arrays não nulos e adicione o primeiro array não nulo ao
+		// conjunto de interseção.
 		for (int[] array : arrays)
 			if (array != null && intersectionSet.isEmpty())
-				for (int num : array) intersectionSet.add(num);
+				for (int num : array)
+					intersectionSet.add(num);
 
-		// For each subsequent non-null array, retain only elements that are already in the
-		// intersection set
+		// Para cada array não nulo subsequente, mantenha apenas os elementos que já
+		// estão no conjunto de interseção.
 		for (int[] array : arrays) {
 			if (array != null) {
 				HashSet<Integer> currentSet = new HashSet<>();
@@ -923,7 +925,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			}
 		}
 
-		// Convert the intersection set to an array
+		// Converta o conjunto de interseção em um array.
 		int[] result = new int[intersectionSet.size()];
 		int index = 0;
 		for (int num : intersectionSet) result[index++] = num;
