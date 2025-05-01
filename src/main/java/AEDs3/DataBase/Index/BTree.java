@@ -219,17 +219,6 @@ public class BTree implements Index {
 		}
 
 		/**
-		 * Define se a página está carregada na memória.
-		 *
-		 * @param loaded {@code true} para marcar a página como carregada, caso
-		 *               contrário {@code
-		 *     false} .
-		 */
-		public void setLoaded(boolean loaded) {
-			this.loaded = loaded;
-		}
-
-		/**
 		 * Obtém a posição da página no arquivo.
 		 *
 		 * @return A posição da página no arquivo.

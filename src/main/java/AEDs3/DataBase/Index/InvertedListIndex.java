@@ -123,20 +123,6 @@ public class InvertedListIndex {
 			return quantidade == quantidadeMaxima;
 		}
 
-		public String toString() {
-			String s = "\nQuantidade: " + quantidade + "\n| ";
-			int i = 0;
-			while (i < quantidade) {
-				s += elementos[i] + " | ";
-				i++;
-			}
-			while (i < quantidadeMaxima) {
-				s += "- | ";
-				i++;
-			}
-			return s;
-		}
-
 		public long next() {
 			return proximo;
 		}
