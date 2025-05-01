@@ -300,7 +300,7 @@ public class InvertedListIndex {
 		// Constrói o vetor de respostas
 		lista.sort(null);
 		ElementoLista[] resposta = new ElementoLista[lista.size()];
-		for (int j = 0; j < lista.size(); j++) resposta[j] = (ElementoLista) lista.get(j);
+		for (int j = 0; j < lista.size(); j++) resposta[j] = lista.get(j);
 		return resposta;
 	}
 
