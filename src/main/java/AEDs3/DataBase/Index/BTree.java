@@ -415,7 +415,7 @@ public class BTree implements Index {
 				if (reg.compareTo(page.getElements()[i]) > 0)
 					i++;
 				pageRet = insere(reg, page.getChildren()[i], regRet, grown);
-				if (grown[0])
+				if (grown[0]) {
 					if (page.getNumElements() < this.pageCapacity) { // Página tem espaço.
 						this.pageInsert(page, regRet[0], pageRet);
 						grown[0] = false;
@@ -440,6 +440,7 @@ public class BTree implements Index {
 						regRet[0] = page.getElements()[this.halfPageCapacity];
 						pageRet = pageTemp;
 					}
+				}
 			}
 		}
 		return (grown[0] ? pageRet : page);
