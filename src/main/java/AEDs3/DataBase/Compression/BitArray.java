@@ -32,19 +32,19 @@ public class BitArray {
     // Define um bit na posição 'i' como 1 (true)
     public void set(int i) {
         if (i >= bitSet.length() - 1) {
-            bitSet.clear(bitSet.length() - 1);  
-            bitSet.set(i + 1);                  
+            bitSet.clear(bitSet.length() - 1);
+            bitSet.set(i + 1);
         }
-        bitSet.set(i);                          
+        bitSet.set(i);
     }
 
     // Define um bit na posição 'i' como 0 (false)
     public void clear(int i) {
         if (i >= bitSet.length() - 1) {
-            bitSet.clear(bitSet.length() - 1);  
-            bitSet.set(i + 1);                  
+            bitSet.clear(bitSet.length() - 1);
+            bitSet.set(i + 1);
         }
-        bitSet.clear(i);                        
+        bitSet.clear(i);
     }
 
     // Retorna o valor do bit na posição 'i'

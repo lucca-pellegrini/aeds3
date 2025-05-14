@@ -33,7 +33,7 @@ class HuffmanNode implements Comparable<HuffmanNode> {
  * Classe principal responsável pela compressão e descompressão usando o algoritmo de Huffman.
  */
 public class Huffman {
-    
+
     /**
      * Gera a tabela de códigos de Huffman para cada byte da sequência.
      * @param sequence sequência de bytes a ser comprimida.
