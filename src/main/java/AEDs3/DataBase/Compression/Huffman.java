@@ -77,7 +77,7 @@ public class Huffman {
 		if (node == null) {
 			return;
 		}
-		if (node.b != 0) {
+		if (node.left == null && node.right == null) {
 			codes.put(node.b, code);
 		}
 		generateCodes(node.left, code + "0", codes);
