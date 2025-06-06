@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -321,6 +322,10 @@ public class CommandLineInterface {
 		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
 		CompressionType method;
 
+		@Option(names = { "-d",
+				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
+		boolean delete = false;
+
 		/**
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
 		 * dados e outros recursos.
@@ -376,6 +381,15 @@ public class CommandLineInterface {
 					parent.info(String.format("Tamanho comprimido: %dKB", compressedSize / 1000));
 					parent.info(String.format("Redução de %.2f%%", compressionRate));
 					parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
+
+					if (delete) {
+						parent.db.close();
+						parent.db = null;
+						parent.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
+						parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
+						for (String file : files)
+							Files.delete(Paths.get(file));
+					}
 				} catch (IOException e) {
 					e.printStackTrace();
 					throw new RuntimeException("Erro ao comprimir " + dst);
@@ -389,6 +403,13 @@ public class CommandLineInterface {
 		@Option(names = { "-m",
 				"--method" }, description = "Algoritmo de compressão a ser utilizado.", required = false)
 		CompressionType method;
+
+		@Option(names = { "-o", "--open" }, description = "Abrir arquivo após descomprimi-lo", defaultValue = "false")
+		boolean open;
+
+		@Option(names = { "-d",
+				"--delete" }, description = "Deletar arquivo após descomprimi-lo", defaultValue = "false")
+		boolean delete;
 
 		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descomprimir.")
 		String path;
@@ -415,24 +436,36 @@ public class CommandLineInterface {
 			String dbPath;
 			try {
 				dbPath = Compressor.decompress(path, method)[0];
+				if (delete)
+					Files.delete(Paths.get(path));
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao descomprimir " + path);
 			}
 
-			if (parent.db == null)
-				return;
+			try {
+				if (open) {
+					parent.db = new TrackDB(dbPath);
+					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
+					return;
+				} else if (parent.db == null) {
+					return;
+				}
+			} catch (IOException e) {
+				parent.error("Impossível abrir o arquivo.");
+			}
 
 			try (TrackDB decompressed = new TrackDB(dbPath)) {
 				if (decompressed.getUUID().equals(parent.db.getUUID())) {
 					parent.info("Recarregando arquivo.");
 					parent.db = new TrackDB(dbPath);
+					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
 				}
 			} catch (IOException e) {
 				parent.error("Impossível verificar arquivo descomprimido.");
 			}
-
 		}
+
 	}
 
 	/**
