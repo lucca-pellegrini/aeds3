@@ -3,6 +3,7 @@ package AEDs3.DataBase.Compression;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -11,6 +12,30 @@ import java.util.ArrayList;
  */
 public class LZW {
 	public static final int BITS_PER_INDEX = 12; // Tamanho do índice em bits
+
+	public static void compressFile(String src, String dst) throws IOException {
+		FileInputStream fis = new FileInputStream(new File(src));
+		byte[] originalBytes = fis.readAllBytes();
+		fis.close();
+
+		byte[] encodedBytes = encode(originalBytes);
+
+		FileOutputStream fos = new FileOutputStream(dst);
+		fos.write(encodedBytes);
+		fos.close();
+	}
+
+	public static void decompressFile(String src, String dst) throws IOException {
+		FileInputStream fis = new FileInputStream(src);
+		byte[] encodedCopy = fis.readAllBytes();
+		fis.close();
+
+		byte[] decodedBytes = decode(encodedCopy);
+
+		FileOutputStream fos = new FileOutputStream(dst);
+		fos.write(decodedBytes);
+		fos.close();
+	}
 
 	/**
 	 * Método principal para execução do algoritmo LZW.
@@ -71,7 +96,7 @@ public class LZW {
 	 * @param originalBytes sequência de bytes original.
 	 * @return array de bytes codificados.
 	 */
-	public static byte[] encode(byte[] originalBytes) throws Exception {
+	public static byte[] encode(byte[] originalBytes) throws IOException {
 
 		ArrayList<ArrayList<Byte>> dictionary = new ArrayList<>();
 		ArrayList<Byte> byteSequence;
@@ -89,7 +114,18 @@ public class LZW {
 		int i = 0;
 
 		while (i < originalBytes.length) {
-			System.out.println("Iteração № " + i + "/" + originalBytes.length);
+			// System.out.println("Iteração № " + i + "/" + originalBytes.length);
+			int progress = (int) ((i / (float) originalBytes.length) * 50);
+			StringBuilder progressBar = new StringBuilder("[");
+			for (int j = 0; j < 50; j++) {
+				if (j < progress) {
+					progressBar.append("=");
+				} else {
+					progressBar.append(" ");
+				}
+			}
+			progressBar.append("] ").append(progress * 2).append("%");
+			System.out.print("\r" + progressBar.toString());
 
 			byteSequence = new ArrayList<>();
 			b = originalBytes[i];
@@ -117,6 +153,8 @@ public class LZW {
 				break;
 		}
 
+		System.out.println();
+
 		BitArray bits = new BitArray(output.size() * BITS_PER_INDEX);
 		int l = output.size() * BITS_PER_INDEX - 1;
 
@@ -142,7 +180,7 @@ public class LZW {
 	 * @param encodedBytes sequência de bytes comprimida.
 	 * @return array de bytes descomprimidos.
 	 */
-	public static byte[] decode(byte[] encodedBytes) throws Exception {
+	public static byte[] decode(byte[] encodedBytes) throws IOException {
 
 		// Inicializa o BitArray a partir do array de bytes comprimido
 		BitArray bits = new BitArray(encodedBytes);

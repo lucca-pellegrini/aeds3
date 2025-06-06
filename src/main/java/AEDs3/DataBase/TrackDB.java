@@ -115,8 +115,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * Constrói uma instância do banco de dados a partir de um arquivo.
 	 *
 	 * @param fileName Caminho para o arquivo do banco de dados.
-	 * @throws IOException           Se ocorrer um erro de leitura ou gravação no
-	 *                               arquivo.
+	 * @throws IOException Se ocorrer um erro de leitura ou gravação no
+	 *                     arquivo.
 	 */
 	public TrackDB(String fileName) throws IOException {
 		this.filePath = fileName;
@@ -610,6 +610,24 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		file.writeInt(numTracks);
 		file.writeInt(numSpaces);
 		file.seek(pos);
+	}
+
+	/**
+	 * Retorna um array contendo todos os arquivos associados a este DB, incluindo o
+	 * arquivo de dados e quaisquer arquivos de índice.
+	 */
+	public String[] listFilePaths() {
+		List<String> res = new ArrayList<>();
+		res.add(filePath);
+		if (this.index != null)
+			res.addAll(Arrays.asList(index.listFilePaths()));
+		if (this.nameIndex != null)
+			res.addAll(Arrays.asList(nameIndex.listFilePaths()));
+		if (this.artistIndex != null)
+			res.addAll(Arrays.asList(artistIndex.listFilePaths()));
+		if (this.albumIndex != null)
+			res.addAll(Arrays.asList(albumIndex.listFilePaths()));
+		return res.toArray(new String[0]);
 	}
 
 	/**

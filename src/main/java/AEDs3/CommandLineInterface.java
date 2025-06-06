@@ -8,6 +8,8 @@ import AEDs3.DataBase.CSVManager;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.TrackDB;
+import AEDs3.DataBase.Compression.CompressionType;
+import AEDs3.DataBase.Compression.Compressor;
 import AEDs3.DataBase.TrackDB.TrackFilter;
 import java.awt.Desktop;
 import java.io.File;
@@ -82,7 +84,8 @@ public class CommandLineInterface {
 			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class })
+					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
+					CompressCommand.class })
 	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -302,6 +305,67 @@ public class CommandLineInterface {
 				parent.prompt = ansi().bold().fgCyan().a(param + "> ").toString();
 				parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
 				parent.info("Arquivo aberto.");
+			}
+		}
+	}
+
+	@Command(name = "compress", mixinStandardHelpOptions = true, description = "Comprime o arquivo TrackDB.")
+	static class CompressCommand implements Runnable {
+		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
+		CompressionType method;
+
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (parent.db == null) {
+				parent.warn("Não há nenhum arquivo aberto.");
+			} else {
+				String[] files = parent.db.listFilePaths();
+				String dst = files[0] + "." + method.toString().toLowerCase();
+				try {
+					// Calcula o tamanho total dos arquivos originais
+					long originalSize = 0;
+					for (String file : files) {
+						System.out.println(file);
+						originalSize += new File(file).length();
+					}
+
+					// Marca o tempo de início
+					long startTime = System.currentTimeMillis();
+
+					// Realiza a compressão
+					Compressor.compress(files, dst, method);
+
+					// Marca o tempo de fim
+					long endTime = System.currentTimeMillis();
+
+					// Calcula o tempo de execução
+					long duration = endTime - startTime;
+					long minutes = (duration / 1000) / 60;
+					long seconds = (duration / 1000) % 60;
+					long milliseconds = duration % 1000;
+
+					// Calcula o tamanho do arquivo comprimido
+					long compressedSize = new File(dst).length();
+
+					// Calcula a taxa de compressão
+					double compressionRate = (1 - ((double) compressedSize / originalSize)) * 100;
+
+					// Exibe as informações
+					parent.info(String.format("Arquivos comprimidos em: %s", dst));
+					parent.info(String.format("Tamanho original: %dKb", originalSize / 1000));
+					parent.info(String.format("Tamanho comprimido: %dKb", compressedSize / 1000));
+					parent.info(String.format("Tempo de execução: %d minutos, %d segundos, %d milissegundos", minutes, seconds, milliseconds));
+					parent.info(String.format("Redução de %.2f%%", compressionRate));
+				} catch (IOException e) {
+					e.printStackTrace();
+					throw new RuntimeException("Erro ao comprimir " + dst);
+				}
 			}
 		}
 	}
@@ -1100,7 +1164,8 @@ public class CommandLineInterface {
 						throw new IllegalArgumentException("Não é possível alterar o ID.");
 					case KMP, BOYER_MOORE:
 						throw new IllegalArgumentException(
-								"Recebi um algoritmo de busca (" + field + "), mas esperava um campo de registro para atualizar.");
+								"Recebi um algoritmo de busca (" + field
+										+ "), mas esperava um campo de registro para atualizar.");
 				}
 			}
 

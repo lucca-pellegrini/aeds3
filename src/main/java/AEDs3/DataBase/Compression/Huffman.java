@@ -1,6 +1,10 @@
 package AEDs3.DataBase.Compression;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +39,85 @@ class HuffmanNode implements Comparable<HuffmanNode> {
  * algoritmo de Huffman.
  */
 public class Huffman {
+	public static void compressFile(String src, String dst) throws IOException {
+		// Read the original file
+		FileInputStream fis = new FileInputStream(src);
+		byte[] originalBytes = fis.readAllBytes();
+		fis.close();
+
+		// Generate Huffman codes
+		HashMap<Byte, String> codes = codeToBit(originalBytes);
+
+		// Encode the original bytes using Huffman codes
+		BitArray encodedSequence = new BitArray();
+		int index = 0;
+		for (byte b : originalBytes) {
+			String code = codes.get(b);
+			for (char c : code.toCharArray()) {
+				if (c == '0') {
+					encodedSequence.clear(index++);
+				} else {
+					encodedSequence.set(index++);
+				}
+			}
+		}
+
+		// Write the Huffman codes and encoded data to the output file
+		FileOutputStream fos = new FileOutputStream(dst);
+		DataOutputStream dos = new DataOutputStream(fos);
+
+		// Write the size of the map
+		dos.writeInt(codes.size());
+
+		// Write the Huffman code map
+		for (Map.Entry<Byte, String> entry : codes.entrySet()) {
+			dos.writeByte(entry.getKey());
+			dos.writeUTF(entry.getValue());
+		}
+
+		// Write the encoded byte array
+		byte[] encodedBytes = encodedSequence.toByteArray();
+		dos.writeInt(encodedBytes.length);
+		dos.write(encodedBytes);
+
+		dos.close();
+		fos.close();
+	}
+
+	public static void decompressFile(String src, String dst) throws IOException {
+		// Read the compressed file
+		FileInputStream fis = new FileInputStream(src);
+		DataInputStream dis = new DataInputStream(fis);
+
+		// Read the size of the map
+		int mapSize = dis.readInt();
+
+		// Read the Huffman code map
+		HashMap<Byte, String> codes = new HashMap<>();
+		for (int i = 0; i < mapSize; i++) {
+			byte b = dis.readByte();
+			String code = dis.readUTF();
+			codes.put(b, code);
+		}
+
+		// Read the length of the encoded byte array
+		int encodedLength = dis.readInt();
+		byte[] encodedBytes = new byte[encodedLength];
+		dis.readFully(encodedBytes);
+
+		dis.close();
+		fis.close();
+
+		// Decode the encoded byte array
+		BitArray encodedSequence = new BitArray(encodedBytes);
+		String bitString = encodedSequence.bitString();
+		byte[] decodedBytes = decode(bitString, codes);
+
+		// Write the decoded bytes to the output file
+		FileOutputStream fos = new FileOutputStream(dst);
+		fos.write(decodedBytes);
+		fos.close();
+	}
 
 	/**
 	 * Gera a tabela de códigos de Huffman para cada byte da sequência.
