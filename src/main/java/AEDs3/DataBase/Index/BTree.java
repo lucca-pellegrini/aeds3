@@ -663,4 +663,8 @@ public class BTree implements Index {
 	public int getHalfPageCapacity() {
 		return halfPageCapacity;
 	}
+
+	public String[] listFilePaths() {
+		return new String[] {filePath};
+	}
 }

@@ -395,4 +395,8 @@ public class HashTableIndex implements Index {
 	public int getBucketCapacity() {
 		return this.bucketNumElements;
 	}
+
+	public String[] listFilePaths() {
+		return new String[] {dirFilePath, bucketFilePath, metaFilePath};
+	}
 }

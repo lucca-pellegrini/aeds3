@@ -1,6 +1,7 @@
 package AEDs3.DataBase.Index;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 /**
  * Interface para definir operações básicas de um índice.
@@ -38,4 +39,9 @@ public interface Index {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação.
 	 */
 	void destruct() throws IOException;
+
+	/**
+	 * Lista todos os arquivos associados ao índice atual
+	 */
+	String[] listFilePaths();
 }

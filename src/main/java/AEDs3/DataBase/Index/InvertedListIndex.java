@@ -371,4 +371,9 @@ public class InvertedListIndex {
 	public String getBlockFilePath() {
 		return this.blockFilePath;
 	}
+
+	public String[] listFilePaths() {
+		return new String[] {dictionaryFilePath, blockFilePath};
+	}
+
 }
