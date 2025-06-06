@@ -158,25 +158,53 @@ public class LZW {
 			indices.add(n);
 		}
 
+		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127)
 		ArrayList<ArrayList<Byte>> dictionary = new ArrayList<>();
-		byte b;
-
-		// Inicializa o dicionário com todos os bytes possíveis
 		for (int j = -128; j < 128; j++) {
-			b = (byte) j;
 			ArrayList<Byte> byteSequence = new ArrayList<>();
-			byteSequence.add(b);
+			byteSequence.add((byte) j);
 			dictionary.add(byteSequence);
 		}
 
 		ArrayList<Byte> originalBytes = new ArrayList<>();
 
 		// Decodifica os índices para a sequência de bytes original
-		for (int index : indices) {
-			ArrayList<Byte> byteSequence = dictionary.get(index);
-			originalBytes.addAll(byteSequence);
+		// Pega o primeiro índice e recupera sua sequência
+		int firstIndex = indices.get(0);
+		ArrayList<Byte> w = new ArrayList<>(dictionary.get(firstIndex));
+		originalBytes.addAll(w);
+
+		// Processa cada índice restante reconstruindo o dicionário
+		for (int i = 1; i < indices.size(); i++) {
+			int index = indices.get(i);
+			ArrayList<Byte> entry;
+
+			// Se o índice existe no dicionário, recupera sua sequência
+			if (index < dictionary.size()) {
+				entry = new ArrayList<>(dictionary.get(index));
+			} else {
+				// Caso especial: o índice não existe ainda no dicionário.
+				// Nesse caso, a sequência é a do índice anterior (w) acrescida do primeiro byte
+				// de w.
+				entry = new ArrayList<>(w);
+				entry.add(w.get(0));
+			}
+
+			// Acrescenta a sequência encontrada à saída original
+			originalBytes.addAll(entry);
+
+			// Adiciona uma nova entrada ao dicionário: w + primeiro byte da entrada
+			// corrente
+			ArrayList<Byte> newSequence = new ArrayList<>(w);
+			newSequence.add(entry.get(0));
+			if (dictionary.size() < (Math.pow(2, BITS_PER_INDEX) - 1))
+				dictionary.add(newSequence);
+
+			// Atualiza w para a próxima iteração
+			w = entry;
 		}
 
+		// Converte a lista de bytes para um array de bytes
 		byte[] outputBytes = new byte[originalBytes.size()];
 		for (int i = 0; i < originalBytes.size(); i++)
 			outputBytes[i] = originalBytes.get(i);
