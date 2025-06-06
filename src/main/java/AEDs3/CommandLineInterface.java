@@ -330,10 +330,14 @@ public class CommandLineInterface {
 				try {
 					// Calcula o tamanho total dos arquivos originais
 					long originalSize = 0;
+					parent.info("Empacotando e comprimindo os seguintes arquivos:");
 					for (String file : files) {
-						System.out.println(file);
-						originalSize += new File(file).length();
+						long len = new File(file).length();
+						originalSize += len;
+						parent.out.println(ansi().bold().a(String.format("% 6d" , len / 1000)).a(" KB ").reset().fgBlue().a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold().fgGreen().a(file).a(' ').reset());
 					}
+					parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d" , originalSize / 1000)).a(" KB ").fgBrightBlue().a("(Total)").reset());
+					parent.out.flush();
 
 					// Marca o tempo de início
 					long startTime = System.currentTimeMillis();
@@ -357,11 +361,11 @@ public class CommandLineInterface {
 					double compressionRate = (1 - ((double) compressedSize / originalSize)) * 100;
 
 					// Exibe as informações
-					parent.info(String.format("Arquivos comprimidos em: %s", dst));
-					parent.info(String.format("Tamanho original: %dKb", originalSize / 1000));
-					parent.info(String.format("Tamanho comprimido: %dKb", compressedSize / 1000));
-					parent.info(String.format("Tempo de execução: %d minutos, %d segundos, %d milissegundos", minutes, seconds, milliseconds));
+					parent.info(String.format("Arquivos comprimidos em: %s", ansi().bold().fgBrightYellow().a(dst)));
+					parent.info(String.format("Tamanho original: %dKB", originalSize / 1000));
+					parent.info(String.format("Tamanho comprimido: %dKB", compressedSize / 1000));
 					parent.info(String.format("Redução de %.2f%%", compressionRate));
+					parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
 				} catch (IOException e) {
 					e.printStackTrace();
 					throw new RuntimeException("Erro ao comprimir " + dst);
