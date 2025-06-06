@@ -457,7 +457,7 @@ public class CommandLineInterface {
 
 			try (TrackDB decompressed = new TrackDB(dbPath)) {
 				if (decompressed.getUUID().equals(parent.db.getUUID())) {
-					parent.info("Recarregando arquivo.");
+					parent.warn("Recarregando arquivo.");
 					parent.db = new TrackDB(dbPath);
 					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
 				}
