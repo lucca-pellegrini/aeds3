@@ -76,14 +76,13 @@ public class CommandLineInterface {
 	 * capabilidades do terminal, e exibindo mensagens de erro, aviso e informação.
 	 * </p>
 	 */
-	@Command(name = "",
-		description = {"Banco de dados binário de faixas de música.",
+	@Command(name = "", description = { "Banco de dados binário de faixas de música.",
 			"Pressione @|magenta <TAB>|@ para ver os comandos disponíveis.",
-			"pressione @|magenta Alt-S|@ para alternar as dicas de tailtip.", ""},
-		footer = {"", "Pressione @|magenta Ctrl-C|@ para sair."},
-		subcommands = {OpenCommand.class, CloseCommand.class, InfoCommand.class, UsageCommand.class,
-			ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-			UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class})
+			"pressione @|magenta Alt-S|@ para alternar as dicas de tailtip.",
+			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
+					CloseCommand.class, InfoCommand.class, UsageCommand.class,
+					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
+					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class })
 	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -94,8 +93,7 @@ public class CommandLineInterface {
 		String rightPrompt;
 
 		static final String DEFAULT_PROMPT = ansi().fgYellow().bold().a("TrackDB> ").toString();
-		static final String DEFAULT_RIGHT_PROMPT =
-			ansi().fgRed().a("[Nenhum arquivo aberto]").toString();
+		static final String DEFAULT_RIGHT_PROMPT = ansi().fgRed().a("[Nenhum arquivo aberto]").toString();
 		static final String ERROR_PROMPT = ansi().bold().render("@|red Erro:|@ ").toString();
 		static final String WARN_PROMPT = ansi().bold().render("@|yellow Warn:|@ ").toString();
 		static final String INFO_PROMPT = ansi().bold().render("@|blue Info:|@ ").toString();
@@ -124,11 +122,12 @@ public class CommandLineInterface {
 			out.println(ansi().bold().fgMagenta().a(track.getName()));
 
 			out.println(ansi().bold().fgMagenta().a(
-				"──────────────────────────────────────────────────────────────────────"));
+					"──────────────────────────────────────────────────────────────────────"));
 
 			tmp = track.getTrackArtists();
 			out.print(ansi().bold().fgYellow().a("Artists:\t").reset());
-			for (int i = 0; i < tmp.size() - 1; ++i) out.print(tmp.get(i) + ", ");
+			for (int i = 0; i < tmp.size() - 1; ++i)
+				out.print(tmp.get(i) + ", ");
 			out.println(tmp.get(tmp.size() - 1));
 
 			out.print(ansi().bold().fgYellow().a("Album:\t\t").reset());
@@ -142,7 +141,8 @@ public class CommandLineInterface {
 
 			tmp = track.getGenres();
 			out.print(ansi().bold().fgYellow().a("Genres:\t\t").reset());
-			for (int i = 0; i < tmp.size() - 1; ++i) out.print(tmp.get(i) + ", ");
+			for (int i = 0; i < tmp.size() - 1; ++i)
+				out.print(tmp.get(i) + ", ");
 			out.println(tmp.get(tmp.size() - 1));
 
 			out.print(ansi().bold().fgYellow().a("Explicit:\t").reset());
@@ -179,7 +179,8 @@ public class CommandLineInterface {
 		 * Exibe todas as faixas no banco de dados.
 		 */
 		void printAllTracks() {
-			for (Track track : db) printTrack(track);
+			for (Track track : db)
+				printTrack(track);
 		}
 
 		/**
@@ -229,10 +230,10 @@ public class CommandLineInterface {
 	/**
 	 * Comando para exibir a ajuda do programa.
 	 */
-	@Command(name = "usage", mixinStandardHelpOptions = true,
-		description = "Exibe a ajuda principal do programa.")
+	@Command(name = "usage", mixinStandardHelpOptions = true, description = "Exibe a ajuda principal do programa.")
 	static class UsageCommand implements Runnable {
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		public void run() {
 			parent.out.println(new CommandLine(parent).getUsageMessage());
@@ -255,14 +256,13 @@ public class CommandLineInterface {
 	 *
 	 * @see TrackDB
 	 */
-	@Command(
-		name = "open", mixinStandardHelpOptions = true, description = "Abre um arquivo TrackDB.")
+	@Command(name = "open", mixinStandardHelpOptions = true, description = "Abre um arquivo TrackDB.")
 	static class OpenCommand implements Runnable {
 		/**
 		 * Define se um novo arquivo será criado caso o arquivo especificado não exista.
 		 * Se não for especificado, o arquivo deve existir para ser aberto.
 		 */
-		@Option(names = {"-n", "--new"}, description = "Cria um novo arquivo se não existir.")
+		@Option(names = { "-n", "--new" }, description = "Cria um novo arquivo se não existir.")
 		private boolean create;
 
 		/**
@@ -275,7 +275,8 @@ public class CommandLineInterface {
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
 		 * dados e outros recursos.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Abre o arquivo TrackDB especificado pelo caminho.
@@ -318,14 +319,14 @@ public class CommandLineInterface {
 	 * para seus valores padrão.
 	 * </p>
 	 */
-	@Command(name = "close", mixinStandardHelpOptions = true,
-		description = "Fecha o arquivo TrackDB aberto.")
+	@Command(name = "close", mixinStandardHelpOptions = true, description = "Fecha o arquivo TrackDB aberto.")
 	static class CloseCommand implements Runnable {
 		/**
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
 		 * dados e outros recursos.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Fecha o arquivo TrackDB aberto e restaura o prompt padrão.
@@ -341,8 +342,7 @@ public class CommandLineInterface {
 			} else {
 				parent.db = null; // Fecha o banco de dados.
 				parent.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
-				parent.rightPrompt =
-					CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
+				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
 			}
 		}
 	}
@@ -364,14 +364,14 @@ public class CommandLineInterface {
 	 * eficiência média (>= 50%) e vermelho para eficiência baixa (< 50%).
 	 * </p>
 	 */
-	@Command(name = "info", mixinStandardHelpOptions = true,
-		description = "Exibe informações sobre o arquivo aberto.")
+	@Command(name = "info", mixinStandardHelpOptions = true, description = "Exibe informações sobre o arquivo aberto.")
 	static class InfoCommand implements Runnable {
 		/**
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
 		 * dados e outros recursos.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Exibe as informações detalhadas sobre o banco de dados TrackDB aberto.
@@ -401,9 +401,9 @@ public class CommandLineInterface {
 
 			// Exibe as informações sobre o banco de dados.
 			parent.out.println(
-				ansi().bold().fgGreen().a("File ID:\t").reset().a(parent.db.getUUID()));
+					ansi().bold().fgGreen().a("File ID:\t").reset().a(parent.db.getUUID()));
 			parent.out.println(
-				ansi().bold().fgGreen().a("Last ID:\t").reset().a(parent.db.getLastId()));
+					ansi().bold().fgGreen().a("Last ID:\t").reset().a(parent.db.getLastId()));
 			parent.out.println(ansi().bold().fgGreen().a("Total Tracks:\t").reset().a(numTracks));
 			parent.out.println(ansi().bold().fgGreen().a("Used Spaces:\t").reset().a(numSpaces));
 
@@ -412,26 +412,26 @@ public class CommandLineInterface {
 			tmp = (parent.db.hasPrimaryIndex()) ? parent.db.hasBTreeIndex()
 					? tmp.fgBrightBlue().a("B-Tree")
 					: tmp.fgBrightBlue().a("Dynamic Hash")
-										  : tmp.fgBrightRed().a("false");
+					: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
 			// Exibe o estado dos índices invertidos
 			tmp = ansi().bold().fgGreen().a("Inverted index:\t").reset();
 			tmp = (parent.db.hasInvertedListIndex()) ? tmp.fgBrightBlue().a("true")
-												: tmp.fgBrightRed().a("false");
+					: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
 			// Exibe o estado de ordenação.
 			tmp = ansi().bold().fgGreen().a("Ordered:\t").reset();
 			tmp = (parent.db.isOrdered()) ? tmp.fgBrightGreen().a("true")
-										  : tmp.fgBrightRed().a("false");
+					: tmp.fgBrightRed().a("false");
 			parent.out.println(tmp);
 
 			// Exibe a eficiência com a cor correspondente.
 			tmp = ansi().bold().fgGreen().a("Efficiency:\t").reset();
 			tmp = (efficiency >= 0.9) ? tmp.fgBrightGreen()
-				: (efficiency >= 0.8) ? tmp.fgBrightYellow()
-									  : tmp.fgBrightRed();
+					: (efficiency >= 0.8) ? tmp.fgBrightYellow()
+							: tmp.fgBrightRed();
 			parent.out.println(tmp.a(100. * efficiency + "%"));
 		}
 	}
@@ -467,8 +467,7 @@ public class CommandLineInterface {
 	 * @see Track
 	 * @see TrackDB
 	 */
-	@Command(name = "import", mixinStandardHelpOptions = true,
-		description = "Importar faixas de um arquivo CSV.")
+	@Command(name = "import", mixinStandardHelpOptions = true, description = "Importar faixas de um arquivo CSV.")
 	static class ImportCommand implements Runnable {
 		/**
 		 * Caminho para o arquivo CSV de origem a ser importado.
@@ -481,7 +480,8 @@ public class CommandLineInterface {
 		 * Referência para o comando pai, usada para acessar o banco de dados e exibir
 		 * mensagens de erro e informações.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa a importação das faixas de música a partir do arquivo CSV.
@@ -544,15 +544,14 @@ public class CommandLineInterface {
 	 * @see Field
 	 */
 	@SuppressWarnings("CanBeFinal")
-	@Command(name = "read", mixinStandardHelpOptions = true,
-		description = "Ler faixa(s) por campo ou por ID.",
-		footer = {"Exemplos:", "read 117 @|magenta (ler por ID 117)|@",
+	@Command(name = "read", mixinStandardHelpOptions = true, description = "Ler faixa(s) por campo ou por ID.", footer = {
+			"Exemplos:", "read 117 @|magenta (ler por ID 117)|@",
 			"read --field=GENRES pop rock @|magenta (ler faixas com Gêneros incluindo pop e "
-				+ "rock)|@",
+					+ "rock)|@",
 			"read --field=TRACK_ARTISTS \"Frank Sinatra\" @|magenta (ler faixas de Frank "
-				+ "Sinatra)|@",
+					+ "Sinatra)|@",
 			"read --field=NAME --regex 'You.*Gone' @|magenta (ler nomes de faixas com expressão "
-				+ "regular)|@"})
+					+ "regular)|@" })
 	static class ReadCommand implements Runnable {
 		/**
 		 * Grupo de opções para escolher entre ler todas as faixas ou especificar um
@@ -560,7 +559,8 @@ public class CommandLineInterface {
 		 * - Um campo específico para busca (como ID, NAME, GENRES, etc.).
 		 * - A opção de ler todas as faixas.
 		 */
-		@ArgGroup() private final ReadCommandType type = new ReadCommandType();
+		@ArgGroup()
+		private final ReadCommandType type = new ReadCommandType();
 
 		/**
 		 * Classe que contém as opções de filtro para a busca das faixas.
@@ -579,15 +579,14 @@ public class CommandLineInterface {
 			/**
 			 * Se ativado, lê todas as faixas no banco de dados, sem aplicar filtros.
 			 */
-			@Option(names = {"-a", "--all"}, description = "Ler todos os registros.",
-				defaultValue = "false")
+			@Option(names = { "-a", "--all" }, description = "Ler todos os registros.", defaultValue = "false")
 			boolean all = false;
 
 			/**
 			 * Realizar busca por listas invertidas.
 			 */
-			@Option(names = {"-l", "--list"}, description = "Realizar busca por listas invertidas.",
-				defaultValue = "false")
+			@Option(names = { "-l",
+					"--list" }, description = "Realizar busca por listas invertidas.", defaultValue = "false")
 			boolean invertedList = false;
 		}
 
@@ -595,16 +594,15 @@ public class CommandLineInterface {
 		 * Se ativado, a busca por nome da faixa ou do álbum será realizada utilizando
 		 * expressões regulares.
 		 */
-		@Option(names = {"-r", "--regex"}, description = "Buscar strings com expressão regular.",
-			defaultValue = "false")
+		@Option(names = { "-r",
+				"--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
 		boolean regex = false;
 
 		@Option(names = "--name", description = "Termo de busca para lista invertida de nomes.")
 		String nameList;
 		@Option(names = "--album", description = "Termo de busca para lista invertida de álbuns.")
 		String albumList;
-		@Option(
-			names = "--artist", description = "Termo de busca para lista invertida de artistas.")
+		@Option(names = "--artist", description = "Termo de busca para lista invertida de artistas.")
 		String artistList;
 
 		/**
@@ -618,7 +616,8 @@ public class CommandLineInterface {
 		 * Referência para o comando pai, usado para acessar o banco de dados e exibir
 		 * mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa a leitura das faixas do banco de dados com base no filtro fornecido.
@@ -656,7 +655,7 @@ public class CommandLineInterface {
 
 				if (nameList == null && albumList == null && artistList == null) {
 					parent.error("Pelo menos um termo de busca deve ser especificado para as "
-						+ "listas invertidas.");
+							+ "listas invertidas.");
 					return;
 				}
 
@@ -667,7 +666,8 @@ public class CommandLineInterface {
 						return;
 					}
 
-					for (int id : ids) parent.printTrack(parent.db.read(id));
+					for (int id : ids)
+						parent.printTrack(parent.db.read(id));
 					return;
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -781,18 +781,19 @@ public class CommandLineInterface {
 	 * @see Track
 	 * @see CliCommands
 	 */
-	@Command(name = "delete", mixinStandardHelpOptions = true,
-		description = "Deletar uma faixa pelo ID.")
+	@Command(name = "delete", mixinStandardHelpOptions = true, description = "Deletar uma faixa pelo ID.")
 	static class DeleteCommand implements Runnable {
 		/**
 		 * ID da faixa a ser deletada.
 		 */
-		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.") int id;
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
+		int id;
 
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa a exclusão da faixa a partir do ID fornecido.
@@ -839,8 +840,7 @@ public class CommandLineInterface {
 	 * @see Track
 	 * @see CliCommands
 	 */
-	@Command(
-		name = "create", mixinStandardHelpOptions = true, description = "Criar uma nova faixa.")
+	@Command(name = "create", mixinStandardHelpOptions = true, description = "Criar uma nova faixa.")
 	static class CreateCommand implements Runnable {
 		private Ansi rightPrompt = ansi().bold().fgBrightYellow();
 		LineReader reader;
@@ -848,7 +848,8 @@ public class CommandLineInterface {
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Método auxiliar para ler os dados de entrada do usuário de maneira
@@ -859,7 +860,7 @@ public class CommandLineInterface {
 		 */
 		private String read(String prompt) {
 			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
-				this.rightPrompt.toString(), (MaskingCallback) null, null);
+					this.rightPrompt.toString(), (MaskingCallback) null, null);
 		}
 
 		/**
@@ -887,7 +888,7 @@ public class CommandLineInterface {
 				Track t = new Track();
 				t.setName(read("Name"));
 				t.setTrackArtists(
-					Arrays.stream(read("Artists").split(",")).map(String::trim).toList());
+						Arrays.stream(read("Artists").split(",")).map(String::trim).toList());
 				t.setAlbumName(read("Album"));
 				t.setAlbumReleaseDate(LocalDate.parse(read("Release Date (YYYY-MM-DD)")));
 				t.setAlbumType(read("Album Type"));
@@ -936,8 +937,7 @@ public class CommandLineInterface {
 	 * @see Track
 	 * @see CliCommands
 	 */
-	@Command(name = "update", mixinStandardHelpOptions = true,
-		description = "Atualizar uma faixa existente.")
+	@Command(name = "update", mixinStandardHelpOptions = true, description = "Atualizar uma faixa existente.")
 	static class UpdateCommand implements Runnable {
 		private Ansi rightPrompt = ansi().bold().fgBrightMagenta();
 		LineReader reader;
@@ -946,18 +946,20 @@ public class CommandLineInterface {
 		 * Campos que devem ser atualizados. Se não fornecido, todos os campos serão
 		 * atualizados.
 		 */
-		@Option(names = {"-f", "--field"}, description = "Campos a serem atualizados.")
+		@Option(names = { "-f", "--field" }, description = "Campos a serem atualizados.")
 		Field[] selectedFields;
 
 		/**
 		 * ID da faixa a ser atualizada.
 		 */
-		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.") int id;
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
+		int id;
 
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Método auxiliar para ler os dados de entrada do usuário de maneira
@@ -968,7 +970,7 @@ public class CommandLineInterface {
 		 */
 		private String read(String prompt) {
 			return reader.readLine(ansi().bold().fgBrightBlue().a(prompt + ": ").reset().toString(),
-				this.rightPrompt.toString(), (MaskingCallback) null, null);
+					this.rightPrompt.toString(), (MaskingCallback) null, null);
 		}
 
 		/**
@@ -994,8 +996,8 @@ public class CommandLineInterface {
 			try {
 				parent.suggestions.disable();
 				parent.db.update(id,
-					(selectedFields == null || selectedFields.length == 0) ? updateFull(id)
-														 : updateFields(id, selectedFields));
+						(selectedFields == null || selectedFields.length == 0) ? updateFull(id)
+								: updateFields(id, selectedFields));
 			} catch (NoSuchElementException e) {
 				parent.error("O ID " + id + " não existe nesse arquivo.");
 			} catch (IllegalArgumentException e) {
@@ -1051,7 +1053,7 @@ public class CommandLineInterface {
 						break;
 					case TRACK_ARTISTS:
 						t.setTrackArtists(
-							Arrays.stream(read("Artists").split(",")).map(String::trim).toList());
+								Arrays.stream(read("Artists").split(",")).map(String::trim).toList());
 						break;
 					case ALBUM_NAME:
 						t.setAlbumName(read("Album"));
@@ -1064,7 +1066,7 @@ public class CommandLineInterface {
 						break;
 					case GENRES:
 						t.setGenres(
-							Arrays.stream(read("Genres").split(",")).map(String::trim).toList());
+								Arrays.stream(read("Genres").split(",")).map(String::trim).toList());
 						break;
 					case EXPLICIT:
 						t.setExplicit(Boolean.parseBoolean(read("Explicit (true/false)")));
@@ -1120,18 +1122,19 @@ public class CommandLineInterface {
 	 * @see Track
 	 * @see CliCommands
 	 */
-	@Command(
-		name = "play", mixinStandardHelpOptions = true, description = "Tocar a faixa no Spotify.")
+	@Command(name = "play", mixinStandardHelpOptions = true, description = "Tocar a faixa no Spotify.")
 	static class PlayCommand implements Runnable {
 		/**
 		 * ID da faixa a tocar.
 		 */
-		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.") int id;
+		@Parameters(paramLabel = "<ID>", description = "Chave primária da faixa.")
+		int id;
 
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa o comando para tocar a faixa no Spotify.
@@ -1194,39 +1197,35 @@ public class CommandLineInterface {
 	 * @see BalancedMergeSort
 	 */
 	@SuppressWarnings("CanBeFinal")
-	@Command(
-		name = "sort", mixinStandardHelpOptions = true, description = "Ordenar o banco de dados.")
+	@Command(name = "sort", mixinStandardHelpOptions = true, description = "Ordenar o banco de dados.")
 	static class SortCommand implements Runnable {
 		/**
 		 * O fanout especifica o número de elementos que são intercalados de cada vez
 		 * durante a ordenação. O valor padrão é 8.
 		 */
-		@Option(names = {"-f", "--fanout"},
-			description = {"Fanout para o algoritmo Balanced Merge Sort.",
-				"(Número de elementos mesclados de cada vez.)"},
-			defaultValue = "8")
+		@Option(names = { "-f", "--fanout" }, description = { "Fanout para o algoritmo Balanced Merge Sort.",
+				"(Número de elementos mesclados de cada vez.)" }, defaultValue = "8")
 		int fanout = 8;
 
 		/**
 		 * O tamanho máximo da pilha em memória a ser usada durante a ordenação.
 		 * O valor padrão é 64.
 		 */
-		@Option(names = {"-n", "--num"},
-			description = {"Número máximo de elementos na pilha em memória",
-				"a ser utilizado durante a ordenação."},
-			defaultValue = "64")
+		@Option(names = { "-n", "--num" }, description = { "Número máximo de elementos na pilha em memória",
+				"a ser utilizado durante a ordenação." }, defaultValue = "64")
 		int maxHeapSize = 64;
 
 		/**
 		 * Ativa ou desativa a saída detalhada durante a ordenação.
 		 */
-		@Option(names = {"-v", "--verbose"}, description = "Ativar saída detalhada.")
+		@Option(names = { "-v", "--verbose" }, description = "Ativar saída detalhada.")
 		boolean verbose = false;
 
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa a ordenação do banco de dados utilizando o algoritmo Balanced Merge
@@ -1259,7 +1258,7 @@ public class CommandLineInterface {
 			// para garantir que o aviso será exibido.
 			if (parent.db.hasPrimaryIndex() && parent.db.getNumTracks() >= 50000) {
 				parent.warn("Ordenando arquivo com muitos elementos. Será necessário reindexar. "
-					+ "Isso pode demorar.");
+						+ "Isso pode demorar.");
 				parent.out.flush();
 			}
 
@@ -1294,33 +1293,29 @@ public class CommandLineInterface {
 	 * @see CliCommands
 	 */
 	@SuppressWarnings("CanBeFinal")
-	@Command(name = "index", mixinStandardHelpOptions = true,
-		description = "Gerencia o índice do banco de dados.")
+	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
-		@ArgGroup() private final IndexType indexType = new IndexType();
+		@ArgGroup()
+		private final IndexType indexType = new IndexType();
 
 		/**
 		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
 		 */
 		@SuppressWarnings("CanBeFinal")
 		static class IndexType {
-			@Option(
-				names = "--tree", description = "Habilita índice por Árvore B.", required = true)
+			@Option(names = "--tree", description = "Habilita índice por Árvore B.", required = true)
 			boolean btree = false;
 
-			@Option(names = "--hash", description = "Habilita índice por Hash Dinâmico.",
-				required = true)
+			@Option(names = "--hash", description = "Habilita índice por Hash Dinâmico.", required = true)
 			boolean hash = false;
 
-			@Option(names = "--inverted", description = "Habilita índice por Lista Invertida.",
-				required = true)
+			@Option(names = "--inverted", description = "Habilita índice por Lista Invertida.", required = true)
 			boolean invertedList = false;
 
 			@Option(names = "--disable", description = "Deleta o índice atual.", required = true)
 			boolean disable = false;
 
-			@Option(
-				names = "--reindex", description = "Reindexa o arquivo inteiro.", required = true)
+			@Option(names = "--reindex", description = "Reindexa o arquivo inteiro.", required = true)
 			boolean reindex = false;
 		}
 
@@ -1328,23 +1323,22 @@ public class CommandLineInterface {
 		 * Número máximo de filhos de uma página na Árvore B.
 		 * Deve ser um número par.
 		 */
-		@Option(names = {"-o", "--order"},
-			description = {"Número máximo de filhos de uma página na Árvore B.", "(Deve ser par)"},
-			defaultValue = "16")
+		@Option(names = { "-o", "--order" }, description = { "Número máximo de filhos de uma página na Árvore B.",
+				"(Deve ser par)" }, defaultValue = "16")
 		int order = 16;
 
 		/**
 		 * Número máximo de elementos de um bucket na Tabela Hash.
 		 */
-		@Option(names = {"-b", "--bucket"},
-			description = "Número máximo de elementos de um bucket na Tabela Hash.",
-			defaultValue = "16")
+		@Option(names = { "-b",
+				"--bucket" }, description = "Número máximo de elementos de um bucket na Tabela Hash.", defaultValue = "16")
 		int bucketSize = 16;
 
 		/**
 		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
 		 */
-		@ParentCommand CliCommands parent;
+		@ParentCommand
+		CliCommands parent;
 
 		/**
 		 * Executa a operação de gerenciamento de índice no banco de dados.
@@ -1389,7 +1383,7 @@ public class CommandLineInterface {
 					parent.db.reindex();
 				else
 					parent.error("É necessário especificar exatamente uma operação. Use `index "
-						+ "--help` para mais detalhes.");
+							+ "--help` para mais detalhes.");
 			} catch (IllegalArgumentException e) {
 				parent.error("Parâmetro inválido recebido: " + e.getMessage());
 			} catch (IllegalStateException e) {
@@ -1440,8 +1434,7 @@ public class CommandLineInterface {
 		try {
 			// Configuração do diretório de trabalho e comandos do sistema.
 			Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
-			Builtins builtins =
-				new Builtins(workDir, new ConfigurationPath(workDir.get(), workDir.get()), null);
+			Builtins builtins = new Builtins(workDir, new ConfigurationPath(workDir.get(), workDir.get()), null);
 			CliCommands commands = new CliCommands();
 			PicocliCommandsFactory factory = new PicocliCommandsFactory();
 			CommandLine cmd = new CommandLine(commands, factory);
@@ -1463,11 +1456,11 @@ public class CommandLineInterface {
 
 			// Configuração do leitor de linhas e sugestões de autocompletar.
 			LineReader reader = LineReaderBuilder.builder()
-									.terminal(terminal)
-									.completer(systemRegistry.completer())
-									.parser(parser)
-									.variable(LineReader.LIST_MAX, 100)
-									.build();
+					.terminal(terminal)
+					.completer(systemRegistry.completer())
+					.parser(parser)
+					.variable(LineReader.LIST_MAX, 100)
+					.build();
 
 			builtins.setLineReader(reader);
 			commands.setReader(reader);
@@ -1475,7 +1468,7 @@ public class CommandLineInterface {
 
 			// Configuração de widgets de sugestões e dicas de comandos.
 			TailTipWidgets tailtip = new TailTipWidgets(
-				reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
+					reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
 			tailtip.enable();
 			AutosuggestionWidgets suggestions = new AutosuggestionWidgets(reader);
 			suggestions.enable();
@@ -1494,7 +1487,7 @@ public class CommandLineInterface {
 				try {
 					systemRegistry.cleanUp();
 					line = reader.readLine(
-						commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
+							commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
 					commands.info("Programa finalizado");
@@ -1543,11 +1536,11 @@ public class CommandLineInterface {
 		// Aplica a formatação de cor nas linhas da arte ASCII.
 		for (int i = 1; i <= 5; ++i)
 			bannerLeft[i] = new AttributedString(
-				bannerLeft[i], AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
-								.toAnsi();
+					bannerLeft[i], AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
+					.toAnsi();
 		bannerLeft[7] = new AttributedString(
-			bannerLeft[7], AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA))
-							.toAnsi();
+				bannerLeft[7], AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA))
+				.toAnsi();
 
 		// Cria a descrição do programa à direita.
 		String[] bannerRight = new String[5];
@@ -1560,17 +1553,19 @@ public class CommandLineInterface {
 		// Aplica a formatação de cor nas linhas de descrição.
 		for (int i = 0; i <= 2; ++i)
 			bannerRight[i] = new AttributedString(
-				bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
-								 .toAnsi();
+					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
+					.toAnsi();
 		for (int i = 3; i <= 4; ++i)
 			bannerRight[i] = new AttributedString(
-				bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
-								 .toAnsi();
+					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+					.toAnsi();
 
 		// Combina a arte ASCII com a descrição do programa.
-		for (int i = 0; i <= 4; ++i) bannerLeft[i + 1] += bannerRight[i];
+		for (int i = 0; i <= 4; ++i)
+			bannerLeft[i + 1] += bannerRight[i];
 
 		// Exibe o banner completo no terminal.
-		for (String s : bannerLeft) terminal.writer().println(s);
+		for (String s : bannerLeft)
+			terminal.writer().println(s);
 	}
 }
