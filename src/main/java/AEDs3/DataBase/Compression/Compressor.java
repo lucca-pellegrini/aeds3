@@ -21,19 +21,21 @@ public class Compressor {
 		Files.delete(Paths.get(packPath));
 	}
 
-	public static void decompress(String src, String dst, CompressionType type) throws IOException {
-		String unpackPath = dst + ".unpack";
+	public static String[] decompress(String src, CompressionType type) throws IOException {
+		String packPath = src + ".pack";
 
 		switch (type) {
 		case HUFFMAN:
-			Huffman.decompressFile(src, unpackPath);
+			Huffman.decompressFile(src, packPath);
 			break;
 		case LZW:
-			LZW.decompressFile(src, unpackPath);
+			LZW.decompressFile(src, packPath);
 			break;
 		}
 
-		FilePacker.unpack(unpackPath);
-		Files.delete(Paths.get(unpackPath));
+		String[] res = FilePacker.unpack(packPath);
+		Files.delete(Paths.get(packPath));
+
+		return res;
 	}
 }

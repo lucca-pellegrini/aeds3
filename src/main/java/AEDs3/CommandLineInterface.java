@@ -92,7 +92,7 @@ public class CommandLineInterface {
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
 					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
-					CompressCommand.class })
+					CompressCommand.class, DecompressCommand.class })
 	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -381,6 +381,57 @@ public class CommandLineInterface {
 					throw new RuntimeException("Erro ao comprimir " + dst);
 				}
 			}
+		}
+	}
+
+	@Command(name = "decompress", mixinStandardHelpOptions = true, description = "Descomprime um arquivo TrackDB.")
+	static class DecompressCommand implements Runnable {
+		@Option(names = { "-m",
+				"--method" }, description = "Algoritmo de compressão a ser utilizado.", required = false)
+		CompressionType method;
+
+		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descomprimir.")
+		String path;
+
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (method == null) {
+				if (path.endsWith(".huffman")) {
+					method = CompressionType.HUFFMAN;
+				} else if (path.endsWith(".lzw")) {
+					method = CompressionType.LZW;
+				} else {
+					parent.error("Impossível determinar algoritmo pelo nome do arquivo.");
+					throw new IllegalArgumentException("Método de descompressão indeterminado.");
+				}
+			}
+
+			String dbPath;
+			try {
+				dbPath = Compressor.decompress(path, method)[0];
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Erro ao descomprimir " + path);
+			}
+
+			if (parent.db == null)
+				return;
+
+			try (TrackDB decompressed = new TrackDB(dbPath)) {
+				if (decompressed.getUUID().equals(parent.db.getUUID())) {
+					parent.info("Recarregando arquivo.");
+					parent.db = new TrackDB(dbPath);
+				}
+			} catch (IOException e) {
+				parent.error("Impossível verificar arquivo descomprimido.");
+			}
+
 		}
 	}
 
