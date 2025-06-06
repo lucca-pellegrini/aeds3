@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
  * Classe principal que executa a busca de um padrão textual em um arquivo binário
  * utilizando o algoritmo de Boyer-Moore.
  */
-public class Boyer_Moore {
+public class BoyerMoore {
 
     private static final int ALPHABET_SIZE = 256; // Tamanho do alfabeto ASCII estendido
 
@@ -87,7 +87,7 @@ public class Boyer_Moore {
         String patternText = "Talvez"; // Padrão de busca
 
         BoyerMoore bm = new BoyerMoore(patternText);
-        boolean found = false;  
+        boolean found = false;
 
         // Bloco try-with-resources para garantir fechamento do arquivo
         try (FileInputStream fis = new FileInputStream(filePath)) {
