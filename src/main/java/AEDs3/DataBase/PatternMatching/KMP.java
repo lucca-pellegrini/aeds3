@@ -1,4 +1,4 @@
-package AEDs3.DataBase.Pattern_Matching;
+package AEDs3.DataBase.PatternMatching;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
