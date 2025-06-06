@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class BoyerMoore {
 	private static final int ALPHABET_SIZE = 256; // Tamanho do alfabeto ASCII estendido
 	private byte[] pattern; // Padrão em bytes
-	private int[] badChar; // Tabela de caracteres ruins para desalinhamento
+	private int[] badCharTbl; // Tabela de caracteres ruins para desalinhamento
 
 	/**
 	 * Construtor da classe BoyerMoore.
@@ -20,7 +20,7 @@ public class BoyerMoore {
 	 */
 	public BoyerMoore(String patternText) {
 		this.pattern = patternText.getBytes(StandardCharsets.UTF_8);
-		this.badChar = new int[ALPHABET_SIZE];
+		this.badCharTbl = new int[ALPHABET_SIZE];
 		preprocess();
 	}
 
@@ -31,10 +31,9 @@ public class BoyerMoore {
 	 */
 	private void preprocess() {
 		for (int i = 0; i < ALPHABET_SIZE; i++)
-			badChar[i] = -1;
-		for (int i = 0; i < pattern.length; i++) {
-			badChar[pattern[i] & 0xFF] = i;
-		}
+			badCharTbl[i] = -1;
+		for (int i = 0; i < pattern.length; i++)
+			badCharTbl[pattern[i] & 0xFF] = i;
 	}
 
 	/**
@@ -51,13 +50,12 @@ public class BoyerMoore {
 
 		while (s <= n - m) {
 			int j = m - 1;
-			while (j >= 0 && pattern[j] == text[s + j]) {
+			while (j >= 0 && pattern[j] == text[s + j])
 				j--;
-			}
 			if (j < 0)
 				return s;
 			else
-				s += Math.max(1, j - badChar[text[s + j] & 0xFF]);
+				s += Math.max(1, j - badCharTbl[text[s + j] & 0xFF]);
 		}
 
 		return -1;
@@ -130,16 +128,10 @@ public class BoyerMoore {
 			}
 
 			// Se não encontrou o padrão em nenhum bloco
-			if (!found) {
+			if (!found)
 				System.out.println("Padrão \"" + patternText + "\" não encontrado no arquivo.");
-			}
 
 		} catch (IOException e) {
-			/**
-			 * Captura exceções de entrada/saída e exibe uma mensagem de erro.
-			 *
-			 * @throws IOException Caso ocorra um erro ao ler o arquivo.
-			 */
 			System.err.println("Error reading file: " + e.getMessage());
 		}
 	}
