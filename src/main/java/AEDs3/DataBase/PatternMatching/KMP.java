@@ -1,6 +1,7 @@
 package AEDs3.DataBase.PatternMatching;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,6 +123,11 @@ public class KMP {
 		}
 
 		return results;
+	}
+
+	public static boolean match(String pattern, String text) throws IOException {
+		InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+		return !searchInStream(in, pattern, 4096, 20).isEmpty();
 	}
 
 	/**

@@ -572,9 +572,9 @@ public class CommandLineInterface {
 			/**
 			 * Define o campo a ser usado para busca. O valor padrão é "ID".
 			 */
-			@Option(names = {"-f", "--field"}, description = "Campo a ser usado para busca.",
-				defaultValue = "ID")
-			Field field = ID;
+			@Option(names = { "-m",
+					"--method" }, description = "Campo ou método a ser usado para busca.", defaultValue = "ID")
+			Field method = ID;
 
 			/**
 			 * Se ativado, lê todas as faixas no banco de dados, sem aplicar filtros.
@@ -676,7 +676,7 @@ public class CommandLineInterface {
 				}
 			}
 
-			Field field = type.field;
+			Field method = type.method;
 
 			// Se os parâmetros de busca não foram fornecidos ou são inválidos, exibe o uso
 			// correto.
@@ -684,11 +684,11 @@ public class CommandLineInterface {
 				parent.out.println(new CommandLine(this).getUsageMessage());
 				return;
 			} else if (params.length > 1) {
-				// Validações específicas de campo.
-				switch (field) {
+				// Validações específicas de método.
+				switch (method) {
 					case ID, NAME, ALBUM_NAME, ALBUM_RELEASE_DATE, ALBUM_TYPE, TRACK_ID, POPULARITY,
-						KEY:
-						parent.error("O campo " + field + " exige exatamente um parâmetro.");
+							KEY:
+						parent.error("O método " + method + " exige exatamente um parâmetro.");
 						return;
 					default:
 				}
@@ -696,9 +696,9 @@ public class CommandLineInterface {
 
 			String singleParam = params[0];
 
-			// Caso o campo seja ID, realiza a busca pelo ID específico.
+			// Caso o método seja ID, realiza a busca pelo ID específico.
 			try {
-				if (field == ID) {
+				if (method == ID) {
 					parent.printTrack(parent.db.read(Integer.parseInt(singleParam)));
 					return;
 				}
@@ -715,28 +715,29 @@ public class CommandLineInterface {
 			TrackFilter oldFilter = parent.db.getFilter();
 
 			try {
-				// Aplica o filtro de busca conforme o campo selecionado.
-				TrackFilter newFilter = switch (field) {
+				// Aplica o filtro de busca conforme o método selecionado.
+				TrackFilter newFilter = switch (method) {
 					case NAME, ALBUM_NAME -> {
 						if (regex)
-							yield new TrackFilter(field,
-								Pattern.compile(
-									singleParam, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
+							yield new TrackFilter(method,
+									Pattern.compile(
+											singleParam, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
 						else
-							yield new TrackFilter(field, singleParam);
+							yield new TrackFilter(method, singleParam);
 					}
+					case KMP, BOYER_MOORE -> new TrackFilter(method, singleParam);
 					case TRACK_ID -> {
 						if (singleParam.length() != Track.getTrackIdNumChars()) {
-							parent.error(field + " deve conter exatamente "
-								+ Track.getTrackIdNumChars() + " caracteres.");
+							parent.error(method + " deve conter exatamente "
+									+ Track.getTrackIdNumChars() + " caracteres.");
 							throw new IllegalArgumentException();
 						}
-						yield new TrackFilter(field, singleParam);
+						yield new TrackFilter(method, singleParam);
 					}
-					case ALBUM_RELEASE_DATE -> new TrackFilter(field, LocalDate.parse(singleParam));
-					case ALBUM_TYPE -> new TrackFilter(field, singleParam);
-					case POPULARITY, KEY -> new TrackFilter(field, Integer.parseInt(singleParam));
-					case TRACK_ARTISTS, GENRES -> new TrackFilter(field, Arrays.asList(params));
+					case ALBUM_RELEASE_DATE -> new TrackFilter(method, LocalDate.parse(singleParam));
+					case ALBUM_TYPE -> new TrackFilter(method, singleParam);
+					case POPULARITY, KEY -> new TrackFilter(method, Integer.parseInt(singleParam));
+					case TRACK_ARTISTS, GENRES -> new TrackFilter(method, Arrays.asList(params));
 					case DANCEABILITY, ENERGY, LOUDNESS, TEMPO, VALENCE -> {
 						parent.error("Não é possível buscar por valores de tipo float.");
 						throw new IllegalArgumentException();
@@ -1097,6 +1098,9 @@ public class CommandLineInterface {
 						break;
 					case ID:
 						throw new IllegalArgumentException("Não é possível alterar o ID.");
+					case KMP, BOYER_MOORE:
+						throw new IllegalArgumentException(
+								"Recebi um algoritmo de busca (" + field + "), mas esperava um campo de registro para atualizar.");
 				}
 			}
 

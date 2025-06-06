@@ -1,5 +1,10 @@
 package AEDs3.DataBase;
 
+import AEDs3.DataBase.PatternMatching.BoyerMoore;
+import AEDs3.DataBase.PatternMatching.KMP;
+
+import static AEDs3.DataBase.Track.Field.BOYER_MOORE;
+
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -262,7 +267,7 @@ public class Track implements Externalizable, Comparable<Track> {
 	 *                                   campo.
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean matchesField(Track.Field field, Object value) {
+	public boolean matchesField(Track.Field field, Object value) throws IOException {
 		return switch (field) {
 			case ID -> getId() == (int) value;
 			case ALBUM_RELEASE_DATE -> getAlbumReleaseDate().equals(value);
@@ -276,6 +281,18 @@ public class Track implements Externalizable, Comparable<Track> {
 			case LOUDNESS -> getLoudness() == (float) value;
 			case TEMPO -> getTempo() == (float) value;
 			case VALENCE -> getValence() == (float) value;
+			case KMP -> {
+				if (value instanceof String pattern)
+					yield KMP.match(pattern, getName()) || KMP.match(pattern, getAlbumName());
+				else
+					throw new InvalidParameterException("Tipo inválido. Esperava String.");
+			}
+			case BOYER_MOORE -> {
+				if (value instanceof String pattern)
+					yield BoyerMoore.match(pattern, getName()) || BoyerMoore.match(pattern, getAlbumName());
+				else
+					throw new InvalidParameterException("Tipo inválido. Esperava String.");
+			}
 			case NAME -> {
 				if (value instanceof String)
 					yield getName().equals(value);
@@ -317,6 +334,8 @@ public class Track implements Externalizable, Comparable<Track> {
 
 	/**
 	 * Enum que define os campos que podem ser utilizados para busca na faixa.
+	 * Inclui também membros que não são campos, mas mecanismos de busca, como os
+	 * algoritmos de casamento de padrões.
 	 */
 	public enum Field {
 		ID,
@@ -334,7 +353,9 @@ public class Track implements Externalizable, Comparable<Track> {
 		ENERGY,
 		LOUDNESS,
 		TEMPO,
-		VALENCE
+		VALENCE,
+		KMP,
+		BOYER_MOORE
 	}
 
 	// Getters e setters para todos os atributos.

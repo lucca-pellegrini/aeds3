@@ -1,8 +1,12 @@
 package AEDs3.DataBase.PatternMatching;
 
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
+// import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Classe interna que implementa o algoritmo de Boyer-Moore para busca eficiente
@@ -70,69 +74,67 @@ public class BoyerMoore {
 		return pattern.length;
 	}
 
-	public static void main(String[] args) {
-		// Caminho do arquivo binário
-		String filePath = "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\aeds3\\AEDs-III-2\\src\\main\\java\\AEDs3\\DataBase\\Pattern_Matching\\arquivo(1).bin";
-		String patternText = "Talvez"; // Padrão de busca
+	public static boolean match(String pattern, String text) throws IOException {
+		InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+		return !searchInStream(in, pattern, 4096).isEmpty();
+	}
 
-		BoyerMoore bm = new BoyerMoore(patternText);
-		boolean found = false;
+	public static List<Integer> searchInStream(InputStream in, String pattern, int blockSize) throws IOException {
+		ArrayList<Integer> matches = new ArrayList<>();
+		BoyerMoore bm = new BoyerMoore(pattern);
+		// boolean found = false;
 
-		// Bloco try-with-resources para garantir fechamento do arquivo
-		try (FileInputStream fis = new FileInputStream(filePath)) {
-			int blockSize = 4096;
-			byte[] buffer = new byte[blockSize];
-			byte[] previous = new byte[bm.getPatternLength() - 1];
-			int offset = 0;
-			int bytesRead;
+		byte[] buffer = new byte[blockSize];
+		byte[] previous = new byte[bm.getPatternLength() - 1];
+		int offset = 0;
+		int bytesRead;
 
-			// Leitura do arquivo em blocos
-			while ((bytesRead = fis.read(buffer)) != -1) {
-				// Combina o final do bloco anterior com o atual
-				byte[] combined = new byte[previous.length + bytesRead];
-				System.arraycopy(previous, 0, combined, 0, previous.length);
-				System.arraycopy(buffer, 0, combined, previous.length, bytesRead);
+		// Leitura do arquivo em blocos
+		while ((bytesRead = in.read(buffer)) != -1) {
+			// Combina o final do bloco anterior com o atual
+			byte[] combined = new byte[previous.length + bytesRead];
+			System.arraycopy(previous, 0, combined, 0, previous.length);
+			System.arraycopy(buffer, 0, combined, previous.length, bytesRead);
 
-				int searchStart = 0;
+			int searchStart = 0;
 
-				// Busca todas as ocorrências do padrão no bloco combinado
-				while (searchStart <= combined.length - bm.getPatternLength()) {
-					int pos = bm.search(combined, searchStart);
-					if (pos == -1)
-						break;
+			// Busca todas as ocorrências do padrão no bloco combinado
+			while (searchStart <= combined.length - bm.getPatternLength()) {
+				int pos = bm.search(combined, searchStart);
+				if (pos == -1)
+					break;
 
-					found = true; // Marca que encontrou o padrão
+				// found = true; // Marca que encontrou o padrão
 
-					int absoluteOffset = offset - previous.length + pos;
-					System.out.println("Pattern \"" + patternText + "\" found at offset: " + absoluteOffset);
+				int absoluteOffset = offset - previous.length + pos;
+				matches.add(absoluteOffset);
+				// System.out.println("Pattern \"" + pattern + "\" found at offset: " + absoluteOffset);
 
-					// Exibe trecho de contexto após o padrão encontrado
-					int end = Math.min(pos + bm.getPatternLength() + 40, combined.length);
-					String snippet = new String(combined, pos, end - pos, StandardCharsets.UTF_8)
-							.replaceAll("[\\r\\n]", " ");
-					System.out.println("Snippet: \"" + snippet + "\"\n");
+				// Exibe trecho de contexto após o padrão encontrado
+				// int end = Math.min(pos + bm.getPatternLength() + 40, combined.length);
+				// String snippet = new String(combined, pos, end - pos, StandardCharsets.UTF_8)
+				// 		.replaceAll("[\\r\\n]", " ");
+				// System.out.println("Snippet: \"" + snippet + "\"\n");
 
-					searchStart = pos + 1;
-				}
-
-				// Atualiza o buffer "previous" para incluir o final do bloco atual
-				if (bytesRead >= previous.length) {
-					System.arraycopy(buffer, bytesRead - previous.length, previous, 0, previous.length);
-				} else {
-					System.arraycopy(previous, previous.length - (previous.length - bytesRead), previous, 0,
-							previous.length - bytesRead);
-					System.arraycopy(buffer, 0, previous, previous.length - bytesRead, bytesRead);
-				}
-
-				offset += bytesRead;
+				searchStart = pos + 1;
 			}
 
-			// Se não encontrou o padrão em nenhum bloco
-			if (!found)
-				System.out.println("Padrão \"" + patternText + "\" não encontrado no arquivo.");
+			// Atualiza o buffer "previous" para incluir o final do bloco atual
+			if (bytesRead >= previous.length) {
+				System.arraycopy(buffer, bytesRead - previous.length, previous, 0, previous.length);
+			} else {
+				System.arraycopy(previous, previous.length - (previous.length - bytesRead), previous, 0,
+						previous.length - bytesRead);
+				System.arraycopy(buffer, 0, previous, previous.length - bytesRead, bytesRead);
+			}
 
-		} catch (IOException e) {
-			System.err.println("Error reading file: " + e.getMessage());
+			offset += bytesRead;
 		}
+
+		// Se não encontrou o padrão em nenhum bloco
+		// if (!found)
+			// System.out.println("Padrão \"" + pattern + "\" não encontrado no arquivo.");
+
+		return matches;
 	}
 }
