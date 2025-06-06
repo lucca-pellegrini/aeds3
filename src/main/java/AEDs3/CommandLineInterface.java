@@ -341,9 +341,12 @@ public class CommandLineInterface {
 					for (String file : files) {
 						long len = new File(file).length();
 						originalSize += len;
-						parent.out.println(ansi().bold().a(String.format("% 6d" , len / 1000)).a(" KB ").reset().fgBlue().a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold().fgGreen().a(file).a(' ').reset());
+						parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
+								.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
+								.fgGreen().a(file).a(' ').reset());
 					}
-					parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d" , originalSize / 1000)).a(" KB ").fgBrightBlue().a("(Total)").reset());
+					parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", originalSize / 1000))
+							.a(" KB ").fgBrightBlue().a("(Total)").reset());
 					parent.out.flush();
 
 					// Marca o tempo de início
