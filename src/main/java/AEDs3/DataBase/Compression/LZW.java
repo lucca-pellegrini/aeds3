@@ -17,28 +17,37 @@ public class LZW {
 	 */
 	public static void main(String[] args) {
 		try {
-			File file = new File(
-					"C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\AEDs-III\\AEDs-III-8\\src\\main\\java\\AEDs3\\DataBase\\Compression\\arquivo_grande.bin");
+			File file = new File(args[0]);
 			FileInputStream fis = new FileInputStream(file);
 
 			byte[] originalBytes = fis.readAllBytes();
 			fis.close();
 
+			System.out.println("Comprimindo!");
+
 			// Codificação (Compressão)
 			byte[] encodedBytes = encode(originalBytes);
+
+			System.out.println("Salvando!");
 
 			// Grava o arquivo comprimido
 			FileOutputStream fos = new FileOutputStream("compressed_file.lzw");
 			fos.write(encodedBytes);
 			fos.close();
 
+			System.out.println("Lendo o arquivo comprimido");
+
 			// Lê o arquivo comprimido
 			fis = new FileInputStream("compressed_file.lzw");
 			byte[] encodedCopy = fis.readAllBytes();
 			fis.close();
 
+			System.out.println("Decodificando");
+
 			// Decodificação (Descompressão)
 			byte[] decodedBytes = decode(encodedCopy);
+
+			System.out.println("Salvando o arquivo descomprimido");
 
 			// Grava o arquivo descomprimido
 			fos = new FileOutputStream("decompressed_file.bin");
@@ -80,6 +89,8 @@ public class LZW {
 		int i = 0;
 
 		while (i < originalBytes.length) {
+			System.out.println("Iteração № " + i + "/" + originalBytes.length);
+
 			byteSequence = new ArrayList<>();
 			b = originalBytes[i];
 			byteSequence.add(b);
@@ -133,6 +144,7 @@ public class LZW {
 	 */
 	public static byte[] decode(byte[] encodedBytes) throws Exception {
 
+		// Inicializa o BitArray a partir do array de bytes comprimido
 		BitArray bits = new BitArray(encodedBytes);
 		ArrayList<Integer> indices = new ArrayList<>();
 

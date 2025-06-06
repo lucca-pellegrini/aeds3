@@ -113,7 +113,7 @@ public class Huffman {
 	 * binário.
 	 */
 	public static void main(String[] args) {
-		String caminhoArquivo = "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\AEDs-III\\AEDs-III-8\\src\\main\\java\\AEDs3\\DataBase\\Compression\\arquivo_grande.bin";
+		String caminhoArquivo = args[0];
 
 		try {
 			byte[] dados = java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(caminhoArquivo));
