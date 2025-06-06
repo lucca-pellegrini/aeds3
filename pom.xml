@@ -5,7 +5,7 @@
     <groupId>AEDs3</groupId>
     <artifactId>AEDs3</artifactId>
     <packaging>jar</packaging>
-    <version>latest-19-g60cee5d.r-18</version>
+    <version>latest-21-gf5c21d8.r-20</version>
     <name>AEDs3</name>
     <url>http://maven.apache.org</url>
 

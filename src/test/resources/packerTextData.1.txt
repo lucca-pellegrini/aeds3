@@ -1,0 +1,107 @@
+diff --git a/Makefile b/Makefile
+index 4b9ec9b..5170ac4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,7 +12,7 @@ LATEXFLAGS = -halt-on-error -interaction=batchmode
+
+ all: $(MAIN).pdf
+
+-release: $(VER).zip $(VER).tar
++release: $(VER).ereader.zip $(VER).ereader.tar
+
+ clean:
+ 	$(RM) *.pdf *.ps *.idx *.bbl *.brf *.glo *.dvi *.toc *.lof *.aux   \
+@@ -25,18 +25,18 @@ $(MAIN).pdf: $(MAIN).tex $(ETC) $(FIG) $(CHAPTERS) $(APPENDICES)
+ 	$(LATEX) $(LATEXFLAGS) $(MAIN).tex
+ 	$(RM) .version_info.tex
+
+-$(NAME)_$(VER).pdf: $(MAIN).pdf
++$(NAME)_$(VER).ereader.pdf: $(MAIN).pdf
+ 	gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/prepress \
+-		-dNOPAUSE -dQUIET -dBATCH -sOutputFile=$(NAME)_$(VER).pdf \
++		-dNOPAUSE -dQUIET -dBATCH -sOutputFile=$(NAME)_$(VER).ereader.pdf \
+ 		$(MAIN).pdf
+
+-$(VER).tar: $(MAIN).pdf $(NAME)_$(VER).pdf COPYING
+-	tar -vcf $(VER).tar        \
+-		$(NAME)_$(VER).pdf \
++$(VER).ereader.tar: $(MAIN).pdf $(NAME)_$(VER).ereader.pdf COPYING
++	tar -vcf $(VER).ereader.tar        \
++		$(NAME)_$(VER).ereader.pdf \
+ 		COPYING
+
+-$(VER).zip: $(MAIN).pdf $(NAME)_$(VER).pdf COPYING
++$(VER).ereader.zip: $(MAIN).pdf $(NAME)_$(VER).ereader.pdf COPYING
+ 	zip -r                     \
+-		$(VER).zip         \
+-		$(NAME)_$(VER).pdf \
++		$(VER).ereader.zip         \
++		$(NAME)_$(VER).ereader.pdf \
+ 		COPYING
+diff --git a/cover.tex b/cover.tex
+index b858af7..4da986f 100644
+--- a/cover.tex
++++ b/cover.tex
+@@ -73,5 +73,4 @@
+ \nbvspace[1]
+ \end{center}
+
+-\twocolumn
+ \pagestyle{headings}
+diff --git a/def.tex b/def.tex
+index 2c5d635..12d984f 100644
+--- a/def.tex
++++ b/def.tex
+@@ -12,7 +12,7 @@
+ 		right=0pt,
+ 		top=0pt,
+ 		bottom=0pt,
+-		colframe=gray,
++		colframe=black,
+ 		arc=0pt,outer arc=0pt,
+ 	]
+ 		\centering \large\textbf{#1}\par\medskip
+@@ -31,7 +31,7 @@
+ 		right=0pt,
+ 		top=0pt,
+ 		bottom=0pt,
+-		colframe=gray,
++		colframe=black,
+ 		arc=0pt,outer arc=0pt,
+ 	]
+ 		\large\textbf{On {\sc #1}:}\par\medskip
+diff --git a/main.tex b/main.tex
+index 5df0739..07a39ac 100644
+--- a/main.tex
++++ b/main.tex
+@@ -9,14 +9,19 @@
+ % <http://creativecommons.org/licenses/by-sa/4.0/> or send a letter to Creative
+ % Commons, PO Box 1866, Mountain View, CA 94042, USA.
+
+-\documentclass[a4paper, 10pt, twocolumn]{book}
++\documentclass[oneside, 10pt]{book}
+ \usepackage[utf8]{inputenc}
+ \usepackage[english]{babel}
+
+ \usepackage{lipsum}
+ \usepackage{lettrine}
+ \usepackage{graphicx}
+-\usepackage[hmarginratio=1:1,top=32mm,columnsep=21pt]{geometry}
++\usepackage[
++	paperwidth  = 11.25cm,
++	paperheight = 15cm,
++	margin      = 1cm,
++	includeheadfoot
++]{geometry}
+ \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
+ \usepackage[
+ 	pdfauthor = {Lucca M. A. Pellegrini},
+@@ -54,8 +59,6 @@
+
+ \begin{document}
+ \input{cover.tex}
+-\tableofcontents
+-\listoffigures
+
+ %------------------------------------------------------------------------------
+
