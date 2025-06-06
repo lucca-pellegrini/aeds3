@@ -9,6 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class KMP {
+	/**
+	 * Classe interna que representa o resultado de uma ocorrência do padrão no
+	 * texto.
+	 */
+	public static class MatchResult {
+		long pos; // Posição do padrão no arquivo
+		String ctx; // Trecho de contexto onde o padrão foi encontrado
+
+		MatchResult(long pos, String ctx) {
+			this.pos = pos;
+			this.ctx = ctx;
+		}
+
+		@Override
+		public String toString() {
+			return "Position: " + pos + " | Context: \"" + ctx + "\"";
+		}
+	}
 
 	/**
 	 * Constrói a tabela de prefixo (também chamada de LPS - Longest Prefix Suffix)
@@ -33,24 +51,6 @@ public class KMP {
 		}
 
 		return lps;
-	}
-
-	/**
-	 * Classe que representa o resultado de uma ocorrência do padrão no texto.
-	 */
-	public static class MatchResult {
-		long pos; // Posição do padrão no arquivo
-		String ctx; // Trecho de contexto onde o padrão foi encontrado
-
-		MatchResult(long pos, String ctx) {
-			this.pos = pos;
-			this.ctx = ctx;
-		}
-
-		@Override
-		public String toString() {
-			return "Position: " + pos + " | Context: \"" + ctx + "\"";
-		}
 	}
 
 	/**
