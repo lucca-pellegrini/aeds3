@@ -223,7 +223,7 @@ public class Track implements Externalizable, Comparable<Track> {
 	/**
 	 * Determina igualdade desta faixa com outra baseada no ID.
 	 *
-	 * @param other Faixa a ser comparada.
+	 * @param obj Faixa a ser comparada.
 	 * @return Resultado da comparação entre os IDs das faixas.
 	 */
 	@Override
