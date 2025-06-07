@@ -330,7 +330,7 @@ public class CommandLineInterface {
 		/**
 		 * Caminho do arquivo que será aberto ou criado, se necessário.
 		 */
-		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.")
+		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.", completionCandidates = FileCompleter.class)
 		private Path param;
 
 		/**
@@ -457,7 +457,7 @@ public class CommandLineInterface {
 				"--delete" }, description = "Deletar arquivo após descomprimi-lo", defaultValue = "false")
 		boolean delete;
 
-		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descomprimir.")
+		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descomprimir.", completionCandidates = FileCompleter.class)
 		String path;
 
 		/**
@@ -669,7 +669,7 @@ public class CommandLineInterface {
 		 * Caminho para o arquivo CSV de origem a ser importado.
 		 * O caminho é passado como parâmetro ao executar o comando.
 		 */
-		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo CSV de origem.")
+		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo CSV de origem.", completionCandidates = FileCompleter.class)
 		private Path param;
 
 		/**
@@ -1658,7 +1658,7 @@ public class CommandLineInterface {
 			// Configuração do leitor de linhas e sugestões de autocompletar.
 			LineReader reader = LineReaderBuilder.builder()
 					.terminal(terminal)
-					.completer(systemRegistry.completer())
+					.completer((new ModifiedPicocliJLineCompleter(cmd.getCommandSpec())))
 					.parser(parser)
 					.variable(LineReader.LIST_MAX, 100)
 					.build();
@@ -1775,5 +1775,79 @@ public class CommandLineInterface {
 		// Exibe o banner completo no terminal.
 		for (String s : bannerLeft)
 			terminal.writer().println(s);
+	}
+
+	static class FileCompleter implements Iterable<String> {
+
+		public static File getDir(String d) {
+			File f = new File(d);
+			if (f.isDirectory())
+				return f;
+			String sep = File.separator;
+			String pfx = (d.startsWith(sep) || d.startsWith("." + sep)) ? d.substring(0, d.indexOf(sep) + 1) : "";
+			d = d.substring(pfx.length());
+			int lastSlash = d.lastIndexOf(sep);
+			if (lastSlash >= 0) {
+				f = new File(pfx + d.substring(0, lastSlash));
+				if (f.isDirectory())
+					return f;
+			}
+			f = new File(pfx);
+			if (f.isDirectory())
+				return f;
+			return new File(".");
+		}
+
+		@Override
+		public Iterator<String> iterator() {
+			ParsedLine line = ModifiedPicocliJLineCompleter.parsedLineThreadLocal.get();
+			String userInput = line == null ? "" : line.words().get(line.wordIndex());
+			File dir = getDir(userInput);
+			List<String> candidates = new LinkedList<>();
+			String left, middle;
+			if (userInput.equals(".") || dir.getPath().equals(".") && !userInput.startsWith("." + File.separator)) {
+				left = "";
+				middle = "";
+			} else {
+				left = dir.getPath();
+				middle = dir.getPath().endsWith(File.separator) ? "" : File.separator;
+			}
+			for (File file : dir.listFiles()) {
+				candidates.add(left + middle + file.getName() + (file.isDirectory() ? File.separator : ""));
+			}
+			return candidates.iterator();
+		}
+	}
+
+	private static class ModifiedPicocliJLineCompleter extends PicocliJLineCompleter {
+
+		public static ThreadLocal<ParsedLine> parsedLineThreadLocal = new ThreadLocal<>();
+
+		private final CommandSpec shadowedSpec;
+
+		public ModifiedPicocliJLineCompleter(CommandSpec spec) {
+			super(spec);
+			this.shadowedSpec = spec;
+		}
+
+		@Override
+		public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
+			parsedLineThreadLocal.set(line);
+			try {
+				String[] words = new String[line.words().size()];
+				words = line.words().toArray(words);
+				List<CharSequence> cs = new ArrayList<>();
+				AutoComplete.complete(shadowedSpec, words, line.wordIndex(), 0, line.cursor(), cs);
+				for (CharSequence c : cs) {
+					String s = (String) c;
+					if (s.endsWith(File.separator) && new File(s).isDirectory()) {
+						candidates.add(new Candidate(s, s, null, null, null, null, false));
+					} else
+						candidates.add(new Candidate(s));
+				}
+			} finally {
+				parsedLineThreadLocal.remove();
+			}
+		}
 	}
 }
