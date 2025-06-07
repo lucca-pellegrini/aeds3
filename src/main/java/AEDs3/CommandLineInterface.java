@@ -447,6 +447,7 @@ public class CommandLineInterface {
 				if (open) {
 					parent.db = new TrackDB(dbPath);
 					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
+					parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
 					return;
 				} else if (parent.db == null) {
 					return;
@@ -460,6 +461,7 @@ public class CommandLineInterface {
 					parent.warn("Recarregando arquivo.");
 					parent.db = new TrackDB(dbPath);
 					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
+					parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
 				}
 			} catch (IOException e) {
 				parent.error("Impossível verificar arquivo descomprimido.");
