@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -164,6 +165,10 @@ public class InvertedListIndex {
 	}
 
 	public InvertedListIndex(String dictionaryFilePath, String blockFilePath) throws IOException {
+		// XOR garante que se um arquivo existe, o outro também existe.
+		if (Files.exists(Paths.get(dictionaryFilePath)) ^ Files.exists(Paths.get(blockFilePath)))
+			throw new FileNotFoundException("Um dos arquivos de Lista Invertida não existe.");
+
 		this.dictionaryFilePath = dictionaryFilePath;
 		this.blockFilePath = blockFilePath;
 

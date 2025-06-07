@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -202,6 +203,9 @@ public class HashTableIndex implements Index {
 	}
 
 	public HashTableIndex(String nc, String nd, String nm) throws IOException {
+		if (!Files.exists(Paths.get(nc)) || !Files.exists(Paths.get(nd)) || !Files.exists(Paths.get(nm)))
+			throw new FileNotFoundException("Um ou mais arquivos de Hash Extensível inexistente(s).");
+
 		try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(nm))) {
 			bucketNumElements = in.readInt();
 		}

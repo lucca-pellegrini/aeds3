@@ -1,5 +1,6 @@
 package AEDs3.DataBase.Index;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -250,6 +251,9 @@ public class BTree implements Index {
 	 * @throws IOException Se ocorrer um erro de I/O ao acessar o arquivo.
 	 */
 	public BTree(String filePath) throws IOException {
+		if (!Files.exists(Paths.get(filePath)))
+			throw new FileNotFoundException("Arquivo de Árvore B inexistente.");
+
 		this.filePath = filePath;
 		this.file = new RandomAccessFile(filePath, "rw");
 		file.seek(0);
