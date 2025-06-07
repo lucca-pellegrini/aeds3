@@ -1702,6 +1702,20 @@ public class CommandLineInterface {
 			// Exibe o banner de boas-vindas ao iniciar o programa.
 			showWelcomeBanner();
 
+			// Abre um arquivo se passado pela linha de comando.
+			if (args.length > 0) {
+				commands.info("Carregando arquivo recebido na linha de comando: " + args[0]);
+				commands.setDb(args[0]);
+			}
+
+			// Avisa que os parâmetros adicionais, se presentes, serão ignorados.
+			if (args.length > 1) {
+				StringBuilder ignoredParams = new StringBuilder("Os seguintes parâmetros adicionais serão ignorados:");
+				for (int i = 1; i < args.length; ++i)
+					ignoredParams.append(' ').append(args[i]);
+				commands.warn(ignoredParams.toString());
+			}
+
 			// Loop principal de execução do CLI.
 			String line;
 			while (true) {
