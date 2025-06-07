@@ -1,16 +1,36 @@
 package AEDs3.DataBase.Compression;
 
+/**
+ * Enumeração que representa os tipos de compressão disponíveis.
+ */
 public enum CompressionType {
-    HUFFMAN("Compressão Huffman"),
-    LZW("Compressão LZW");
+	/**
+	 * Compressão usando o algoritmo de Huffman.
+	 */
+	HUFFMAN("Compressão Huffman"),
 
-    private final String description;
+	/**
+	 * Compressão usando o algoritmo LZW.
+	 */
+	LZW("Compressão LZW");
 
-    CompressionType(String description) {
-        this.description = description;
-    }
+	private final String description;
 
-    public String getDescription() {
-        return description;
-    }
+	/**
+	 * Construtor para o tipo de compressão.
+	 *
+	 * @param description Descrição do tipo de compressão.
+	 */
+	CompressionType(String description) {
+		this.description = description;
+	}
+
+	/**
+	 * Obtém a descrição do tipo de compressão.
+	 *
+	 * @return A descrição do tipo de compressão.
+	 */
+	public String getDescription() {
+		return description;
+	}
 }

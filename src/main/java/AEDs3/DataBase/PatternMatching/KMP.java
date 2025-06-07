@@ -1,20 +1,30 @@
 package AEDs3.DataBase.PatternMatching;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A classe KMP implementa o algoritmo de Knuth-Morris-Pratt para busca de
+ * padrões em texto.
+ * Este algoritmo é eficiente para encontrar todas as ocorrências de um padrão
+ * em um texto,
+ * utilizando uma tabela de prefixos para otimizar a busca.
+ *
+ * A classe oferece métodos para construir a tabela de prefixos e realizar a
+ * busca em um fluxo
+ * de entrada binário, preservando o contexto ao redor do padrão encontrado.
+ */
 public class KMP {
 	/**
 	 * Classe interna que representa o resultado de uma ocorrência do padrão no
 	 * texto.
+	 * Contém a posição do padrão no arquivo e o contexto em que foi encontrado.
 	 */
-	public static class MatchResult {
+	protected static class MatchResult {
 		long pos; // Posição do padrão no arquivo
 		String ctx; // Trecho de contexto onde o padrão foi encontrado
 
@@ -30,12 +40,14 @@ public class KMP {
 	}
 
 	/**
-	 * Constrói a tabela de prefixo (também chamada de LPS - Longest Prefix Suffix)
-	 * usada pelo algoritmo de Knuth-Morris-Pratt.
+	 * Constrói a tabela de prefixo, também conhecida como LPS (Longest Prefix
+	 * Suffix),
+	 * que é utilizada pelo algoritmo de Knuth-Morris-Pratt para otimizar a busca.
 	 *
-	 * @param pattern O padrão a ser buscado.
-	 * @return Um array contendo os comprimentos dos maiores prefixos próprios que
-	 *         são também sufixos.
+	 * @param pattern O padrão a ser buscado no texto.
+	 * @return Um array de inteiros contendo os comprimentos dos maiores prefixos
+	 *         próprios
+	 *         que também são sufixos para cada posição do padrão.
 	 */
 	public static int[] buildPrefixTable(String pattern) {
 		int[] lps = new int[pattern.length()];
@@ -55,20 +67,21 @@ public class KMP {
 	}
 
 	/**
-	 * Realiza a busca do padrão em um fluxo de entrada binário, usando o algoritmo
-	 * KMP com leitura em blocos.
-	 * A busca é feita de forma insensível a maiúsculas/minúsculas e preserva um
-	 * contexto ao redor do padrão encontrado.
+	 * Realiza a busca do padrão em um fluxo de entrada binário utilizando o
+	 * algoritmo
+	 * KMP com leitura em blocos. A busca é insensível a maiúsculas/minúsculas e
+	 * preserva um contexto ao redor do padrão encontrado.
 	 *
 	 * @param inputStream Fluxo de entrada para leitura do arquivo binário.
-	 * @param pattern     O padrão (palavra) a ser buscado.
-	 * @param blockSize   Tamanho do bloco de leitura (em bytes).
-	 * @param contextSize Quantidade de caracteres de contexto antes e depois do
-	 *                    padrão.
-	 * @return Uma lista com os resultados das ocorrências encontradas.
-	 * @throws IOException Em caso de erro de leitura do arquivo.
+	 * @param pattern     O padrão (palavra) a ser buscado no texto.
+	 * @param blockSize   Tamanho do bloco de leitura em bytes.
+	 * @param contextSize Quantidade de caracteres de contexto a serem exibidos
+	 *                    antes e
+	 *                    depois do padrão encontrado.
+	 * @return Uma lista de objetos MatchResult contendo as ocorrências encontradas.
+	 * @throws IOException Se ocorrer um erro de leitura do arquivo.
 	 */
-	public static List<MatchResult> searchInStream(InputStream inputStream, String pattern, int blockSize,
+	protected static List<MatchResult> searchInStream(InputStream inputStream, String pattern, int blockSize,
 			int contextSize) throws IOException {
 		List<MatchResult> results = new ArrayList<>();
 
@@ -128,30 +141,5 @@ public class KMP {
 	public static boolean match(String pattern, String text) throws IOException {
 		InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
 		return !searchInStream(in, pattern, 4096, 20).isEmpty();
-	}
-
-	/**
-	 * Função principal para execução do programa.
-	 * Define o padrão a ser buscado, o caminho do arquivo, e exibe os resultados
-	 * encontrados.
-	 */
-	public static void main(String[] args) {
-		String pattern = "pedro"; // Palavra a ser buscada
-		String filePath = "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\aeds3\\AEDs-III-2\\src\\main\\java\\AEDs3\\DataBase\\Pattern_Matching\\arquivo(1).bin";
-		int contextSize = 20; // Número de caracteres de contexto antes/depois do padrão
-
-		try (InputStream input = new BufferedInputStream(new FileInputStream(filePath))) {
-			List<MatchResult> results = searchInStream(input, pattern, 4096, contextSize);
-
-			if (results.isEmpty()) {
-				System.out.println("Padrão \"" + pattern + "\" não encontrado no arquivo.");
-			} else {
-				for (MatchResult r : results) {
-					System.out.println(r);
-				}
-			}
-		} catch (IOException e) {
-			System.err.println("Erro ao ler o arquivo: " + e.getMessage());
-		}
 	}
 }

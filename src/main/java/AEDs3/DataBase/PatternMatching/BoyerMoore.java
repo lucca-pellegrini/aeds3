@@ -1,7 +1,6 @@
 package AEDs3.DataBase.PatternMatching;
 
 import java.io.ByteArrayInputStream;
-// import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -9,8 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Classe interna que implementa o algoritmo de Boyer-Moore para busca eficiente
- * de padrões.
+ * Implementa o algoritmo de Boyer-Moore para busca eficiente de padrões em
+ * textos.
+ * Este algoritmo é utilizado para encontrar a posição de um padrão dentro de um
+ * texto,
+ * utilizando uma técnica de pré-processamento para otimizar a busca.
  */
 public class BoyerMoore {
 	private static final int ALPHABET_SIZE = 256; // Tamanho do alfabeto ASCII estendido
@@ -18,7 +20,8 @@ public class BoyerMoore {
 	private int[] badCharTbl; // Tabela de caracteres ruins para desalinhamento
 
 	/**
-	 * Construtor da classe BoyerMoore.
+	 * Construtor da classe BoyerMoore que inicializa o padrão a ser buscado e
+	 * preenche a tabela de caracteres ruins.
 	 *
 	 * @param patternText O padrão de texto que será buscado.
 	 */
@@ -30,8 +33,8 @@ public class BoyerMoore {
 
 	/**
 	 * Preprocessa o padrão preenchendo a tabela de caracteres ruins.
-	 * Essa tabela é usada para determinar o deslocamento em caso de falha na
-	 * correspondência.
+	 * Esta tabela é utilizada para determinar o deslocamento do padrão em caso de
+	 * falha na correspondência durante a busca.
 	 */
 	private void preprocess() {
 		for (int i = 0; i < ALPHABET_SIZE; i++)
@@ -68,17 +71,37 @@ public class BoyerMoore {
 	/**
 	 * Retorna o comprimento do padrão.
 	 *
-	 * @return Tamanho do padrão.
+	 * @return O tamanho do padrão em bytes.
 	 */
 	public int getPatternLength() {
 		return pattern.length;
 	}
 
+	/**
+	 * Verifica se o padrão especificado está presente no texto fornecido.
+	 *
+	 * @param pattern O padrão a ser buscado.
+	 * @param text    O texto onde a busca será realizada.
+	 * @return true se o padrão for encontrado no texto, caso contrário, false.
+	 * @throws IOException Se ocorrer um erro de leitura do texto.
+	 */
 	public static boolean match(String pattern, String text) throws IOException {
 		InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
 		return !searchInStream(in, pattern, 4096).isEmpty();
 	}
 
+	/**
+	 * Busca todas as ocorrências do padrão em um fluxo de entrada, processando o
+	 * texto em blocos.
+	 *
+	 * @param in        O fluxo de entrada contendo o texto onde a busca será
+	 *                  realizada.
+	 * @param pattern   O padrão a ser buscado.
+	 * @param blockSize O tamanho dos blocos a serem lidos do fluxo de entrada.
+	 * @return Uma lista de inteiros representando as posições onde o padrão foi
+	 *         encontrado.
+	 * @throws IOException Se ocorrer um erro de leitura do fluxo de entrada.
+	 */
 	public static List<Integer> searchInStream(InputStream in, String pattern, int blockSize) throws IOException {
 		ArrayList<Integer> matches = new ArrayList<>();
 		BoyerMoore bm = new BoyerMoore(pattern);
@@ -108,12 +131,13 @@ public class BoyerMoore {
 
 				int absoluteOffset = offset - previous.length + pos;
 				matches.add(absoluteOffset);
-				// System.out.println("Pattern \"" + pattern + "\" found at offset: " + absoluteOffset);
+				// System.out.println("Pattern \"" + pattern + "\" found at offset: " +
+				// absoluteOffset);
 
 				// Exibe trecho de contexto após o padrão encontrado
 				// int end = Math.min(pos + bm.getPatternLength() + 40, combined.length);
 				// String snippet = new String(combined, pos, end - pos, StandardCharsets.UTF_8)
-				// 		.replaceAll("[\\r\\n]", " ");
+				// .replaceAll("[\\r\\n]", " ");
 				// System.out.println("Snippet: \"" + snippet + "\"\n");
 
 				searchStart = pos + 1;
@@ -133,7 +157,7 @@ public class BoyerMoore {
 
 		// Se não encontrou o padrão em nenhum bloco
 		// if (!found)
-			// System.out.println("Padrão \"" + pattern + "\" não encontrado no arquivo.");
+		// System.out.println("Padrão \"" + pattern + "\" não encontrado no arquivo.");
 
 		return matches;
 	}
