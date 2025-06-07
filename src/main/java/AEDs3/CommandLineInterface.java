@@ -1039,7 +1039,7 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "create", mixinStandardHelpOptions = true, description = "Criar uma nova faixa.")
 	static class CreateCommand implements Runnable {
-		private Ansi rightPrompt = ansi().bold().fgBrightYellow();
+		private Ansi rightPrompt = ansi().bold().bgBrightYellow();
 		LineReader reader;
 
 		/**
@@ -1078,7 +1078,7 @@ public class CommandLineInterface {
 			}
 
 			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
-			rightPrompt = rightPrompt.a("[Criando ID " + (parent.db.getLastId() + 1) + "]");
+			rightPrompt = rightPrompt.a(" Criando ID " + (parent.db.getLastId() + 1) + ' ');
 
 			try {
 				parent.suggestions.disable();
@@ -1108,7 +1108,7 @@ public class CommandLineInterface {
 			} catch (Exception e) {
 				parent.error("Impossível atualizar registro: " + e.getMessage());
 			} finally {
-				rightPrompt = ansi().bold().fgBrightYellow();
+				rightPrompt = ansi().bold().bgBrightYellow();
 				parent.suggestions.enable();
 			}
 		}
@@ -1136,7 +1136,7 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "update", mixinStandardHelpOptions = true, description = "Atualizar uma faixa existente.")
 	static class UpdateCommand implements Runnable {
-		private Ansi rightPrompt = ansi().bold().fgBrightMagenta();
+		private Ansi rightPrompt = ansi().bold().bgBrightMagenta();
 		LineReader reader;
 
 		/**
@@ -1188,7 +1188,7 @@ public class CommandLineInterface {
 			}
 
 			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
-			rightPrompt = rightPrompt.a("[Editando " + id + "]");
+			rightPrompt = rightPrompt.a(" Editando " + id + " ");
 
 			try {
 				parent.suggestions.disable();
@@ -1207,7 +1207,7 @@ public class CommandLineInterface {
 			} catch (Exception e) {
 				parent.error("Impossível atualizar registro: " + e.getMessage());
 			} finally {
-				rightPrompt = ansi().bold().fgBrightMagenta();
+				rightPrompt = ansi().bold().bgBrightMagenta();
 				parent.suggestions.enable();
 			}
 		}
