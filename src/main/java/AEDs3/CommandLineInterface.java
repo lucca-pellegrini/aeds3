@@ -1656,12 +1656,25 @@ public class CommandLineInterface {
 			systemRegistry.register("help", picocliCommands);
 
 			// Configuração do leitor de linhas e sugestões de autocompletar.
-			LineReader reader = LineReaderBuilder.builder()
+			LineReader reader;
+			LineReaderBuilder builder = LineReaderBuilder.builder()
 					.terminal(terminal)
 					.completer((new ModifiedPicocliJLineCompleter(cmd.getCommandSpec())))
 					.parser(parser)
-					.variable(LineReader.LIST_MAX, 100)
-					.build();
+					.variable(LineReader.LIST_MAX, 100);
+
+			// Tenta habilitar histórico de comandos antes de construir.
+			try {
+				// Configura caminho para arquivo de histórico e limita a 10000 linhas.
+				builder.variable(LineReader.HISTORY_FILE, App.getAppResourcePath("history.txt"))
+						.variable(LineReader.HISTORY_FILE_SIZE, 10_000);
+			} finally {
+				reader = builder.build();
+			}
+
+			History history = reader.getHistory();
+			if (history != null)
+				history.attach(reader);
 
 			builtins.setLineReader(reader);
 			commands.setReader(reader);
