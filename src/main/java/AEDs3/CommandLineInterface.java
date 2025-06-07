@@ -742,11 +742,11 @@ public class CommandLineInterface {
 	@SuppressWarnings("CanBeFinal")
 	@Command(name = "read", mixinStandardHelpOptions = true, description = "Ler faixa(s) por campo ou por ID.", footer = {
 			"Exemplos:", "read 117 @|magenta (ler por ID 117)|@",
-			"read --method=GENRES pop rock @|magenta (ler faixas com Gêneros incluindo pop e "
+			"read --method GENRES pop rock @|magenta (ler faixas com Gêneros incluindo pop e "
 					+ "rock)|@",
-			"read --method=TRACK_ARTISTS \"Frank Sinatra\" @|magenta (ler faixas de Frank "
+			"read --method TRACK_ARTISTS \"Frank Sinatra\" @|magenta (ler faixas de Frank "
 					+ "Sinatra)|@",
-			"read --method=NAME --regex 'You.*Gone' @|magenta (ler nomes de faixas com expressão "
+			"read --method NAME --regex 'You.*Gone' @|magenta (ler nomes de faixas com expressão "
 					+ "regular)|@" })
 	static class ReadCommand implements Runnable {
 		/**
