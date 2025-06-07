@@ -300,50 +300,110 @@ public class BalancedMergeSort {
 
 	// Getters & Setters.
 
+	/**
+	 * Retorna o banco de dados de faixas de música.
+	 *
+	 * @return O banco de dados de faixas de música.
+	 */
 	public TrackDB getDb() {
 		return db;
 	}
 
+	/**
+	 * Define o banco de dados de faixas de música.
+	 *
+	 * @param db O banco de dados de faixas de música a ser definido.
+	 */
 	public void setDb(TrackDB db) {
 		this.db = db;
 	}
 
+	/**
+	 * Retorna os arquivos temporários utilizados durante a ordenação.
+	 *
+	 * @return Um array de arquivos temporários.
+	 */
 	public TrackDB[] getFiles() {
 		return files;
 	}
 
+	/**
+	 * Define os arquivos temporários utilizados durante a ordenação.
+	 *
+	 * @param files Um array de arquivos temporários a ser definido.
+	 */
 	public void setFiles(TrackDB[] files) {
 		this.files = files;
 	}
 
+	/**
+	 * Retorna o número de caminhos (fanout) utilizado na ordenação.
+	 *
+	 * @return O número de caminhos (fanout).
+	 */
 	public int getFanout() {
 		return fanout;
 	}
 
+	/**
+	 * Define o número de caminhos (fanout) utilizado na ordenação.
+	 *
+	 * @param fanout O número de caminhos (fanout) a ser definido.
+	 */
 	public void setFanout(int fanout) {
 		this.fanout = fanout;
 	}
 
+	/**
+	 * Retorna o número máximo de registros a serem armazenados no heap durante a intercalação.
+	 *
+	 * @return O número máximo de registros no heap.
+	 */
 	public int getMaxHeapNodes() {
 		return maxHeapNodes;
 	}
 
+	/**
+	 * Define o número máximo de registros a serem armazenados no heap durante a intercalação.
+	 *
+	 * @param maxHeapNodes O número máximo de registros no heap a ser definido.
+	 */
 	public void setMaxHeapNodes(int maxHeapNodes) {
 		this.maxHeapNodes = maxHeapNodes;
 	}
 
+	/**
+	 * Indica se a intercalação está ocorrendo do primeiro grupo de arquivos.
+	 *
+	 * @return {@code true} se a intercalação está ocorrendo do primeiro grupo, caso contrário {@code false}.
+	 */
 	public boolean isMergingFromFirstGroup() {
 		return mergingFromFirstGroup;
 	}
 
+	/**
+	 * Define se a intercalação deve ocorrer do primeiro grupo de arquivos.
+	 *
+	 * @param grupo {@code true} para intercalar do primeiro grupo, caso contrário {@code false}.
+	 */
 	public void setMergingFromFirstGroup(boolean grupo) {
 		this.mergingFromFirstGroup = grupo;
 	}
 
+	/**
+	 * Indica se a execução deve exibir passos detalhados no console.
+	 *
+	 * @return {@code true} se a execução deve ser detalhada, caso contrário {@code false}.
+	 */
 	public boolean isVerbose() {
 		return verbose;
 	}
 
+	/**
+	 * Define se a execução deve exibir passos detalhados no console.
+	 *
+	 * @param verbose {@code true} para exibir passos detalhados, caso contrário {@code false}.
+	 */
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
