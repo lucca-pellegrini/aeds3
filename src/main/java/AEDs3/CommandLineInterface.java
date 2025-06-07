@@ -43,6 +43,7 @@ import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
 import org.jline.reader.Reference;
 import org.jline.reader.UserInterruptException;
+import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -1646,6 +1647,13 @@ public class CommandLineInterface {
 			// Mapeia teclas de atalho.
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
 			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+
+			Widget clearAndPrintBanner = () -> {
+					reader.callWidget(LineReader.CLEAR_SCREEN);
+					showWelcomeBanner();
+					return true;
+			};
+			keyMap.bind(clearAndPrintBanner, KeyMap.ctrl('l'));
 
 			// Exibe o banner de boas-vindas ao iniciar o programa.
 			showWelcomeBanner();
