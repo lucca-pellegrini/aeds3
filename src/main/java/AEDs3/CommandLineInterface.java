@@ -357,7 +357,7 @@ public class CommandLineInterface {
 		}
 	}
 
-	@Command(name = "compress", mixinStandardHelpOptions = true, description = "Comprime o arquivo TrackDB.")
+	@Command(name = "compress", mixinStandardHelpOptions = true, description = "Comprime o arquivo TrackDB aberto.")
 	static class CompressCommand implements Runnable {
 		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
 		CompressionType method;
@@ -1692,12 +1692,64 @@ public class CommandLineInterface {
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
 			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
 
-			Widget clearAndPrintBanner = () -> {
-					reader.callWidget(LineReader.CLEAR_SCREEN);
-					showWelcomeBanner();
-					return true;
-			};
-			keyMap.bind(clearAndPrintBanner, KeyMap.ctrl('l'));
+			keyMap.bind((Widget) () -> {
+				reader.callWidget(LineReader.CLEAR_SCREEN);
+				showWelcomeBanner();
+				return true;
+			}, KeyMap.ctrl('l'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("open ");
+				reader.callWidget(LineReader.COMPLETE_WORD);
+				return true;
+			}, KeyMap.ctrl('o'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("open --new ");
+				return true;
+			}, KeyMap.ctrl('n'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("close");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.ctrl('x'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("create");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.alt('c'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("read --method ");
+				reader.callWidget(LineReader.COMPLETE_WORD);
+				return true;
+			}, KeyMap.alt('r'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("update --field ");
+				reader.callWidget(LineReader.COMPLETE_WORD);
+				return true;
+			}, KeyMap.alt('u'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("delete ");
+				return true;
+			}, KeyMap.alt('d'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("import ");
+				return true;
+			}, KeyMap.alt('i'));
 
 			// Exibe o banner de boas-vindas ao iniciar o programa.
 			showWelcomeBanner();
