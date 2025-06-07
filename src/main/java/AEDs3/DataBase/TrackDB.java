@@ -5,6 +5,7 @@ import AEDs3.DataBase.Track.Field;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -157,18 +158,40 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			updateHeader();
 		}
 
-		if (hasBTreeIndex())
-			index = new BTree(filePath + ".BTree");
-		else if (hasDynamicHashIndex())
-			index = new HashTableIndex(
-					filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
+		// Valida o cabeçalho, garantindo que o arquivo não está corrompido, e não tem
+		// formato inválido.
+		if (lastId < numTracks || numSpaces < numTracks)
+			throw new IllegalStateException("Formato desconhecido");
 
-		if (hasInvertedListIndex()) {
-			nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
-			albumIndex = new InvertedListIndex(
-					filePath + ".album.list.dir", filePath + ".album.list.blocks");
-			artistIndex = new InvertedListIndex(
-					filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+		// Valida o conteúdo. Fazemos isso para detectar corrupção ou formatos
+		// incorretos.
+		int recordsFound = 0;
+		for (Track t : this) {
+			if (t.getId() > lastId)
+				throw new IllegalStateException(
+						"ID de uma faixa (" + t.getId() + ") excede o último ID (" + lastId + ")");
+			recordsFound += 1;
+		}
+		if (recordsFound != numTracks)
+			throw new IllegalStateException("Número de faixas no arquivo de dados (" + recordsFound
+					+ ") difere do esperado (" + numTracks + ")");
+
+		try {
+			if (hasBTreeIndex())
+				index = new BTree(filePath + ".BTree");
+			else if (hasDynamicHashIndex())
+				index = new HashTableIndex(
+						filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
+
+			if (hasInvertedListIndex()) {
+				nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
+				albumIndex = new InvertedListIndex(
+						filePath + ".album.list.dir", filePath + ".album.list.blocks");
+				artistIndex = new InvertedListIndex(
+						filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+			}
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException("Arquivo(s) de índice esperado(s) não encontrado(s): " + e.getMessage());
 		}
 	}
 
