@@ -401,6 +401,6 @@ public class HashTableIndex implements Index {
 	}
 
 	public String[] listFilePaths() {
-		return new String[] {dirFilePath, bucketFilePath, metaFilePath};
+		return new String[] { dirFilePath, bucketFilePath, metaFilePath };
 	}
 }

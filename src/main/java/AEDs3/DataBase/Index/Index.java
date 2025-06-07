@@ -41,7 +41,10 @@ public interface Index {
 	void destruct() throws IOException;
 
 	/**
-	 * Lista todos os arquivos associados ao índice atual
+	 * Lista os caminhos relativos de todos os arquivos associados ao índice atual.
+	 *
+	 * @return Um array de strings contendo os caminhos relativos de todos os
+	 *         arquivos utilizados por este índice.
 	 */
 	String[] listFilePaths();
 }
