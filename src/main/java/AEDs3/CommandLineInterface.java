@@ -13,6 +13,7 @@ import AEDs3.DataBase.TrackDB.TrackFilter;
 import AEDs3.DataBase.TrackDB;
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
@@ -21,9 +22,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
@@ -36,10 +41,13 @@ import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.keymap.KeyMap;
 import org.jline.reader.Binding;
+import org.jline.reader.Candidate;
 import org.jline.reader.EndOfFileException;
+import org.jline.reader.History;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.MaskingCallback;
+import org.jline.reader.ParsedLine;
 import org.jline.reader.Parser;
 import org.jline.reader.Reference;
 import org.jline.reader.UserInterruptException;
@@ -52,14 +60,18 @@ import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
+
+import picocli.AutoComplete;
 import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 import picocli.shell.jline3.PicocliCommands;
 import picocli.shell.jline3.PicocliCommands.PicocliCommandsFactory;
+import picocli.shell.jline3.PicocliJLineCompleter;
 
 /**
  * Classe principal de interface de linha de comando (CLI) para o gerenciamento
@@ -231,6 +243,44 @@ public class CommandLineInterface {
 			this.suggestions = suggestions;
 		}
 
+		public void setDb(String dbPath) {
+			if (dbPath == null) {
+				if (this.db != null) {
+					try {
+						this.db.close();
+					} catch (IOException e) {
+						this.error("Erro ao fechar o DB aberto: " + e.getMessage());
+					}
+				}
+				this.db = null;
+				this.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
+				this.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
+				return;
+			}
+
+			try {
+				this.db = new TrackDB(dbPath);
+			} catch (IllegalStateException e) {
+				this.error("Arquivo inválido ou corrompido: " + e.getMessage());
+				this.error("Provavelmente não será possível operar nesse arquivo.");
+				this.warn("É possível que não se trate de um arquivo TrackDB.");
+				this.warn("Recomendo fechar o arquivo e não proceder.");
+				this.prompt = ansi().bold().fgBrightRed().a(dbPath + "> ").toString();
+				this.rightPrompt = ansi().bold().bgBrightRed().fgBrightDefault().a(' ').a(e.getMessage()).a(' ')
+						.toString();
+				return;
+			} catch (FileNotFoundException e) {
+				this.error("O arquivo especificado não existe: " + e.getMessage());
+				return;
+			} catch (IOException e) {
+				this.error("Erro desconhecido ao tentar abrir arquivo: " + e.getMessage());
+				return;
+			}
+			this.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
+			this.rightPrompt = ansi().bgGreen().a(" CRUD ").toString();
+			this.info("Arquivo carregado.");
+		}
+
 		/**
 		 * Executa o comando que exibe a ajuda da linha de comando.
 		 */
@@ -300,21 +350,10 @@ public class CommandLineInterface {
 		 * </p>
 		 */
 		public void run() {
-			if (!create && !new File(param.toString()).exists()) {
+			if (!create && !new File(param.toString()).exists())
 				parent.error("O arquivo não existe.");
-			} else {
-				try {
-					parent.db = new TrackDB(param.toString()); // Carrega o banco de dados.
-				} catch (IOException e) {
-					e.printStackTrace();
-					throw new RuntimeException("Erro ao abrir " + param);
-				}
-
-				// Atualiza o prompt da CLI para refletir o arquivo aberto.
-				parent.prompt = ansi().bold().fgCyan().a(param + "> ").toString();
-				parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
-				parent.info("Arquivo aberto.");
-			}
+			else
+				parent.setDb(param.toString()); // Carrega o banco de dados.
 		}
 	}
 
@@ -327,6 +366,10 @@ public class CommandLineInterface {
 				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
+		@Option(names = { "-b",
+				"--backup" }, description = "Cria um backup do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
+		boolean backup;
+
 		/**
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
 		 * dados e outros recursos.
@@ -337,64 +380,66 @@ public class CommandLineInterface {
 		public void run() {
 			if (parent.db == null) {
 				parent.warn("Não há nenhum arquivo aberto.");
-			} else {
-				String[] files = parent.db.listFilePaths();
-				String dst = files[0] + "." + method.toString().toLowerCase();
-				try {
-					// Calcula o tamanho total dos arquivos originais
-					long originalSize = 0;
-					parent.info("Empacotando e comprimindo os seguintes arquivos:");
-					for (String file : files) {
-						long len = new File(file).length();
-						originalSize += len;
-						parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
-								.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
-								.fgGreen().a(file).a(' ').reset());
-					}
-					parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", originalSize / 1000))
-							.a(" KB ").fgBrightBlue().a("(Total)").reset());
-					parent.out.flush();
+				return;
+			}
 
-					// Marca o tempo de início
-					long startTime = System.currentTimeMillis();
-
-					// Realiza a compressão
-					Compressor.compress(files, dst, method);
-
-					// Marca o tempo de fim
-					long endTime = System.currentTimeMillis();
-
-					// Calcula o tempo de execução
-					long duration = endTime - startTime;
-					long minutes = (duration / 1000) / 60;
-					long seconds = (duration / 1000) % 60;
-					long milliseconds = duration % 1000;
-
-					// Calcula o tamanho do arquivo comprimido
-					long compressedSize = new File(dst).length();
-
-					// Calcula a taxa de compressão
-					double compressionRate = (1 - ((double) compressedSize / originalSize)) * 100;
-
-					// Exibe as informações
-					parent.info(String.format("Arquivos comprimidos em: %s", ansi().bold().fgBrightYellow().a(dst)));
-					parent.info(String.format("Tamanho original: %dKB", originalSize / 1000));
-					parent.info(String.format("Tamanho comprimido: %dKB", compressedSize / 1000));
-					parent.info(String.format("Redução de %.2f%%", compressionRate));
-					parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
-
-					if (delete) {
-						parent.db.close();
-						parent.db = null;
-						parent.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
-						parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
-						for (String file : files)
-							Files.delete(Paths.get(file));
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					throw new RuntimeException("Erro ao comprimir " + dst);
+			String[] files = parent.db.listFilePaths();
+			String dst = files[0] // Se `--backup` foi passado, armazena data e hora no nome
+					+ (backup ? '.' + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"))
+							: "")
+					+ '.' + method.toString().toLowerCase();
+			try {
+				// Calcula o tamanho total dos arquivos originais
+				long originalSize = 0;
+				parent.info("Empacotando e comprimindo os seguintes arquivos:");
+				for (String file : files) {
+					long len = new File(file).length();
+					originalSize += len;
+					parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
+							.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
+							.fgGreen().a(file).a(' ').reset());
 				}
+				parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", originalSize / 1000))
+						.a(" KB ").fgBrightBlue().a("(Total)").reset());
+				parent.out.flush();
+
+				// Marca o tempo de início
+				long startTime = System.currentTimeMillis();
+
+				// Realiza a compressão
+				Compressor.compress(files, dst, method);
+
+				// Marca o tempo de fim
+				long endTime = System.currentTimeMillis();
+
+				// Calcula o tempo de execução
+				long duration = endTime - startTime;
+				long minutes = (duration / 1000) / 60;
+				long seconds = (duration / 1000) % 60;
+				long milliseconds = duration % 1000;
+
+				// Calcula o tamanho do arquivo comprimido
+				long compressedSize = new File(dst).length();
+
+				// Calcula a taxa de compressão
+				double compressionRate = (1 - ((double) compressedSize / originalSize)) * 100;
+
+				// Exibe as informações
+				parent.info(String.format("Arquivos comprimidos em: %s", ansi().bold().fgBrightYellow().a(dst)));
+				parent.info(String.format("Tamanho original: %dKB", originalSize / 1000));
+				parent.info(String.format("Tamanho comprimido: %dKB", compressedSize / 1000));
+				parent.info(String.format("Redução de %.2f%%", compressionRate));
+				parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
+
+				if (delete) {
+					parent.db.close();
+					parent.setDb(null);
+					for (String file : files)
+						Files.delete(Paths.get(file));
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Erro ao comprimir " + dst);
 			}
 		}
 	}
@@ -444,25 +489,17 @@ public class CommandLineInterface {
 				throw new RuntimeException("Erro ao descomprimir " + path);
 			}
 
-			try {
-				if (open) {
-					parent.db = new TrackDB(dbPath);
-					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
-					parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
-					return;
-				} else if (parent.db == null) {
-					return;
-				}
-			} catch (IOException e) {
-				parent.error("Impossível abrir o arquivo.");
+			if (open) {
+				parent.setDb(dbPath);
+				return;
+			} else if (parent.db == null) {
+				return;
 			}
 
 			try (TrackDB decompressed = new TrackDB(dbPath)) {
 				if (decompressed.getUUID().equals(parent.db.getUUID())) {
 					parent.warn("Recarregando arquivo.");
-					parent.db = new TrackDB(dbPath);
-					parent.prompt = ansi().bold().fgCyan().a(dbPath + "> ").toString();
-					parent.rightPrompt = ansi().fgGreen().a("[CRUD]").toString();
+					parent.setDb(dbPath);
 				}
 			} catch (IOException e) {
 				parent.error("Impossível verificar arquivo descomprimido.");
@@ -502,13 +539,7 @@ public class CommandLineInterface {
 		 * </p>
 		 */
 		public void run() {
-			if (parent.db == null) {
-				parent.warn("Não há nenhum arquivo aberto.");
-			} else {
-				parent.db = null; // Fecha o banco de dados.
-				parent.prompt = CliCommands.DEFAULT_PROMPT; // Restaura o prompt padrão.
-				parent.rightPrompt = CliCommands.DEFAULT_RIGHT_PROMPT; // Restaura o prompt direito padrão.
-			}
+			parent.setDb(null); // Fecha o banco de dados.
 		}
 	}
 
