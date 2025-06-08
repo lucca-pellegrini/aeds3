@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.Random;
 
 /**
  * Classe principal do programa que inicia a interface de linha de comando.
@@ -15,6 +16,7 @@ import java.util.Properties;
  * {@link CommandLineInterface} com os argumentos fornecidos.
  */
 public class App {
+	protected static final Random RANDOM = new Random();
 	protected static final String APP_NAME = "TrackDB";
 	protected static final String HOME_PROPERTY = "user.home";
 
