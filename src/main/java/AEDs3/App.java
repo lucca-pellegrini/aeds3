@@ -19,6 +19,7 @@ public class App {
 	protected static final Random RANDOM = new Random();
 	protected static final String APP_NAME = "TrackDB";
 	protected static final String HOME_PROPERTY = "user.home";
+	protected static final String OS = System.getProperty("os.name").toLowerCase();
 	protected static final int MIN_TERMINAL_WIDTH = 104;
 	protected static final int MIN_TERMINAL_HEIGHT = 36;
 
@@ -50,16 +51,15 @@ public class App {
 	 */
 	protected static String getAppResourcePath(String fileName) throws FileNotFoundException {
 		File directory = null;
-		String os = System.getProperty("os.name").toLowerCase();
 
 		try {
-			if (os.contains("win")) {
+			if (OS.contains("win")) {
 				// Windows: Usar %APPDATA%
 				String appData = System.getenv("APPDATA");
 				if (appData != null && !appData.isEmpty()) {
 					directory = new File(appData, APP_NAME);
 				}
-			} else if (os.contains("mac")) {
+			} else if (OS.contains("mac")) {
 				// macOS: Usar Library/Application Support
 				directory = new File(System.getProperty(HOME_PROPERTY), "Library/Application Support/TrackDB");
 			} else {
@@ -91,7 +91,7 @@ public class App {
 					throw new FileNotFoundException();
 
 				// Tentar definir o arquivo como oculto no Windows
-				if (os.contains("win")) {
+				if (OS.contains("win")) {
 					try {
 						// Usar comando específico do Windows para ocultar o arquivo
 						ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c",

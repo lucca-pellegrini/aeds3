@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,6 +59,8 @@ import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
@@ -1660,6 +1663,16 @@ public class CommandLineInterface {
 	 * @see TailTipWidgets
 	 */
 	public CommandLineInterface(String[] args) {
+		try {
+			if (App.OS.contains("win")) {
+				ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", "chcp 65001");
+				Process process = processBuilder.start();
+				process.waitFor();
+			}
+		} catch (IOException | InterruptedException e) {
+			System.err.println("Falha ao configurar caracteres unicode.");
+		}
+
 		// Inicializa o sistema de console com suporte a cores.
 		AnsiConsole.systemInstall();
 
@@ -1931,7 +1944,9 @@ public class CommandLineInterface {
 
 			// Informa sobre o fim da execução.
 			commands.info("Programa finalizado");
-			if (!this.welcomeBannerShown) {
+			if (App.OS.contains("win")) {
+				commands.hint("Tente executar no Linux ou no macOS para ver as banners novas.");
+			} else if (!this.welcomeBannerShown) {
 				commands.hint("A janela do seu terminal é muito pequena, então você não viu nossa banner!");
 				commands.hint("Tente executar em uma janela maior na próxima vez, se quiser apreciar ;)");
 			}
@@ -1964,6 +1979,12 @@ public class CommandLineInterface {
 	 * </p>
 	 */
 	public void showWelcomeBanner() throws IOException {
+		// No Windows, os caracteres unicode nos arquivos ANSI não funcionam.
+		if (App.OS.contains("win")) {
+			showWindowsWelcomeBanner();
+			return;
+		}
+
 		// Não exibe o banner se o terminal for muito pequeno.
 		if (terminal.getWidth() < App.MIN_TERMINAL_WIDTH || terminal.getHeight() < App.MIN_TERMINAL_HEIGHT)
 			return;
@@ -1973,7 +1994,7 @@ public class CommandLineInterface {
 		// Lê a arte ANSI do diretório de recursos.
 		String[] bannerLeft;
 		try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("banner" + bannerNum + ".ans");
-				InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+				InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
 				BufferedReader reader = new BufferedReader(inputStreamReader)) {
 			bannerLeft = reader.lines().toArray(String[]::new);
 		}
@@ -2037,6 +2058,54 @@ public class CommandLineInterface {
 		terminal.writer().println(sep.toString());
 
 		this.welcomeBannerShown = true;
+	}
+
+	private void showWindowsWelcomeBanner() {
+		// Cria a arte ASCII à esquerda com cores.
+		String[] bannerLeft = new String[8];
+		bannerLeft[0] = "";
+		bannerLeft[1] = "▄▄▄▄▄▄▄                      █      ▄▄▄▄   ▄▄▄▄▄   ";
+		bannerLeft[2] = "   █     ▄ ▄▄   ▄▄▄    ▄▄▄   █   ▄  █   ▀▄ █    █  ";
+		bannerLeft[3] = "   █     █▀  ▀ ▀   █  █▀  ▀  █ ▄▀   █    █ █▄▄▄▄▀  ";
+		bannerLeft[4] = "   █     █     ▄▀▀▀█  █      █▀█    █    █ █    █  ";
+		bannerLeft[5] = "   █     █     ▀▄▄▀█  ▀█▄▄▀  █  ▀▄  █▄▄▄▀  █▄▄▄▄▀  ";
+		bannerLeft[6] = "";
+		bannerLeft[7] = "══════════════════════════════════════════════════════════════════════\n";
+
+		// Aplica a formatação de cor nas linhas da arte ASCII.
+		for (int i = 1; i <= 5; ++i)
+			bannerLeft[i] = new AttributedString(
+					bannerLeft[i], AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
+					.toAnsi();
+		bannerLeft[7] = new AttributedString(
+				bannerLeft[7], AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA))
+				.toAnsi();
+
+		// Cria a descrição do programa à direita.
+		String[] bannerRight = new String[5];
+		bannerRight[0] = "Banco de Dados";
+		bannerRight[1] = "de Faixas Musicais";
+		bannerRight[2] = "em formato binário";
+		bannerRight[3] = "Lucca Pellegrini";
+		bannerRight[4] = "Pedro Vitor Andrade";
+
+		// Aplica a formatação de cor nas linhas de descrição.
+		for (int i = 0; i <= 2; ++i)
+			bannerRight[i] = new AttributedString(
+					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
+					.toAnsi();
+		for (int i = 3; i <= 4; ++i)
+			bannerRight[i] = new AttributedString(
+					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
+					.toAnsi();
+
+		// Combina a arte ASCII com a descrição do programa.
+		for (int i = 0; i <= 4; ++i)
+			bannerLeft[i + 1] += bannerRight[i];
+
+		// Exibe o banner completo no terminal.
+		for (String s : bannerLeft)
+			terminal.writer().println(s);
 	}
 
 	static class FileCompleter implements Iterable<String> {
