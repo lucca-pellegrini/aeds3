@@ -1895,12 +1895,13 @@ public class CommandLineInterface {
 			while (true) {
 				try {
 					systemRegistry.cleanUp();
-					line = reader.readLine(
-							commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
+					line = reader.readLine(commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
 
+					// Ignora linhas em branco.
 					if (line.isBlank())
 						continue;
 
+					// Verifica se o comando é desconhecido.
 					String command = parser.getCommand(line);
 					if (!systemRegistry.hasCommand(command)) {
 						if (command.isBlank() || command.matches(".*[^a-zA-Z0-9].*"))
@@ -1918,25 +1919,32 @@ public class CommandLineInterface {
 
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
-					terminal.puts(Capability.cursor_visible);
-					terminal.puts(Capability.cursor_normal);
-					tailtip.disable();
-					suggestions.disable();
-					commands.info("Programa finalizado");
-					if (!this.welcomeBannerShown) {
-						commands.hint("A janela do seu terminal é muito pequena, então você não viu nossa banner!");
-						commands.hint("Tente executar em uma janela maior na próxima vez, se quiser apreciar ;)");
-					}
-					System.exit(0);
+					break;
 				} catch (Exception e) {
 					systemRegistry.trace(e);
 				}
 			}
+
+			// Desabilita widgets do terminal.
+			tailtip.disable();
+			suggestions.disable();
+
+			// Informa sobre o fim da execução.
+			commands.info("Programa finalizado");
+			if (!this.welcomeBannerShown) {
+				commands.hint("A janela do seu terminal é muito pequena, então você não viu nossa banner!");
+				commands.hint("Tente executar em uma janela maior na próxima vez, se quiser apreciar ;)");
+			}
+			commands.out.flush();
 		} catch (Exception t) {
 			t.printStackTrace();
 		} finally {
+			// Exibe o cursor novamente, caso tenha se tornado invisível.
+			terminal.puts(Capability.cursor_visible);
+			terminal.puts(Capability.cursor_normal);
 			// Remove o suporte ao console ao encerrar.
 			AnsiConsole.systemUninstall();
+			System.exit(0);
 		}
 	}
 
