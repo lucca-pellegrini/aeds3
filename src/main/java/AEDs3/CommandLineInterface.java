@@ -274,9 +274,9 @@ public class CommandLineInterface {
 				this.db = new TrackDB(dbPath);
 			} catch (IllegalStateException e) {
 				this.error("Arquivo inválido ou corrompido: " + e.getMessage());
-				this.error("Provavelmente não será possível operar nesse arquivo.");
+				this.warn("Provavelmente não será possível operar nesse arquivo.");
 				this.warn("É possível que não se trate de um arquivo TrackDB.");
-				this.warn("Recomendo fechar o arquivo e não proceder.");
+				this.hint(ansi().render("Recomendo fechar o arquivo (@|magenta Ctrl-X|@) e não proceder.").toString());
 				this.prompt = ansi().bold().fgBrightRed().a(dbPath + "> ").toString();
 				this.rightPrompt = ansi().bold().bgBrightRed().fgBrightDefault().a(' ').a(e.getMessage()).a(' ')
 						.toString();
