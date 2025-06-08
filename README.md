@@ -7,9 +7,10 @@ Este repositório contém o Trabalho Prático de Algoritmos e Estruturas de Dado
 III (AEDs3) do primeiro semestre de 2025. Ele consiste em um programa, escrito
 em [Java 17](https://openjdk.org/projects/jdk/17/), que gerencia uma base de
 dados binária contendo dados sobre trilhas (músicas) do Spotify e implementando
-operações [CRUD](https://pt.wikipedia.org/w/index.php?title=CRUD). Usamos como
-ponto de partida uma base de dados que
-[encontramos no Kaggle](https://www.kaggle.com/datasets/olegfostenko/almost-a-million-spotify-tracks),
+operações [CRUD](https://pt.wikipedia.org/w/index.php?title=CRUD), ordenação em
+disco, índices diretos e índices reversos, compressão e casamento de padrões.
+Usamos como ponto de partida uma base de dados que [encontramos no
+Kaggle](https://www.kaggle.com/datasets/olegfostenko/almost-a-million-spotify-tracks),
 contendo 899702 registros, dos quais selecionamos apenas aqueles que não contêm
 valores nulos, e eliminando certos campos que não são do nosso interesse,
 resultando num total de 99890 registros. Veja como os dados são processados
@@ -30,15 +31,35 @@ Antes de começar, certifique-se de ter o seguinte:
   ```sh
   git clone --recursive https://github.com/lucca-pellegrini/aeds3
   cd aeds3
-  mvn package
+  mvn package -DskipTests
   ```
-  O arquivo JAR resultante se encontrará na pasta `targets/`
+  O arquivo JAR resultante se encontrará na pasta `targets/`.
+
+  Note: o emprego da flag `-DskipTests` pode ser necessário pois os testes
+  foram projetados com sistemas Linux em mente, e podem não suceder no Windows
+  ou no macOS.
+
+  - O programa pode ser executado com o Maven, utilizando
+  ```sh
+  mvn exec:java -DskipTests
+  ```
+  ou diretamente pelo Java, com
+  ```sh
+  java -jar target/AEDs3-[VERSÃO]-full.jar
+  ```
+  Note: se estiver usando algum multiplexador de terminal, como o
+  [tmux](https://github.com/tmux/tmux/wiki), pode ser necessário definir a
+  seguinte variável de ambiente antes de executar, para exibir a interface
+  corretamente:
+  ```sh
+  export TERM=xterm-256color
+  ```
 
 Na execução, será possível importar os dados de
 [um arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset),
 e, tendo inicializado a base de dados binária em disco, todas as operações CRUD
-serão disponibilizadas ao usuário. Use o comando `help` no menu interativo para
-mais informações.
+serão disponibilizadas ao usuário. Use o comando `usage` no menu interativo
+para mais informações.
 
 ## Estrutura do Repositório
 
@@ -49,33 +70,44 @@ mais informações.
   a compilação do projeto, além da resolução automática de dependências.
 - **src/**: esta pasta contém todo o código-fonte do programa, a implementação
   de toda a funcionalidade e de todos os algoritmos, na qual:
-  - **main/<...>/AEDs3/**: contém todo o código-fonte do programa principal:
-    - **App.java**: arquivo principal e ponto de partida da execução.
-    - **Track.java**: implementação da classe básica, o nosso registro, a trilha
-      de música.
-    - **TrackDB.java**: implementação das classes relacionadas às operações
-      sobre os dados em disco.
-    - **Index.java**: definição da interface de índice primário utilizada para
-      otimizar leituras em disco.
-    - **BTree.java:** implementação da interface `Index` utilizando uma Árvore
-      B em disco, carregando na memória apenas as páginas (nós) necessárias
-      para realizar cada operação.
-    - **HashTableIndex.java:** implementação da interface `Index` utilizando
-      uma tabela Hash Extensível em disco.
-    - **InvertedListIndex.java:** implementação do índice reverso utilizando
-      listas invertidas, possibilitando fazer buscas eficientes por campos de
-      tipo textual.
-    - **BalancedMergeSort.java**: implementação da ordenação externa por
-      [intercalação balanceada _k-way_](https://en.wikipedia.org/wiki/K-way_merge_algorithm?useskin=vector#Heap),
-      utilizando um heap para a distribuição inicial dos registros.
-    - **CSVManager.java**: implementação de uma classe auxiliar que gerencia a
-      leitura e processamento inicial do
-      [arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset).
-    - **CommandLineInterface.java**: implementação dos menus apresentados ao
-      usuário, e responsável por intermediar a interação entre o usuário e o
-      programa.
-  - **test/<...>/AEDs3/**: contém todos os testes necessários durante a
-    compilação para garantir que o programa se comporta conforme o esperado.
+    - **main/**: contém tudo que é contido no programa principal:
+      - **java/AEDs3/**: contém todo o código-fonte do programa principal:
+        - **App.java**: arquivo principal e ponto de partida da execução.
+        - **Track.java**: implementação da classe básica, o nosso registro, a trilha
+          de música.
+        - **TrackDB.java**: implementação das classes relacionadas às operações
+          sobre os dados em disco.
+        - **Index.java**: definição da interface de índice primário utilizada para
+          otimizar leituras em disco.
+        - **BTree.java:** implementação da interface `Index` utilizando uma Árvore
+          B em disco, carregando na memória apenas as páginas (nós) necessárias
+          para realizar cada operação.
+        - **HashTableIndex.java:** implementação da interface `Index` utilizando
+          uma tabela Hash Extensível em disco.
+        - **InvertedListIndex.java:** implementação do índice reverso utilizando
+          listas invertidas, possibilitando fazer buscas eficientes por campos de
+          tipo textual.
+        - **BalancedMergeSort.java**: implementação da ordenação externa por
+          [intercalação balanceada _k-way_](https://en.wikipedia.org/wiki/K-way_merge_algorithm?useskin=vector#Heap),
+          utilizando um heap para a distribuição inicial dos registros.
+        - **Huffman.java**: implementa compressão dos arquivos usando o algoritmo
+            de Huffman.
+        - **LZW.java**: implementa compressão dos arquivos usando o algoritmo LZW.
+        - **BoyerMoore.java**: implementa casamento de padrões utilizando o
+            algoritmo de Boyer-Moore.
+        - **KMP.java**: implementa casamento de padrões utilizando o
+            algoritmo de Knuth-Morris-Pratt.
+        - **CSVManager.java**: implementação de uma classe auxiliar que gerencia a
+          leitura e processamento inicial do
+          [arquivo CSV compatível](https://github.com/lucca-pellegrini/aeds3-dataset).
+        - **CommandLineInterface.java**: implementação dos menus apresentados ao
+          usuário, e responsável por intermediar a interação entre o usuário e o
+          programa.
+      - **resources/**: contém todos os dados e recursos que o programa
+          principal precisa para funcionar.
+  - **test/**: contém todos as unidades e recursos de testes necessários
+      durante a compilação para garantir que o programa se comporta conforme o
+      esperado.
 - **dataset/**: é um
   [submódulo](https://git-scm.com/book/en/v2/Git-Tools-Submodules) que
   providencia acesso direto ao
@@ -151,12 +183,6 @@ das partes deste repositório que foram desenvolvidas com a ajuda de LLMs:
   a [documentação online](https://aeds3.verticordia.com).
 - Este aviso que você está lendo, adicionalmente, foi escrito com a ajuda do
   ChatGPT.
-
-Gostaríamos de ressaltar que, consoante às diretrizes da disciplina, todos os
-detalhes específicos onde LLMs foram empregados no código do programa principal
-(nos arquivos `.java` no diretório `src/main`) estão devidamente documentados.
-Cada método, classe, ou interface que foi parcial ou integralmente assistida por
-LLMs contém comentários explicativos, de modo a garantir total transparência.
 
 ## Licença
 
