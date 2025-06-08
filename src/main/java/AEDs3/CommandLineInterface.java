@@ -22,6 +22,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -451,11 +452,23 @@ public class CommandLineInterface {
 				parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
 
 				if (delete) {
+                    // Destrói os índices
+                    parent.db.setBTreeIndex(false);
+                    parent.db.setDynamicHashIndex(false);
+                    parent.db.setInvertedListIndex(false);
+
+                    // Fecha o arquivo de dados
 					parent.db.close();
 					parent.setDb(null);
+
+                    // Deleta quaisquer arquivos restantes
 					for (String file : files)
-						Files.delete(Paths.get(file));
+                        if (new File(file).exists())
+                            Files.delete(Paths.get(file));
 				}
+            } catch (FileSystemException e) {
+                parent.error("Erro ao deletar alguns arquivos: " + e.getMessage());
+                parent.hint("Recomendo deletá-los manualmente.");
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao comprimir " + dst);
