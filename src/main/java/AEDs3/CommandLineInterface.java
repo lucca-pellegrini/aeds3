@@ -1713,7 +1713,7 @@ public class CommandLineInterface {
 			// Configuração de widgets de sugestões e dicas de comandos.
 			TailTipWidgets tailtip = new TailTipWidgets(
 					reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
-			tailtip.enable();
+
 			AutosuggestionWidgets suggestions = new AutosuggestionWidgets(reader);
 			suggestions.enable();
 			commands.setSuggestions(suggestions);
@@ -1793,6 +1793,15 @@ public class CommandLineInterface {
 				reader.getBuffer().write("import ");
 				return true;
 			}, KeyMap.alt('i'));
+
+			// Se o terminal for grande o bastante para exibir o banner, mas menor que 45
+			// linhas, desabilita tailtips por padrão. Além disso, se a altura for menor que 25
+			// linhas, omite tanto o banner quanto as tailtips.
+			if (((terminal.getWidth() < App.MIN_TERMINAL_WIDTH || terminal.getHeight() < App.MIN_TERMINAL_HEIGHT)
+					^ terminal.getHeight() < 45) || terminal.getHeight() < 25)
+				tailtip.disable();
+			else
+				tailtip.enable();
 
 			// Exibe o banner de boas-vindas ao iniciar o programa.
 			showWelcomeBanner();
