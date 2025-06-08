@@ -108,11 +108,13 @@ public class CommandLineInterface {
 			"Pressione @|magenta <TAB>|@ para ver os comandos disponíveis.",
 			"Pressione @|magenta Ctrl-T|@ para alternar as dicas de tailtip.",
 			"Pressione @|magenta Ctrl-B|@ ou digite @|magenta keybindings|@ para ver os atalhos disponíveis.",
-			"" }, footer = { "", "Para exibir ajuda sobre um comando, digite:\n@|magenta <comando> --help|@ e pressione @|magenta <ENTER>|@\n", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
-					CloseCommand.class, InfoCommand.class, UsageCommand.class,
-					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
-					CompressCommand.class, DecompressCommand.class, KeyBindingsCommand.class })
+			"" }, footer = { "",
+					"Para exibir ajuda sobre um comando, digite:\n@|magenta <comando> --help|@ e pressione @|magenta <ENTER>|@\n",
+					"Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
+							CloseCommand.class, InfoCommand.class, UsageCommand.class,
+							ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
+							UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
+							CompressCommand.class, DecompressCommand.class, KeyBindingsCommand.class })
 	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -382,7 +384,8 @@ public class CommandLineInterface {
 				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
-		@Option(names = { "-n", "--name"}, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
+		@Option(names = { "-n",
+				"--name" }, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
 		String customName;
 
 		@Option(names = { "-b",
@@ -452,23 +455,23 @@ public class CommandLineInterface {
 				parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
 
 				if (delete) {
-                    // Destrói os índices
-                    parent.db.setBTreeIndex(false);
-                    parent.db.setDynamicHashIndex(false);
-                    parent.db.setInvertedListIndex(false);
+					// Destrói os índices
+					parent.db.setBTreeIndex(false);
+					parent.db.setDynamicHashIndex(false);
+					parent.db.setInvertedListIndex(false);
 
-                    // Fecha o arquivo de dados
+					// Fecha o arquivo de dados
 					parent.db.close();
 					parent.setDb(null);
 
-                    // Deleta quaisquer arquivos restantes
+					// Deleta quaisquer arquivos restantes
 					for (String file : files)
-                        if (new File(file).exists())
-                            Files.delete(Paths.get(file));
+						if (new File(file).exists())
+							Files.delete(Paths.get(file));
 				}
-            } catch (FileSystemException e) {
-                parent.error("Erro ao deletar alguns arquivos: " + e.getMessage());
-                parent.hint("Recomendo deletá-los manualmente.");
+			} catch (FileSystemException e) {
+				parent.error("Erro ao deletar alguns arquivos: " + e.getMessage());
+				parent.hint("Recomendo deletá-los manualmente.");
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao comprimir " + dst);
@@ -1966,7 +1969,8 @@ public class CommandLineInterface {
 			}, KeyMap.alt('x'));
 
 			// Se o terminal for grande o bastante para exibir o banner, mas menor que 45
-			// linhas, desabilita tailtips por padrão. Além disso, se a altura for menor que 25
+			// linhas, desabilita tailtips por padrão. Além disso, se a altura for menor que
+			// 25
 			// linhas, omite tanto o banner quanto as tailtips.
 			if (((terminal.getWidth() < App.MIN_TERMINAL_WIDTH || terminal.getHeight() < App.MIN_TERMINAL_HEIGHT)
 					^ terminal.getHeight() < 45) || terminal.getHeight() < 25)
@@ -2018,12 +2022,10 @@ public class CommandLineInterface {
 						continue;
 					}
 
-                    // No Windows, caminhos lidos podem usar `\` como separador.
-                    // Aqui, ajustamos para a forma cross-platform
-                    if (App.OS.contains("win"))
-                        line = line.replaceAll("\\\\", "/");
-
-                    System.err.println(line);
+					// No Windows, caminhos lidos podem usar `\` como separador.
+					// Aqui, ajustamos para a forma cross-platform
+					if (App.OS.contains("win"))
+						line = line.replaceAll("\\\\", "/");
 
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
@@ -2139,12 +2141,14 @@ public class CommandLineInterface {
 			maxCursorOffset = Math.max(maxCursorOffset, s.replaceAll("\u001B\\[[;\\d]*m", "").length() - 42);
 		}
 
+		// Exibe a linha separadora.
 		StringBuilder sep = new StringBuilder(ansi().fgBrightMagenta().toString());
 		for (int i = 0; i < maxCursorOffset; ++i)
 			sep.append("━");
 		sep.append(ansi().reset().a('\n'));
 		terminal.writer().println(sep.toString());
 
+		// Salva que a banner foi exibida.
 		this.welcomeBannerShown = true;
 	}
 
