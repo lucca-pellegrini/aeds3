@@ -107,12 +107,12 @@ public class CommandLineInterface {
 	@Command(name = "", description = { "Banco de dados binário de faixas de música.",
 			"Pressione @|magenta <TAB>|@ para ver os comandos disponíveis.",
 			"Pressione @|magenta Ctrl-T|@ para alternar as dicas de tailtip.",
-			"Pressione @|magenta Ctrl-K|@ para ver os atalhos disponíveis.",
-			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
+			"Pressione @|magenta Ctrl-B|@ ou digite @|magenta keybindings|@ para ver os atalhos disponíveis.",
+			"" }, footer = { "", "Para exibir ajuda sobre um comando, digite:\n@|magenta <comando> --help|@ e pressione @|magenta <ENTER>|@\n", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
 					UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
-					CompressCommand.class, DecompressCommand.class })
+					CompressCommand.class, DecompressCommand.class, KeyBindingsCommand.class })
 	static class CliCommands implements Runnable {
 		LineReader reader;
 		PrintWriter out;
@@ -587,6 +587,74 @@ public class CommandLineInterface {
 		 */
 		public void run() {
 			parent.setDb(null); // Fecha o banco de dados.
+		}
+	}
+
+	@Command(name = "keybindings", mixinStandardHelpOptions = true, description = "Exibe os atalhos do programa disponíveis")
+	static class KeyBindingsCommand implements Runnable {
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			parent.out.println(
+				ansi().a('\n')
+					.fgBrightBlue().bold().a("Atalhos do Programa\n")
+					.a("━━━━━━━━━━━━━━━━━━━\n").reset()
+					.fgMagenta().a("Ctrl-Y\t").reset().bold().a("Exibe página de ajuda geral\n")
+					.fgMagenta().a("Ctrl-T\t").reset().bold().a("Alterna dicas de tailtip\n")
+					.fgMagenta().a("Ctrl-L\t").reset().bold().a("Limpa a tela, exibindo a banner").reset().a(" (se possível)\n")
+					.fgMagenta().a("Ctrl-K\t").reset().bold().a("Limpa a tela, sem exibir a banner\n")
+					.fgMagenta().a("Ctrl-O\t").reset().bold().a("Abre um arquivo TrackDB\n")
+					.fgMagenta().a("Ctrl-N\t").reset().bold().a("Cria um novo arquivo TrackDB\n")
+					.fgMagenta().a("Ctrl-X\t").reset().bold().a("Fecha o arquivo TrackDB aberto\n")
+					.fgMagenta().a("Ctrl-B\t").reset().bold().a("Exibe atalhos disponíveis").reset().a(" (o que você está lendo agora)\n")
+					.fgMagenta().a("Ctrl-Q\t").reset().bold().a("Termina o programa\n")
+					.a('\n')
+					.fgBrightBlue().bold().a("Atalhos do Arquivo de Dados\n")
+					.a("━━━━━━━━━━━━━━━━━━━━━━━━━━━\n").reset()
+					.fgMagenta().a(" Alt-N\t").reset().bold().a("Exibe informações sobre o arquivo TrackDB\n")
+					.fgMagenta().a(" Alt-M\t").reset().bold().a("Importa dados de um arquivo CSV para o arquivo TrackDB\n")
+					.fgMagenta().a(" Alt-C\t").reset().bold().a("Cria um novo registro").reset().fgYellow().a("\t(create)\n")
+					.fgMagenta().a(" Alt-R\t").reset().bold().a("Lê um registro").reset().fgYellow().a("\t\t(read)\n")
+					.fgMagenta().a(" Alt-U\t").reset().bold().a("Atualiza um registro").reset().fgYellow().a("\t(update)\n")
+					.fgMagenta().a(" Alt-D\t").reset().bold().a("Deleta um registro").reset().fgYellow().a("\t(delete)\n")
+					.fgMagenta().a(" Alt-P\t").reset().bold().a("Toca uma faixa no Spotify").reset().a(" (se presente)\n")
+					.fgMagenta().a(" Alt-S\t").reset().bold().a("Ordena o arquivo de dados\n")
+					.fgMagenta().a(" Alt-I\t").reset().bold().a("Gerencia índices do arquivo\n")
+					.fgMagenta().a(" Alt-H\t").reset().bold().a("Comprime o arquivo usando Huffman\n")
+					.fgMagenta().a(" Alt-L\t").reset().bold().a("Comprime o arquivo usando LZW\n")
+					.fgMagenta().a(" Alt-A\t").reset().bold().a("Comprime o arquivo e depois o deleta").reset().a(" (archive)\n")
+					.fgMagenta().a(" Alt-X\t").reset().bold().a("Extrai e abre um arquivo Huffman ou LZW\n")
+					.a('\n')
+					.fgBrightBlue().bold().a("Exemplo de uso\n")
+					.a("━━━━━━━━━━━━━━\n").reset()
+					.fgMagenta().a("Ctrl-N ").fgGreen().a("dados.db ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Cria um arquivo novo chamado ").fgGreen().a("dados.db\n")
+					.fgMagenta().a("Alt-M ").fgGreen().a("dataset.csv ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Importa os registros de um arquivo CSV chamado ").fgGreen().a("dataset.csv\n")
+					.fgMagenta().a("Alt-U ").fgGreen().a("NAME 10 ").fgMagenta().a("<ENTER> ").fgGreen().a("40s homecoming ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Atualiza o ").fgGreen().a("nome ").reset().a("da faixa de ID ").fgGreen().a("10 ").reset().a("para ").fgGreen().a("40s homecoming\n")
+					.fgMagenta().a("Alt-R ").fgGreen().a("KMP \"home\" ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Busca por todas as faixas contendo a string ").fgGreen().a("home ").reset().a("usando ").fgGreen().a("KMP\n")
+					.fgMagenta().a("Alt-D ").fgGreen().a("99881 ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Deleta o registro de ID ").fgGreen().a("99881\n")
+					.fgMagenta().a("Alt-S\n")
+					.reset().a("Reordena o arquivo usando intercalação balanceada ").fgBlue().a("(removendo lápides)\n")
+					.fgMagenta().a("Alt-I ").fgGreen().a("tree ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Cria e habilita um índice direto utilizando ").fgGreen().a("Árvore B\n")
+					.fgMagenta().a("Alt-N\n")
+					.reset().a("Exibe os dados no cabeçalho do arquivo\n")
+					.fgMagenta().a("Alt-A ").fgGreen().a("HUFFMAN ").fgMagenta().a("<ENTER>\n")
+					.reset().a("Comprime os arquivos (incluindo índices) com ").fgGreen().a("Huffman ").reset().a("e os deleta\n")
+					.fgMagenta().a("Ctrl-Q\n")
+					.reset().a("Fecha o programa\n")
+				);
+
+			parent.warn("Alguns atalhos podem não funcionar em todos os sistemas ou terminais.");
 		}
 	}
 
@@ -1791,7 +1859,14 @@ public class CommandLineInterface {
 				reader.getBuffer().write("usage");
 				reader.callWidget(LineReader.ACCEPT_LINE);
 				return true;
-			}, KeyMap.ctrl('u'));
+			}, KeyMap.ctrl('y'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("keybindings");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.ctrl('b'));
 
 			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
