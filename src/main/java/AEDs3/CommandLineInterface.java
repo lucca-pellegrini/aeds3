@@ -1778,7 +1778,7 @@ public class CommandLineInterface {
 				reader.getBuffer().write("usage");
 				reader.callWidget(LineReader.ACCEPT_LINE);
 				return true;
-			}, KeyMap.ctrl('h'));
+			}, KeyMap.ctrl('u'));
 
 			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
@@ -1925,7 +1925,7 @@ public class CommandLineInterface {
 											command)).toString());
 
 						commands.hint(ansi().render(
-								"Use o comando @|magenta,bold usage|@ ou pressione @|magenta Ctrl-H|@ para obter ajuda.")
+								"Use o comando @|magenta,bold usage|@ ou pressione @|magenta Ctrl-U|@ para obter ajuda.")
 								.toString());
 						continue;
 					}
