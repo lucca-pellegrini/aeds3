@@ -1759,7 +1759,27 @@ public class CommandLineInterface {
 				return true;
 			}, KeyMap.ctrl('x'));
 
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("usage");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.ctrl('h'));
+
 			// Operações sobre os dados.
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("info");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.alt('n'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("import ");
+				return true;
+			}, KeyMap.alt('m'));
 
 			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
@@ -1790,9 +1810,51 @@ public class CommandLineInterface {
 
 			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
-				reader.getBuffer().write("import ");
+				reader.getBuffer().write("play ");
+				return true;
+			}, KeyMap.alt('p'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("sort");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.alt('s'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("index --");
+				reader.callWidget(LineReader.COMPLETE_WORD);
 				return true;
 			}, KeyMap.alt('i'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("compress --method=HUFFMAN");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.alt('h'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("compress --method=LZW");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.alt('l'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("compress --delete --method ");
+				reader.callWidget(LineReader.COMPLETE_WORD);
+				return true;
+			}, KeyMap.alt('a'));
+
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("decompress --open ");
+				reader.callWidget(LineReader.COMPLETE_WORD);
+				return true;
+			}, KeyMap.alt('x'));
 
 			// Se o terminal for grande o bastante para exibir o banner, mas menor que 45
 			// linhas, desabilita tailtips por padrão. Além disso, se a altura for menor que 25
