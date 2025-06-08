@@ -58,22 +58,19 @@ import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedString;
-import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
-
 import picocli.AutoComplete;
-import picocli.CommandLine;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-import picocli.shell.jline3.PicocliCommands;
+import picocli.CommandLine;
 import picocli.shell.jline3.PicocliCommands.PicocliCommandsFactory;
+import picocli.shell.jline3.PicocliCommands;
 import picocli.shell.jline3.PicocliJLineCompleter;
 
 /**
