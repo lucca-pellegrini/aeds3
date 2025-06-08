@@ -1938,10 +1938,17 @@ public class CommandLineInterface {
 											command)).toString());
 
 						commands.hint(ansi().render(
-								"Use o comando @|magenta,bold usage|@ ou pressione @|magenta Ctrl-U|@ para obter ajuda.")
+								"Use o comando @|magenta,bold usage|@ ou pressione @|magenta Ctrl-Y|@ para obter ajuda.")
 								.toString());
 						continue;
 					}
+
+                    // No Windows, caminhos lidos podem usar `\` como separador.
+                    // Aqui, ajustamos para a forma cross-platform
+                    if (App.OS.contains("win"))
+                        line = line.replaceAll("\\\\", "/");
+
+                    System.err.println(line);
 
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
