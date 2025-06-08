@@ -379,6 +379,9 @@ public class CommandLineInterface {
 				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
+		@Option(names = { "-n", "--name"}, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
+		String customName;
+
 		@Option(names = { "-b",
 				"--backup" }, description = "Cria um backup do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
 		boolean backup;
@@ -397,7 +400,8 @@ public class CommandLineInterface {
 			}
 
 			String[] files = parent.db.listFilePaths();
-			String dst = files[0] // Se `--backup` foi passado, armazena data e hora no nome
+			String basename = (customName.isBlank()) ? files[0] : customName;
+			String dst = basename // Se `--backup` foi passado, armazena data e hora no nome
 					+ (backup ? '.' + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"))
 							: "")
 					+ '.' + method.toString().toLowerCase();
