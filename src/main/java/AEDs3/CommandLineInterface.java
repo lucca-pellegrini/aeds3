@@ -1989,7 +1989,8 @@ public class CommandLineInterface {
 		if (terminal.getWidth() < App.MIN_TERMINAL_WIDTH || terminal.getHeight() < App.MIN_TERMINAL_HEIGHT)
 			return;
 
-		final int bannerNum = App.RANDOM.nextInt(4); // Escolhe banner aleatoriamente.
+		// Se um banner não foi exibido, escolhe dentre os dois primeiros.
+		final int bannerNum = App.RANDOM.nextInt(this.welcomeBannerShown ? 4 : 2);
 
 		// Lê a arte ANSI do diretório de recursos.
 		String[] bannerLeft;
