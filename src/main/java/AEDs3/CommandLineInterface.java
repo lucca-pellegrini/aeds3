@@ -101,7 +101,8 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "", description = { "Banco de dados binário de faixas de música.",
 			"Pressione @|magenta <TAB>|@ para ver os comandos disponíveis.",
-			"pressione @|magenta Alt-S|@ para alternar as dicas de tailtip.",
+			"Pressione @|magenta Ctrl-T|@ para alternar as dicas de tailtip.",
+			"Pressione @|magenta Ctrl-K|@ para ver os atalhos disponíveis.",
 			"" }, footer = { "", "Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
 					CloseCommand.class, InfoCommand.class, UsageCommand.class,
 					ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
@@ -1719,7 +1720,10 @@ public class CommandLineInterface {
 
 			// Mapeia teclas de atalho.
 			KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
-			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+
+			// Operações do programa
+
+			keyMap.bind(new Reference("tailtip-toggle"), KeyMap.ctrl('t'));
 
 			keyMap.bind((Widget) () -> {
 				reader.callWidget(LineReader.CLEAR_SCREEN);
@@ -1754,6 +1758,8 @@ public class CommandLineInterface {
 				reader.callWidget(LineReader.ACCEPT_LINE);
 				return true;
 			}, KeyMap.ctrl('x'));
+
+			// Operações sobre os dados.
 
 			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
