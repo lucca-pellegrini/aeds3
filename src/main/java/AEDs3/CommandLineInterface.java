@@ -1767,6 +1767,13 @@ public class CommandLineInterface {
 				return true;
 			}, KeyMap.ctrl('h'));
 
+			keyMap.bind((Widget) () -> {
+				reader.getBuffer().clear();
+				reader.getBuffer().write("exit");
+				reader.callWidget(LineReader.ACCEPT_LINE);
+				return true;
+			}, KeyMap.ctrl('q'));
+
 			// Operações sobre os dados.
 
 			keyMap.bind((Widget) () -> {
