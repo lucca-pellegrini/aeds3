@@ -496,15 +496,30 @@ public class CommandLineInterface {
 				}
 			}
 
+			String[] files;
 			String dbPath;
 			try {
-				dbPath = Compressor.decompress(path, method)[0];
+				files = Compressor.decompress(path, method);
+				dbPath = files[0];
 				if (delete)
 					Files.delete(Paths.get(path));
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException("Erro ao descomprimir " + path);
 			}
+
+			long totalSize = 0;
+			parent.info("Descomprimi e desempacotei os seguintes arquivos:");
+			for (String file : files) {
+				long len = new File(file).length();
+				totalSize += len;
+				parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
+						.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
+						.fgGreen().a(file).a(' ').reset());
+			}
+			parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", totalSize / 1000))
+					.a(" KB ").fgBrightBlue().a("(Total)").reset());
+			parent.out.flush();
 
 			if (open) {
 				parent.setDb(dbPath);
