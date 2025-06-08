@@ -1839,6 +1839,8 @@ public class CommandLineInterface {
 
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
+					terminal.puts(Capability.cursor_visible);
+					terminal.puts(Capability.cursor_normal);
 					commands.info("Programa finalizado");
 					tailtip.disable();
 					suggestions.disable();
