@@ -1734,6 +1734,11 @@ public class CommandLineInterface {
 			}, KeyMap.ctrl('l'));
 
 			keyMap.bind((Widget) () -> {
+				reader.callWidget(LineReader.CLEAR_SCREEN);
+				return true;
+			}, KeyMap.ctrl('k'));
+
+			keyMap.bind((Widget) () -> {
 				reader.getBuffer().clear();
 				reader.getBuffer().write("open ");
 				reader.callWidget(LineReader.COMPLETE_WORD);
