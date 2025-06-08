@@ -49,9 +49,30 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	protected final String filePath;
 
+	/**
+	 * Índice primário utilizado para otimizar operações de busca e escrita.
+	 * Pode ser do tipo Árvore B ou Hash Dinâmica, dependendo da configuração.
+	 */
 	protected Index index;
+
+	/**
+	 * Índice de lista invertida para otimizar buscas pelo nome da faixa.
+	 * Armazena referências para faixas que contêm palavras específicas no nome.
+	 */
 	protected InvertedListIndex nameIndex;
+
+	/**
+	 * Índice de lista invertida para otimizar buscas pelo nome do álbum.
+	 * Armazena referências para faixas que contêm palavras específicas no nome do
+	 * álbum.
+	 */
 	protected InvertedListIndex albumIndex;
+
+	/**
+	 * Índice de lista invertida para otimizar buscas pelo nome do artista.
+	 * Armazena referências para faixas que contêm palavras específicas no nome do
+	 * artista.
+	 */
 	protected InvertedListIndex artistIndex;
 
 	/**
@@ -639,6 +660,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * Retorna um array contendo todos os arquivos associados a este DB, incluindo o
 	 * arquivo de dados e quaisquer arquivos de índice.
 	 */
+	/**
+	 * Retorna um array contendo os caminhos de todos os arquivos associados a este banco de dados,
+	 * incluindo o arquivo de dados e quaisquer arquivos de índice.
+	 *
+	 * @return Um array de strings com os caminhos dos arquivos associados ao banco de dados.
+	 */
 	public String[] listFilePaths() {
 		List<String> res = new ArrayList<>();
 		res.add(filePath);
@@ -697,7 +724,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * O filtro consiste em um campo da faixa e um valor a ser comparado.
 	 */
 	public static class TrackFilter {
+		/**
+		 * O campo da faixa a ser filtrado.
+		 */
 		public Track.Field searchField;
+		/**
+		 * O valor que o campo deve ter para que a faixa seja retornada.
+		 */
 		public Object searchValue;
 
 		/**
@@ -796,31 +829,69 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	// Getters & Setters.
 
+	/**
+	 * Retorna o UUID único do banco de dados.
+	 *
+	 * @return O UUID do banco de dados.
+	 */
 	public UUID getUUID() {
 		return uuid;
 	}
 
+	/**
+	 * Retorna o último ID inserido no banco de dados.
+	 *
+	 * @return O último ID inserido.
+	 */
 	public int getLastId() {
 		return lastId;
 	}
 
+	/**
+	 * Define o último ID inserido no banco de dados e atualiza o cabeçalho.
+	 *
+	 * @param lastId O último ID a ser definido.
+	 * @throws IOException Se ocorrer um erro ao atualizar o cabeçalho.
+	 */
 	public void setLastId(int lastId) throws IOException {
 		this.lastId = lastId;
 		updateHeader();
 	}
 
+	/**
+	 * Retorna o número de faixas válidas no banco de dados.
+	 *
+	 * @return O número de faixas válidas.
+	 */
 	public int getNumTracks() {
 		return numTracks;
 	}
 
+	/**
+	 * Retorna o número de espaços usados no banco de dados, incluindo os com
+	 * lápides.
+	 *
+	 * @return O número de espaços usados.
+	 */
 	public int getNumSpaces() {
 		return numSpaces;
 	}
 
+	/**
+	 * Retorna o caminho para o arquivo de banco de dados.
+	 *
+	 * @return O caminho do arquivo de banco de dados.
+	 */
 	public String getFilePath() {
 		return filePath;
 	}
 
+	/**
+	 * Verifica se o segmento atual de faixas foi completamente processado.
+	 *
+	 * @return {@code true} se o segmento foi processado, {@code false} caso
+	 *         contrário.
+	 */
 	public boolean isSegmentFinished() {
 		return segmentFinished;
 	}
@@ -912,10 +983,23 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		updateHeader();
 	}
 
+	/**
+	 * Configura o uso de um índice do tipo Hash Dinâmica no banco de dados.
+	 *
+	 * @param value {@code true} para habilitar o índice Hash Dinâmica, {@code false} para desabilitar.
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void setDynamicHashIndex(boolean value) throws IOException {
 		setDynamicHashIndex(value, 16);
 	}
 
+	/**
+	 * Configura o uso de um índice do tipo Hash Dinâmica no banco de dados com uma capacidade de bucket específica.
+	 *
+	 * @param value          {@code true} para habilitar o índice Hash Dinâmica, {@code false} para desabilitar.
+	 * @param bucketCapacity A capacidade do bucket para a tabela hash.
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void setDynamicHashIndex(boolean value, int bucketCapacity) throws IOException {
 		if (value) {
 			if (hasDynamicHashIndex())
@@ -941,6 +1025,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		updateHeader();
 	}
 
+	/**
+	 * Lê os índices invertidos para o nome, álbum e artista fornecidos.
+	 *
+	 * @param name   O nome da faixa a ser lido no índice invertido.
+	 * @param album  O nome do álbum a ser lido no índice invertido.
+	 * @param artist O nome do artista a ser lido no índice invertido.
+	 * @return Um array de inteiros contendo os IDs das faixas que correspondem aos critérios.
+	 * @throws IOException Se ocorrer um erro de leitura no arquivo.
+	 */
 	public int[] readInvertedIndexes(String name, String album, String artist) throws IOException {
 		int[] matchingName = nameIndex.read(name != null ? name.toLowerCase() : null);
 		int[] matchingAlbum = albumIndex.read(album != null ? album.toLowerCase() : null);
@@ -1032,6 +1125,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			artistIndex.delete(s, id);
 	}
 
+	/**
+	 * Configura o uso de índices de lista invertida no banco de dados.
+	 *
+	 * @param value {@code true} para habilitar os índices de lista invertida, {@code false} para desabilitar.
+	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
+	 */
 	public void setInvertedListIndex(boolean value) throws IOException {
 		if (value) {
 			if (hasInvertedListIndex())
@@ -1116,10 +1215,24 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		}
 	}
 
+	/**
+	 * Verifica se o banco de dados está ordenado.
+	 *
+	 * @return {@code true} se os registros no banco de dados estiverem ordenados
+	 *         por ID,
+	 *         {@code false} caso contrário.
+	 */
 	public boolean isOrdered() {
 		return (flags & Flag.ORDERED.getBitmask()) != 0;
 	}
 
+	/**
+	 * Define o estado de ordenação do banco de dados.
+	 *
+	 * @param value {@code true} para marcar o banco de dados como ordenado,
+	 *              {@code false} para marcar como não ordenado.
+	 * @throws IOException Se ocorrer um erro ao atualizar o cabeçalho do arquivo.
+	 */
 	public void setOrdered(boolean value) throws IOException {
 		flags = value ? (flags | Flag.ORDERED.getBitmask()) : (flags & ~Flag.ORDERED.getBitmask());
 		updateHeader();

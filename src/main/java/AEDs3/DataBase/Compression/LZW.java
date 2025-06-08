@@ -7,13 +7,28 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Implementação do algoritmo de compressão LZW.
- * Realiza a compressão e descompressão de arquivos binários.
+ * Esta classe implementa o algoritmo de compressão LZW, que é utilizado para
+ * comprimir e descomprimir arquivos binários. O algoritmo LZW é eficiente para
+ * compressão de dados que possuem padrões repetitivos.
+ */
+/**
+ * Classe que implementa o algoritmo de compressão LZW.
+ * Utilizada para comprimir e descomprimir arquivos binários.
  */
 public class LZW {
-	public static final int BITS_PER_INDEX = 12; // Tamanho do índice em bits
+/**
+ * Tamanho do índice em bits utilizado no algoritmo LZW.
+ */
+public static final int BITS_PER_INDEX = 12; // Tamanho do índice em bits
 
-	public static void compressFile(String src, String dst) throws IOException {
+/**
+ * Comprime um arquivo utilizando o algoritmo LZW.
+ *
+ * @param src Caminho do arquivo de origem a ser comprimido.
+ * @param dst Caminho do arquivo de destino onde o arquivo comprimido será salvo.
+ * @throws IOException Se ocorrer um erro de I/O durante a compressão.
+ */
+public static void compressFile(String src, String dst) throws IOException {
 		FileInputStream fis = new FileInputStream(new File(src));
 		byte[] originalBytes = fis.readAllBytes();
 		fis.close();
@@ -25,7 +40,14 @@ public class LZW {
 		fos.close();
 	}
 
-	public static void decompressFile(String src, String dst) throws IOException {
+/**
+ * Descomprime um arquivo utilizando o algoritmo LZW.
+ *
+ * @param src Caminho do arquivo de origem a ser descomprimido.
+ * @param dst Caminho do arquivo de destino onde o arquivo descomprimido será salvo.
+ * @throws IOException Se ocorrer um erro de I/O durante a descompressão.
+ */
+public static void decompressFile(String src, String dst) throws IOException {
 		FileInputStream fis = new FileInputStream(src);
 		byte[] encodedCopy = fis.readAllBytes();
 		fis.close();
@@ -38,63 +60,11 @@ public class LZW {
 	}
 
 	/**
-	 * Método principal para execução do algoritmo LZW.
-	 */
-	public static void main(String[] args) {
-		try {
-			File file = new File(args[0]);
-			FileInputStream fis = new FileInputStream(file);
-
-			byte[] originalBytes = fis.readAllBytes();
-			fis.close();
-
-			System.out.println("Comprimindo!");
-
-			// Codificação (Compressão)
-			byte[] encodedBytes = encode(originalBytes);
-
-			System.out.println("Salvando!");
-
-			// Grava o arquivo comprimido
-			FileOutputStream fos = new FileOutputStream("compressed_file.lzw");
-			fos.write(encodedBytes);
-			fos.close();
-
-			System.out.println("Lendo o arquivo comprimido");
-
-			// Lê o arquivo comprimido
-			fis = new FileInputStream("compressed_file.lzw");
-			byte[] encodedCopy = fis.readAllBytes();
-			fis.close();
-
-			System.out.println("Decodificando");
-
-			// Decodificação (Descompressão)
-			byte[] decodedBytes = decode(encodedCopy);
-
-			System.out.println("Salvando o arquivo descomprimido");
-
-			// Grava o arquivo descomprimido
-			fos = new FileOutputStream("decompressed_file.bin");
-			fos.write(decodedBytes);
-			fos.close();
-
-			// Estatísticas de compressão
-			System.out.println("\nOriginal Size: " + originalBytes.length + " bytes");
-			System.out.println("Compressed Size: " + encodedBytes.length + " bytes");
-			System.out.println("Compression Efficiency: "
-					+ (100 * (1 - (float) encodedBytes.length / (float) originalBytes.length)) + "%");
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Método para codificar os bytes usando LZW.
+	 * Codifica uma sequência de bytes utilizando o algoritmo LZW.
 	 *
-	 * @param originalBytes sequência de bytes original.
-	 * @return array de bytes codificados.
+	 * @param originalBytes A sequência de bytes original a ser comprimida.
+	 * @return Um array de bytes que representa os dados comprimidos.
+	 * @throws IOException Se ocorrer um erro de I/O durante a compressão.
 	 */
 	public static byte[] encode(byte[] originalBytes) throws IOException {
 
@@ -175,10 +145,11 @@ public class LZW {
 	}
 
 	/**
-	 * Método para decodificar os bytes comprimidos usando LZW.
+	 * Decodifica uma sequência de bytes comprimidos utilizando o algoritmo LZW.
 	 *
-	 * @param encodedBytes sequência de bytes comprimida.
-	 * @return array de bytes descomprimidos.
+	 * @param encodedBytes A sequência de bytes comprimida a ser descomprimida.
+	 * @return Um array de bytes que representa os dados descomprimidos.
+	 * @throws IOException Se ocorrer um erro de I/O durante a descompressão.
 	 */
 	public static byte[] decode(byte[] encodedBytes) throws IOException {
 

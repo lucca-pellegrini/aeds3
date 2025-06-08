@@ -138,6 +138,16 @@ public class KMP {
 		return results;
 	}
 
+	/**
+	 * Verifica se um padrão está presente em um texto utilizando o algoritmo KMP.
+	 * A busca é insensível a maiúsculas/minúsculas.
+	 *
+	 * @param pattern O padrão a ser buscado no texto.
+	 * @param text    O texto onde o padrão será procurado.
+	 * @return {@code true} se o padrão for encontrado no texto, {@code false} caso
+	 *         contrário.
+	 * @throws IOException Se ocorrer um erro de leitura do fluxo de entrada.
+	 */
 	public static boolean match(String pattern, String text) throws IOException {
 		InputStream in = new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
 		return !searchInStream(in, pattern, 4096, 20).isEmpty();

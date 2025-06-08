@@ -96,6 +96,7 @@ public class CommandLineInterface {
 	 * <code>InfoCommand</code>, etc.), funcionando como um ponto central para
 	 * agrupar e fornecer um ambiente compartilhado onde os subcomandos podem
 	 * acessar dados e exibir informações na linha de comando (CLI) para o usuário.
+	 * @throws IOException Se ocorrer um erro ao ler o arquivo de banner ANSI.
 	 * </p>
 	 *
 	 * <p>
@@ -593,6 +594,24 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Comando responsável por exibir os atalhos de teclado disponíveis no programa.
+	 *
+	 * <p>
+	 * Este comando lista todos os atalhos de teclado que podem ser utilizados
+	 * na interface de linha de comando para facilitar a navegação e execução
+	 * de comandos. Ele exibe uma lista organizada de atalhos, categorizados
+	 * por operações gerais do programa e operações específicas sobre os dados.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando ainda pode ser executado
+	 * para exibir os atalhos disponíveis.
+	 * </p>
+	 *
+	 * @param args Argumentos de linha de comando passados para o programa.
+	 * @see CliCommands
+	 */
 	@Command(name = "keybindings", mixinStandardHelpOptions = true, description = "Exibe os atalhos do programa disponíveis")
 	static class KeyBindingsCommand implements Runnable {
 		/**
@@ -1737,6 +1756,7 @@ public class CommandLineInterface {
 	 * exibição de mensagens detalhadas durante a execução.
 	 * </p>
 	 *
+	 * @param args Argumentos de linha de comando passados para o programa.
 	 * @see CliCommands
 	 * @see PicocliCommandsFactory
 	 * @see PicocliCommands
@@ -2072,6 +2092,8 @@ public class CommandLineInterface {
 	 * uma
 	 * apresentação visual atraente no terminal.
 	 * </p>
+	 *
+	 * @throws IOException Se ocorrer um erro ao ler o arquivo de arte ANSI.
 	 */
 	public void showWelcomeBanner() throws IOException {
 		// Não exibe o banner se o terminal for muito pequeno.

@@ -11,23 +11,36 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
- * Classe que representa um nó da árvore de Huffman.
- * Cada nó armazena um byte, sua frequência e referências para os nós filhos.
+ * Representa um nó na árvore de Huffman.
+ * Cada nó armazena um byte, sua frequência de ocorrência e referências para os
+ * nós filhos.
+ * Implementa a interface Comparable para permitir a ordenação com base na
+ * frequência.
  */
 class HuffmanNode implements Comparable<HuffmanNode> {
 	byte b; // Byte armazenado no nó
 	int frequency; // Frequência de ocorrência do byte
 	HuffmanNode left, right; // Referências para os nós filhos (esquerdo e direito)
 
-	// Construtor para inicializar o nó com um byte e sua frequência
+	/**
+	 * Construtor que inicializa o nó com um byte e sua frequência.
+	 *
+	 * @param b o byte a ser armazenado no nó
+	 * @param f a frequência de ocorrência do byte
+	 */
 	public HuffmanNode(byte b, int f) {
 		this.b = b;
 		this.frequency = f;
 		left = right = null;
 	}
 
-	// Método de comparação para ordenar os nós na fila de prioridade (com base na
-	// frequência)
+	/**
+	 * Compara este nó com outro nó de Huffman com base na frequência.
+	 *
+	 * @param o o outro nó de Huffman a ser comparado
+	 * @return um valor negativo se este nó tiver menor frequência, zero se igual,
+	 *         ou positivo se maior
+	 */
 	@Override
 	public int compareTo(HuffmanNode o) {
 		return this.frequency - o.frequency;
@@ -35,20 +48,31 @@ class HuffmanNode implements Comparable<HuffmanNode> {
 }
 
 /**
- * Classe principal responsável pela compressão e descompressão usando o
+ * Classe responsável pela compressão e descompressão de arquivos utilizando o
  * algoritmo de Huffman.
+ * Fornece métodos para comprimir e descomprimir arquivos, além de gerar códigos
+ * de Huffman.
  */
 public class Huffman {
+	/**
+	 * Comprime um arquivo usando o algoritmo de Huffman.
+	 *
+	 * @param src o caminho do arquivo de origem a ser comprimido
+	 * @param dst o caminho do arquivo de destino onde o arquivo comprimido será
+	 *            salvo
+	 * @throws IOException se ocorrer um erro de I/O durante o processo de
+	 *                     compressão
+	 */
 	public static void compressFile(String src, String dst) throws IOException {
-		// Read the original file
+		// Lê o arquivo original
 		FileInputStream fis = new FileInputStream(src);
 		byte[] originalBytes = fis.readAllBytes();
 		fis.close();
 
-		// Generate Huffman codes
+		// Gera os códigos de Huffman
 		HashMap<Byte, String> codes = codeToBit(originalBytes);
 
-		// Encode the original bytes using Huffman codes
+		// Codifica os bytes originais usando os códigos de Huffman
 		BitArray encodedSequence = new BitArray();
 		int index = 0;
 		for (byte b : originalBytes) {
@@ -62,20 +86,20 @@ public class Huffman {
 			}
 		}
 
-		// Write the Huffman codes and encoded data to the output file
+		// Escreve os códigos de Huffman e os dados codificados no arquivo de saída
 		FileOutputStream fos = new FileOutputStream(dst);
 		DataOutputStream dos = new DataOutputStream(fos);
 
-		// Write the size of the map
+		// Escreve o tamanho do mapa de códigos
 		dos.writeInt(codes.size());
 
-		// Write the Huffman code map
+		// Escreve o mapa de códigos de Huffman
 		for (Map.Entry<Byte, String> entry : codes.entrySet()) {
 			dos.writeByte(entry.getKey());
 			dos.writeUTF(entry.getValue());
 		}
 
-		// Write the encoded byte array
+		// Escreve o array de bytes codificados
 		byte[] encodedBytes = encodedSequence.toByteArray();
 		dos.writeInt(encodedBytes.length);
 		dos.write(encodedBytes);
@@ -84,15 +108,24 @@ public class Huffman {
 		fos.close();
 	}
 
+	/**
+	 * Descomprime um arquivo que foi comprimido usando o algoritmo de Huffman.
+	 *
+	 * @param src o caminho do arquivo comprimido de origem
+	 * @param dst o caminho do arquivo de destino onde o arquivo descomprimido será
+	 *            salvo
+	 * @throws IOException se ocorrer um erro de I/O durante o processo de
+	 *                     descompressão
+	 */
 	public static void decompressFile(String src, String dst) throws IOException {
-		// Read the compressed file
+		// Lê o arquivo comprimido
 		FileInputStream fis = new FileInputStream(src);
 		DataInputStream dis = new DataInputStream(fis);
 
-		// Read the size of the map
+		// Lê o tamanho do mapa de códigos
 		int mapSize = dis.readInt();
 
-		// Read the Huffman code map
+		// Lê o mapa de códigos de Huffman
 		HashMap<Byte, String> codes = new HashMap<>();
 		for (int i = 0; i < mapSize; i++) {
 			byte b = dis.readByte();
@@ -100,7 +133,7 @@ public class Huffman {
 			codes.put(b, code);
 		}
 
-		// Read the length of the encoded byte array
+		// Lê o comprimento do array de bytes codificados
 		int encodedLength = dis.readInt();
 		byte[] encodedBytes = new byte[encodedLength];
 		dis.readFully(encodedBytes);
@@ -108,22 +141,23 @@ public class Huffman {
 		dis.close();
 		fis.close();
 
-		// Decode the encoded byte array
+		// Decodifica o array de bytes codificados
 		BitArray encodedSequence = new BitArray(encodedBytes);
 		String bitString = encodedSequence.bitString();
 		byte[] decodedBytes = decode(bitString, codes);
 
-		// Write the decoded bytes to the output file
+		// Escreve os bytes decodificados no arquivo de saída
 		FileOutputStream fos = new FileOutputStream(dst);
 		fos.write(decodedBytes);
 		fos.close();
 	}
 
 	/**
-	 * Gera a tabela de códigos de Huffman para cada byte da sequência.
+	 * Gera a tabela de códigos de Huffman para cada byte da sequência fornecida.
 	 *
-	 * @param sequence sequência de bytes a ser comprimida.
-	 * @return um HashMap com o byte como chave e seu código binário como valor.
+	 * @param sequence a sequência de bytes a ser comprimida
+	 * @return um HashMap onde a chave é o byte e o valor é seu código binário
+	 *         correspondente
 	 */
 	public static HashMap<Byte, String> codeToBit(byte[] sequence) {
 		Map<Byte, Integer> frequencyMap = new HashMap<>();
@@ -153,8 +187,11 @@ public class Huffman {
 	}
 
 	/**
-	 * Método recursivo para gerar os códigos binários a partir da árvore de
-	 * Huffman.
+	 * Gera recursivamente os códigos binários a partir da árvore de Huffman.
+	 *
+	 * @param node  o nó atual da árvore de Huffman
+	 * @param code  o código binário acumulado até o nó atual
+	 * @param codes o mapa que armazena os códigos binários gerados
 	 */
 	private static void generateCodes(HuffmanNode node, String code, HashMap<Byte, String> codes) {
 		if (node == null) {
@@ -168,8 +205,12 @@ public class Huffman {
 	}
 
 	/**
-	 * Decodifica uma sequência de bits para o texto original usando a tabela de
-	 * códigos.
+	 * Decodifica uma sequência de bits para o texto original utilizando a tabela de
+	 * códigos de Huffman.
+	 *
+	 * @param codedSequence a sequência de bits codificada
+	 * @param codes         o mapa de códigos de Huffman
+	 * @return um array de bytes representando o texto original decodificado
 	 */
 	public static byte[] decode(String codedSequence, Map<Byte, String> codes) {
 		ByteArrayOutputStream decodedSequence = new ByteArrayOutputStream();
@@ -192,8 +233,13 @@ public class Huffman {
 	}
 
 	/**
-	 * Método principal para leitura, compressão, e descompressão de um arquivo
-	 * binário.
+	 * Método principal que realiza a leitura, compressão e descompressão de um
+	 * arquivo binário.
+	 * Aceita o caminho do arquivo como argumento e executa o processo de compressão
+	 * e descompressão.
+	 *
+	 * @param args argumentos de linha de comando, onde o primeiro argumento é o
+	 *             caminho do arquivo
 	 */
 	public static void main(String[] args) {
 		String caminhoArquivo = args[0];

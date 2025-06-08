@@ -16,11 +16,34 @@ import java.util.Random;
  * {@link CommandLineInterface} com os argumentos fornecidos.
  */
 public class App {
+	/**
+	 * Instância de {@link Random} para geração de números aleatórios.
+	 */
 	protected static final Random RANDOM = new Random();
+
+	/**
+	 * Nome do aplicativo.
+	 */
 	protected static final String APP_NAME = "TrackDB";
+
+	/**
+	 * Propriedade do sistema que representa o diretório home do usuário.
+	 */
 	protected static final String HOME_PROPERTY = "user.home";
+
+	/**
+	 * Nome do sistema operacional em letras minúsculas.
+	 */
 	protected static final String OS = System.getProperty("os.name").toLowerCase();
+
+	/**
+	 * Largura mínima do terminal para habilitar todos os widgets.
+	 */
 	protected static final int MIN_TERMINAL_WIDTH = 104;
+
+	/**
+	 * Altura mínima do terminal para habilitar todos os widgets.
+	 */
 	protected static final int MIN_TERMINAL_HEIGHT = 36;
 
 	/**

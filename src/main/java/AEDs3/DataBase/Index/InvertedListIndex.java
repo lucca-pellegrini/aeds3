@@ -1,5 +1,14 @@
 package AEDs3.DataBase.Index;
 
+/**
+ * Classe que implementa um índice de lista invertida.
+ * Utiliza arquivos para armazenar o dicionário e os blocos de dados.
+ *
+ * Esta classe fornece métodos para criar, ler e deletar registros associados a palavras-chave,
+ * utilizando uma estrutura de lista invertida. Os registros são armazenados em blocos, que são
+ * gerenciados por meio de arquivos de acesso aleatório.
+ */
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -12,6 +21,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * Classe que implementa um índice de lista invertida.
+ * Utiliza arquivos para armazenar o dicionário e os blocos de dados.
+ *
+ * Esta classe fornece métodos para criar, ler e deletar registros associados a palavras-chave,
+ * utilizando uma estrutura de lista invertida. Os registros são armazenados em blocos, que são
+ * gerenciados por meio de arquivos de acesso aleatório.
+ */
 public class InvertedListIndex {
 	String dictionaryFilePath;
 	String blockFilePath;
@@ -19,21 +36,45 @@ public class InvertedListIndex {
 	RandomAccessFile blocks;
 	private static final int BLOCK_CAPACITY = 4;
 
+	/**
+	 * Classe que representa um registro na lista invertida.
+	 * Implementa a interface Comparable para permitir ordenação.
+	 */
 	static class InvertedListRegister implements Comparable<InvertedListRegister> {
 		private int id;
 
+		/**
+		 * Construtor que inicializa o registro com um ID.
+		 *
+		 * @param i ID do registro.
+		 */
 		public InvertedListRegister(int i) {
 			this.id = i;
 		}
 
+		/**
+		 * Obtém o ID do registro.
+		 *
+		 * @return ID do registro.
+		 */
 		public int getId() {
 			return id;
 		}
 
+		/**
+		 * Define o ID do registro.
+		 *
+		 * @param id Novo ID do registro.
+		 */
 		public void setId(int id) {
 			this.id = id;
 		}
 
+		/**
+		 * Construtor de cópia.
+		 *
+		 * @param other Outro registro a ser copiado.
+		 */
 		public InvertedListRegister(InvertedListRegister other) {
 			this.id = other.id;
 		}
@@ -66,6 +107,11 @@ public class InvertedListIndex {
 		long next;
 		short bytesPerBlock;
 
+		/**
+		 * Construtor que inicializa um bloco com capacidade máxima.
+		 *
+		 * @param qtdmax Capacidade máxima do bloco.
+		 */
 		public Block(int qtdmax) {
 			num = 0;
 			max = (short) qtdmax;
@@ -74,6 +120,12 @@ public class InvertedListIndex {
 			bytesPerBlock = (short) (2 + 4 * max + 8);
 		}
 
+		/**
+		 * Converte o bloco em um array de bytes.
+		 *
+		 * @return Array de bytes representando o bloco.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
@@ -87,6 +139,12 @@ public class InvertedListIndex {
 			return baos.toByteArray();
 		}
 
+		/**
+		 * Inicializa o bloco a partir de um array de bytes.
+		 *
+		 * @param ba Array de bytes a ser lido.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public void fromByteArray(byte[] ba) throws IOException {
 			ByteArrayInputStream bais = new ByteArrayInputStream(ba);
 			DataInputStream dis = new DataInputStream(bais);
@@ -96,6 +154,13 @@ public class InvertedListIndex {
 			next = dis.readLong();
 		}
 
+		/**
+		 * Adiciona um registro ao bloco.
+		 *
+		 * @param e Registro a ser adicionado.
+		 * @return true se o registro foi adicionado com sucesso, false se o bloco
+		 *         estiver cheio.
+		 */
 		public boolean create(InvertedListRegister e) {
 			if (full())
 				return false;
@@ -107,6 +172,12 @@ public class InvertedListIndex {
 			return true;
 		}
 
+		/**
+		 * Verifica se um ID está presente no bloco.
+		 *
+		 * @param id ID a ser verificado.
+		 * @return true se o ID estiver presente, false caso contrário.
+		 */
 		public boolean test(int id) {
 			if (empty())
 				return false;
@@ -116,6 +187,12 @@ public class InvertedListIndex {
 			return i < num && id == items[i].getId();
 		}
 
+		/**
+		 * Remove um registro do bloco pelo ID.
+		 *
+		 * @param id ID do registro a ser removido.
+		 * @return true se o registro foi removido, false se não foi encontrado.
+		 */
 		public boolean delete(int id) {
 			if (empty())
 				return false;
@@ -132,10 +209,20 @@ public class InvertedListIndex {
 			}
 		}
 
+		/**
+		 * Obtém o último registro do bloco.
+		 *
+		 * @return Último registro do bloco.
+		 */
 		public InvertedListRegister last() {
 			return items[num - 1];
 		}
 
+		/**
+		 * Lista todos os registros presentes no bloco.
+		 *
+		 * @return Array de registros presentes no bloco.
+		 */
 		public InvertedListRegister[] list() {
 			InvertedListRegister[] res = new InvertedListRegister[num];
 			for (int i = 0; i < num; i++)
@@ -143,27 +230,60 @@ public class InvertedListIndex {
 			return res;
 		}
 
+		/**
+		 * Verifica se o bloco está vazio.
+		 *
+		 * @return true se o bloco estiver vazio, false caso contrário.
+		 */
 		public boolean empty() {
 			return num == 0;
 		}
 
+		/**
+		 * Verifica se o bloco está cheio.
+		 *
+		 * @return true se o bloco estiver cheio, false caso contrário.
+		 */
 		public boolean full() {
 			return num == max;
 		}
 
+		/**
+		 * Obtém o endereço do próximo bloco.
+		 *
+		 * @return Endereço do próximo bloco.
+		 */
 		public long next() {
 			return next;
 		}
 
+		/**
+		 * Define o endereço do próximo bloco.
+		 *
+		 * @param p Endereço do próximo bloco.
+		 */
 		public void setNext(long p) {
 			next = p;
 		}
 
+		/**
+		 * Obtém o tamanho do bloco em bytes.
+		 *
+		 * @return Tamanho do bloco em bytes.
+		 */
 		public int size() {
 			return bytesPerBlock;
 		}
 	}
 
+	/**
+	 * Construtor que inicializa o índice de lista invertida com os caminhos dos
+	 * arquivos.
+	 *
+	 * @param dictionaryFilePath Caminho para o arquivo de dicionário.
+	 * @param blockFilePath      Caminho para o arquivo de blocos.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public InvertedListIndex(String dictionaryFilePath, String blockFilePath) throws IOException {
 		// XOR garante que se um arquivo existe, o outro também existe.
 		if (Files.exists(Paths.get(dictionaryFilePath)) ^ Files.exists(Paths.get(blockFilePath)))
@@ -180,11 +300,27 @@ public class InvertedListIndex {
 		blocks = new RandomAccessFile(blockFilePath, "rw");
 	}
 
+	/**
+	 * Cria um novo registro na lista invertida para uma palavra e ID.
+	 *
+	 * @param word Palavra chave.
+	 * @param id   ID do registro.
+	 * @return true se o registro foi criado com sucesso, false se já existir.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public boolean create(String word, int id) throws IOException {
 		return this.create(word, new InvertedListRegister(id));
 	}
 
 	// Insere um dado na lista da chave de forma NÃO ORDENADA
+	/**
+	 * Insere um registro na lista da chave de forma NÃO ORDENADA.
+	 *
+	 * @param word Palavra chave.
+	 * @param reg  Registro a ser inserido.
+	 * @return true se o registro foi inserido com sucesso, false se já existir.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	private boolean create(String word, InvertedListRegister reg) throws IOException {
 		// Percorre toda a lista testando se já não existe
 		// o dado associado a essa chave
@@ -260,6 +396,13 @@ public class InvertedListIndex {
 		return true;
 	}
 
+	/**
+	 * Lê todos os IDs associados a uma palavra chave.
+	 *
+	 * @param word Palavra chave.
+	 * @return Array de IDs associados à palavra.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public int[] read(String word) throws IOException {
 		if (word == null)
 			return null;
@@ -271,6 +414,13 @@ public class InvertedListIndex {
 	}
 
 	// Retorna a lista de dados de uma determinada chave
+	/**
+	 * Retorna a lista de registros de uma determinada chave.
+	 *
+	 * @param c Palavra chave.
+	 * @return Array de registros associados à palavra.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	private InvertedListRegister[] readElement(String c) throws IOException {
 		ArrayList<InvertedListRegister> lista = new ArrayList<>();
 
@@ -318,6 +468,14 @@ public class InvertedListIndex {
 	}
 
 	// Remove o dado de uma chave (mas não apaga a chave nem apaga blocos)
+	/**
+	 * Remove o registro de uma chave pelo ID (não apaga a chave nem blocos).
+	 *
+	 * @param c  Palavra chave.
+	 * @param id ID do registro a ser removido.
+	 * @return true se o registro foi removido, false se não foi encontrado.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public boolean delete(String c, int id) throws IOException {
 		String chave = "";
 		long endereco = -1;
@@ -362,6 +520,11 @@ public class InvertedListIndex {
 		return false;
 	}
 
+	/**
+	 * Fecha os arquivos e deleta os arquivos de dicionário e blocos.
+	 *
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public void destruct() throws IOException {
 		blocks.close();
 		dict.close();
@@ -369,14 +532,29 @@ public class InvertedListIndex {
 		Files.delete(Paths.get(dictionaryFilePath));
 	}
 
+	/**
+	 * Obtém o caminho do arquivo de dicionário.
+	 *
+	 * @return Caminho do arquivo de dicionário.
+	 */
 	public String getDirFilePath() {
 		return this.dictionaryFilePath;
 	}
 
+	/**
+	 * Obtém o caminho do arquivo de blocos.
+	 *
+	 * @return Caminho do arquivo de blocos.
+	 */
 	public String getBlockFilePath() {
 		return this.blockFilePath;
 	}
 
+	/**
+	 * Lista os caminhos dos arquivos de dicionário e blocos.
+	 *
+	 * @return Array com os caminhos dos arquivos.
+	 */
 	public String[] listFilePaths() {
 		return new String[] { dictionaryFilePath, blockFilePath };
 	}

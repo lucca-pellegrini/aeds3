@@ -15,6 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * Implementação de um índice de tabela hash extensível.
+ * Gerencia a inserção, busca e remoção de registros em uma estrutura de hash.
+ */
 public class HashTableIndex implements Index {
 	String dirFilePath;
 	String bucketFilePath;
@@ -24,6 +28,11 @@ public class HashTableIndex implements Index {
 	int bucketNumElements;
 	Directory directory;
 
+	/**
+	 * Classe interna que representa um cesto (bucket) na tabela hash.
+	 * Armazena registros de índice e gerencia a inserção, busca e remoção dentro do
+	 * cesto.
+	 */
 	private class Bucket {
 		short maxElements;
 		short elementSize;
@@ -130,7 +139,11 @@ public class HashTableIndex implements Index {
 		}
 	}
 
-	protected class Directory {
+	/**
+	 * Classe interna que representa o diretório da tabela hash.
+	 * Gerencia a profundidade global e os endereços dos cestos.
+	 */
+	private class Directory {
 		byte globalDepth;
 		long[] addresses;
 
@@ -202,6 +215,15 @@ public class HashTableIndex implements Index {
 		}
 	}
 
+	/**
+	 * Construtor que inicializa o índice de tabela hash a partir de arquivos
+	 * existentes.
+	 *
+	 * @param nc Caminho para o arquivo de cestos.
+	 * @param nd Caminho para o arquivo de diretório.
+	 * @param nm Caminho para o arquivo de metadados.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public HashTableIndex(String nc, String nd, String nm) throws IOException {
 		if (!Files.exists(Paths.get(nc)) || !Files.exists(Paths.get(nd)) || !Files.exists(Paths.get(nm)))
 			throw new FileNotFoundException("Um ou mais arquivos de Hash Extensível inexistente(s).");
@@ -233,6 +255,15 @@ public class HashTableIndex implements Index {
 		}
 	}
 
+	/**
+	 * Construtor que inicializa um novo índice de tabela hash.
+	 *
+	 * @param n  Número máximo de elementos por cesto.
+	 * @param nc Caminho para o arquivo de cestos.
+	 * @param nd Caminho para o arquivo de diretório.
+	 * @param nm Caminho para o arquivo de metadados.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public HashTableIndex(int n, String nc, String nd, String nm) throws IOException {
 		bucketNumElements = n;
 		dirFilePath = nd;
@@ -262,6 +293,11 @@ public class HashTableIndex implements Index {
 		}
 	}
 
+	/**
+	 * Destrói o índice de tabela hash, fechando arquivos e removendo-os do sistema.
+	 *
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public void destruct() throws IOException {
 		dirFile.close();
 		bucketFile.close();
@@ -271,6 +307,13 @@ public class HashTableIndex implements Index {
 		Files.delete(Paths.get(metaFilePath));
 	}
 
+	/**
+	 * Insere um novo registro no índice de tabela hash.
+	 *
+	 * @param id  Identificador do registro.
+	 * @param pos Posição do registro no arquivo de dados.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public void insert(int id, long pos) throws IOException {
 		this.insert(new IndexRegister(id, pos));
 	}
@@ -346,6 +389,13 @@ public class HashTableIndex implements Index {
 		insert(elem); // insere o nome elemento
 	}
 
+	/**
+	 * Busca um registro no índice de tabela hash.
+	 *
+	 * @param id Identificador do registro a ser buscado.
+	 * @return A posição do registro no arquivo de dados, ou -1 se não encontrado.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public long search(int id) throws IOException {
 		// Carrega o diretório
 		byte[] dirBuf = new byte[(int) dirFile.length()];
@@ -369,6 +419,12 @@ public class HashTableIndex implements Index {
 		return res != null ? res.getPos() : -1;
 	}
 
+	/**
+	 * Remove um registro do índice de tabela hash.
+	 *
+	 * @param id Identificador do registro a ser removido.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	public void delete(int id) throws IOException {
 		// Carrega o diretório
 		byte[] dirBuf = new byte[(int) dirFile.length()];
@@ -396,10 +452,21 @@ public class HashTableIndex implements Index {
 		}
 	}
 
+	/**
+	 * Retorna a capacidade máxima de elementos por cesto.
+	 *
+	 * @return Capacidade máxima de elementos por cesto.
+	 */
 	public int getBucketCapacity() {
 		return this.bucketNumElements;
 	}
 
+	/**
+	 * Retorna os caminhos dos arquivos associados ao índice de tabela hash.
+	 *
+	 * @return Array de strings contendo os caminhos dos arquivos de diretório,
+	 *         cestos e metadados.
+	 */
 	public String[] listFilePaths() {
 		return new String[] { dirFilePath, bucketFilePath, metaFilePath };
 	}

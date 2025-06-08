@@ -8,7 +8,16 @@ public class InvalidBTreeOrderException extends IllegalArgumentException {
 	 * Razões pelas quais a ordem de uma Árvore B pode ser considerada inválida.
 	 */
 	public enum Reason {
+		/**
+		 * A ordem da Árvore B é muito pequena.
+		 * A ordem deve ser maior ou igual a 3.
+		 */
 		TOO_SMALL("A ordem da Árvore B deve ser ≥ 3."),
+
+		/**
+		 * A ordem da Árvore B não é um número par.
+		 * A ordem deve ser um número par.
+		 */
 		NOT_EVEN("A ordem da Árvore B deve ser um número par.");
 
 		private final String message;
@@ -32,7 +41,14 @@ public class InvalidBTreeOrderException extends IllegalArgumentException {
 		}
 	}
 
+	/**
+	 * A razão pela qual a ordem da Árvore B é inválida.
+	 */
 	private final Reason reason;
+
+	/**
+	 * A ordem inválida da Árvore B.
+	 */
 	private final int order;
 
 	/**

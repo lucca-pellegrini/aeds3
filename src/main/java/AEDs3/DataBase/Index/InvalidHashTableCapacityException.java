@@ -9,7 +9,16 @@ public class InvalidHashTableCapacityException extends IllegalArgumentException 
 	 * inválida.
 	 */
 	public enum Reason {
+		/**
+		 * A capacidade do Bucket excede o valor máximo permitido.
+		 * A capacidade deve ser menor ou igual a {@link java.lang.Short#MAX_VALUE}.
+		 */
 		TOO_LARGE("A capacidade do Bucket deve ser ≤ " + Short.MAX_VALUE + "."),
+
+		/**
+		 * A capacidade do Bucket não é positiva.
+		 * A capacidade deve ser um valor positivo.
+		 */
 		NON_POSITIVE("A capacidade do Bucket deve ser positiva.");
 
 		private final String message;
@@ -33,7 +42,14 @@ public class InvalidHashTableCapacityException extends IllegalArgumentException 
 		}
 	}
 
+	/**
+	 * A razão pela qual a capacidade da Tabela Hash é considerada inválida.
+	 */
 	private final Reason reason;
+
+	/**
+	 * A capacidade inválida da Tabela Hash que causou a exceção.
+	 */
 	private final int capacity;
 
 	/**

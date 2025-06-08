@@ -71,12 +71,28 @@ public class Track implements Externalizable, Comparable<Track> {
 	protected char[] trackId;
 
 	/**
-	 * Atributos de áudio da faixa.
+	 * Dançabilidade da faixa.
 	 */
 	protected float danceability;
+
+	/**
+	 * Energia da faixa.
+	 */
 	protected float energy;
+
+	/**
+	 * Volume da faixa.
+	 */
 	protected float loudness;
+
+	/**
+	 * Tempo da faixa.
+	 */
 	protected float tempo;
+
+	/**
+	 * Valência (humor) da faixa.
+	 */
 	protected float valence;
 
 	/**
@@ -265,6 +281,8 @@ public class Track implements Externalizable, Comparable<Track> {
 	 * @return Verdadeiro se o campo corresponder ao valor, falso caso contrário.
 	 * @throws InvalidParameterException Se o tipo do valor não for compatível com o
 	 *                                   campo.
+	 * @throws IOException               Se ocorrer um erro de entrada/saída durante
+	 *                                   a verificação.
 	 */
 	@SuppressWarnings("unchecked")
 	public boolean matchesField(Track.Field field, Object value) throws IOException {
@@ -338,87 +356,224 @@ public class Track implements Externalizable, Comparable<Track> {
 	 * algoritmos de casamento de padrões.
 	 */
 	public enum Field {
+		/**
+		 * Identificador único da faixa.
+		 */
 		ID,
+		/**
+		 * Nome da faixa.
+		 */
 		NAME,
+		/**
+		 * Artistas da faixa.
+		 */
 		TRACK_ARTISTS,
+		/**
+		 * Nome do álbum.
+		 */
 		ALBUM_NAME,
+		/**
+		 * Data de lançamento do álbum.
+		 */
 		ALBUM_RELEASE_DATE,
+		/**
+		 * Tipo do álbum (e.g., "single", "album").
+		 */
 		ALBUM_TYPE,
+		/**
+		 * Gêneros musicais da faixa.
+		 */
 		GENRES,
+		/**
+		 * Indica se a faixa contém conteúdo explícito.
+		 */
 		EXPLICIT,
+		/**
+		 * Identificador único da faixa.
+		 */
 		TRACK_ID,
+		/**
+		 * Popularidade da faixa.
+		 */
 		POPULARITY,
+		/**
+		 * Chave musical da faixa.
+		 */
 		KEY,
+		/**
+		 * Dançabilidade da faixa.
+		 */
 		DANCEABILITY,
+		/**
+		 * Energia da faixa.
+		 */
 		ENERGY,
+		/**
+		 * Volume da faixa.
+		 */
 		LOUDNESS,
+		/**
+		 * Tempo da faixa.
+		 */
 		TEMPO,
+		/**
+		 * Valência (humor) da faixa.
+		 */
 		VALENCE,
+		/**
+		 * Algoritmo de casamento de padrões KMP.
+		 */
 		KMP,
+		/**
+		 * Algoritmo de casamento de padrões Boyer-Moore.
+		 */
 		BOYER_MOORE
 	}
 
 	// Getters e setters para todos os atributos.
+
+	/**
+	 * Obtém a data de lançamento do álbum.
+	 *
+	 * @return a data de lançamento do álbum.
+	 */
 	public LocalDate getAlbumReleaseDate() {
 		return albumReleaseDate;
 	}
 
+	/**
+	 * Define a data de lançamento do álbum.
+	 *
+	 * @param albumReleaseDate a nova data de lançamento do álbum.
+	 */
 	public void setAlbumReleaseDate(LocalDate albumReleaseDate) {
 		this.albumReleaseDate = albumReleaseDate;
 	}
 
+	/**
+	 * Obtém a lista de gêneros musicais.
+	 *
+	 * @return a lista de gêneros musicais.
+	 */
 	public List<String> getGenres() {
 		return genres;
 	}
 
+	/**
+	 * Define a lista de gêneros musicais.
+	 *
+	 * @param genres a nova lista de gêneros musicais.
+	 */
 	public void setGenres(List<String> genres) {
 		this.genres = genres;
 	}
 
+	/**
+	 * Obtém a lista de artistas da faixa.
+	 *
+	 * @return a lista de artistas da faixa.
+	 */
 	public List<String> getTrackArtists() {
 		return trackArtists;
 	}
 
+	/**
+	 * Define a lista de artistas da faixa.
+	 *
+	 * @param trackArtists a nova lista de artistas da faixa.
+	 */
 	public void setTrackArtists(List<String> trackArtists) {
 		this.trackArtists = trackArtists;
 	}
 
+	/**
+	 * Obtém o nome do álbum.
+	 *
+	 * @return o nome do álbum.
+	 */
 	public String getAlbumName() {
 		return albumName;
 	}
 
+	/**
+	 * Define o nome do álbum.
+	 *
+	 * @param albumName o novo nome do álbum.
+	 */
 	public void setAlbumName(String albumName) {
 		this.albumName = albumName;
 	}
 
+	/**
+	 * Obtém o tipo do álbum.
+	 *
+	 * @return o tipo do álbum.
+	 */
 	public String getAlbumType() {
 		return albumType;
 	}
 
+	/**
+	 * Define o tipo do álbum.
+	 *
+	 * @param albumType o novo tipo do álbum.
+	 */
 	public void setAlbumType(String albumType) {
 		this.albumType = albumType;
 	}
 
+	/**
+	 * Obtém o nome da faixa.
+	 *
+	 * @return o nome da faixa.
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Define o nome da faixa.
+	 *
+	 * @param name o novo nome da faixa.
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * Verifica se a faixa contém conteúdo explícito.
+	 *
+	 * @return true se a faixa for explícita, caso contrário false.
+	 */
 	public boolean isExplicit() {
 		return explicit;
 	}
 
+	/**
+	 * Define se a faixa contém conteúdo explícito.
+	 *
+	 * @param explicit true se a faixa for explícita, caso contrário false.
+	 */
 	public void setExplicit(boolean explicit) {
 		this.explicit = explicit;
 	}
 
+	/**
+	 * Obtém o identificador único da faixa.
+	 *
+	 * @return o identificador único da faixa.
+	 */
 	public char[] getTrackId() {
 		return trackId;
 	}
 
+	/**
+	 * Define o identificador único da faixa.
+	 *
+	 * @param trackId o novo identificador único da faixa.
+	 * @throws InvalidParameterException se o trackId não tiver o número correto de
+	 *                                   caracteres.
+	 */
 	public void setTrackId(char[] trackId) {
 		if (trackId.length != Track.getTrackIdNumChars())
 			throw new InvalidParameterException(
@@ -426,70 +581,155 @@ public class Track implements Externalizable, Comparable<Track> {
 		this.trackId = trackId;
 	}
 
+	/**
+	 * Obtém o volume da faixa.
+	 *
+	 * @return o volume da faixa.
+	 */
 	public float getLoudness() {
 		return loudness;
 	}
 
+	/**
+	 * Define o volume da faixa.
+	 *
+	 * @param loudness o novo volume da faixa.
+	 */
 	public void setLoudness(float loudness) {
 		this.loudness = loudness;
 	}
 
+	/**
+	 * Obtém a dançabilidade da faixa.
+	 *
+	 * @return a dançabilidade da faixa.
+	 */
 	public float getDanceability() {
 		return danceability;
 	}
 
+	/**
+	 * Define a dançabilidade da faixa.
+	 *
+	 * @param danceability a nova dançabilidade da faixa.
+	 */
 	public void setDanceability(float danceability) {
 		this.danceability = danceability;
 	}
 
+	/**
+	 * Obtém a energia da faixa.
+	 *
+	 * @return a energia da faixa.
+	 */
 	public float getEnergy() {
 		return energy;
 	}
 
+	/**
+	 * Define a energia da faixa.
+	 *
+	 * @param energy a nova energia da faixa.
+	 */
 	public void setEnergy(float energy) {
 		this.energy = energy;
 	}
 
+	/**
+	 * Obtém a valência (humor) da faixa.
+	 *
+	 * @return a valência da faixa.
+	 */
 	public float getValence() {
 		return valence;
 	}
 
+	/**
+	 * Define a valência (humor) da faixa.
+	 *
+	 * @param valence a nova valência da faixa.
+	 */
 	public void setValence(float valence) {
 		this.valence = valence;
 	}
 
+	/**
+	 * Obtém a chave musical da faixa.
+	 *
+	 * @return a chave musical da faixa.
+	 */
 	public int getKey() {
 		return key;
 	}
 
+	/**
+	 * Define a chave musical da faixa.
+	 *
+	 * @param key a nova chave musical da faixa.
+	 */
 	public void setKey(int key) {
 		this.key = key;
 	}
 
+	/**
+	 * Obtém a popularidade da faixa.
+	 *
+	 * @return a popularidade da faixa.
+	 */
 	public int getPopularity() {
 		return popularity;
 	}
 
+	/**
+	 * Define a popularidade da faixa.
+	 *
+	 * @param popularity a nova popularidade da faixa.
+	 */
 	public void setPopularity(int popularity) {
 		this.popularity = popularity;
 	}
 
+	/**
+	 * Obtém o tempo da faixa.
+	 *
+	 * @return o tempo da faixa.
+	 */
 	public float getTempo() {
 		return tempo;
 	}
 
+	/**
+	 * Define o tempo da faixa.
+	 *
+	 * @param tempo o novo tempo da faixa.
+	 */
 	public void setTempo(float tempo) {
 		this.tempo = tempo;
 	}
 
+	/**
+	 * Obtém o número de caracteres do identificador da faixa.
+	 *
+	 * @return o número de caracteres do identificador da faixa.
+	 */
 	public static int getTrackIdNumChars() {
 		return trackIdNumChars;
 	}
 
+	/**
+	 * Obtém o ID único da faixa.
+	 *
+	 * @return o ID único da faixa.
+	 */
 	public int getId() {
 		return id;
 	}
 
+	/**
+	 * Define o ID único da faixa.
+	 *
+	 * @param id o novo ID único da faixa.
+	 */
 	public void setId(int id) {
 		this.id = id;
 	}
