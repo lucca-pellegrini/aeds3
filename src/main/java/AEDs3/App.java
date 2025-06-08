@@ -3,6 +3,8 @@ package AEDs3;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Classe principal do programa que inicia a interface de linha de comando.
@@ -99,6 +101,31 @@ public class App {
 				throw new FileNotFoundException();
 			}
 			return fallbackFile.getPath();
+		}
+	}
+
+	/**
+	 * Obtém a versão do aplicativo.
+	 * <p>
+	 * Este método carrega o arquivo de propriedades de versão e retorna a versão
+	 * do aplicativo. Se o arquivo não for encontrado ou ocorrer um erro ao
+	 * carregar, uma mensagem de erro será impressa e uma string indicando
+	 * "Versão desconhecida" será retornada.
+	 *
+	 * @return A versão do aplicativo como uma string.
+	 */
+	public String getVersion() {
+		Properties properties = new Properties();
+		try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("version.properties")) {
+			if (inputStream != null) {
+				properties.load(inputStream);
+				return properties.getProperty("version");
+			} else {
+				throw new IOException("Arquivo de versão não encontrado.");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "Versão desconhecida";
 		}
 	}
 }
