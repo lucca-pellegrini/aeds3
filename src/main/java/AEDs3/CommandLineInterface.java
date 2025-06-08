@@ -12,9 +12,12 @@ import AEDs3.DataBase.Track;
 import AEDs3.DataBase.TrackDB.TrackFilter;
 import AEDs3.DataBase.TrackDB;
 import java.awt.Desktop;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1694,7 +1697,10 @@ public class CommandLineInterface {
 
 			keyMap.bind((Widget) () -> {
 				reader.callWidget(LineReader.CLEAR_SCREEN);
-				showWelcomeBanner();
+				try {
+					showWelcomeBanner();
+				} catch (IOException e) {
+				}
 				return true;
 			}, KeyMap.ctrl('l'));
 
@@ -1798,62 +1804,88 @@ public class CommandLineInterface {
 	 *
 	 * <p>
 	 * Este método monta e exibe um banner estilizado em duas partes: uma parte
-	 * à esquerda com uma arte em ASCII e uma parte à direita com a descrição
+	 * à esquerda com uma arte em ANSI e uma parte à direita com a descrição
 	 * do programa, incluindo o nome do banco de dados e os autores do projeto.
 	 * </p>
 	 *
 	 * <p>
-	 * A arte ASCII e as informações de descrição são coloridas para proporcionar
+	 * A arte ANSI e as informações de descrição são coloridas para proporcionar
 	 * uma
 	 * apresentação visual atraente no terminal.
 	 * </p>
 	 */
-	public void showWelcomeBanner() {
-		// Cria a arte ASCII à esquerda com cores.
-		String[] bannerLeft = new String[8];
-		bannerLeft[0] = "";
-		bannerLeft[1] = "▄▄▄▄▄▄▄                      █      ▄▄▄▄   ▄▄▄▄▄   ";
-		bannerLeft[2] = "   █     ▄ ▄▄   ▄▄▄    ▄▄▄   █   ▄  █   ▀▄ █    █  ";
-		bannerLeft[3] = "   █     █▀  ▀ ▀   █  █▀  ▀  █ ▄▀   █    █ █▄▄▄▄▀  ";
-		bannerLeft[4] = "   █     █     ▄▀▀▀█  █      █▀█    █    █ █    █  ";
-		bannerLeft[5] = "   █     █     ▀▄▄▀█  ▀█▄▄▀  █  ▀▄  █▄▄▄▀  █▄▄▄▄▀  ";
-		bannerLeft[6] = "";
-		bannerLeft[7] = "══════════════════════════════════════════════════════════════════════\n";
+	public void showWelcomeBanner() throws IOException {
+		// Não exibe o banner se o terminal for muito pequeno.
+		if (terminal.getWidth() < App.MIN_TERMINAL_WIDTH || terminal.getHeight() < App.MIN_TERMINAL_HEIGHT)
+			return;
 
-		// Aplica a formatação de cor nas linhas da arte ASCII.
-		for (int i = 1; i <= 5; ++i)
-			bannerLeft[i] = new AttributedString(
-					bannerLeft[i], AttributedStyle.BOLD.foreground(AttributedStyle.GREEN))
-					.toAnsi();
-		bannerLeft[7] = new AttributedString(
-				bannerLeft[7], AttributedStyle.BOLD.foreground(AttributedStyle.MAGENTA))
-				.toAnsi();
+		final int bannerNum = App.RANDOM.nextInt(4); // Escolhe banner aleatoriamente.
+
+		// Lê a arte ANSI do diretório de recursos.
+		String[] bannerLeft;
+		try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("banner" + bannerNum + ".ans");
+				InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+				BufferedReader reader = new BufferedReader(inputStreamReader)) {
+			bannerLeft = reader.lines().toArray(String[]::new);
+		}
+
+		// Computa versão e revisão atual do programa.
+		String ver = new App().getVersion();
+		int revision;
+		try {
+			revision = Integer.parseInt(ver.replaceAll(".*\\.r", ""));
+		} catch (NumberFormatException e) {
+			revision = -1;
+		}
+
+		List<String> txt = new ArrayList<>();
+		txt.add("     ");
+		txt.add("     Banco de Dados");
+		txt.add("     de Faixas Musicais");
+		txt.add("     em formato binário");
+		txt.add("     ");
+		txt.add("     " + ver.replaceFirst("^v", "Versão ").replaceAll("\\.r\\d+$", ""));
+		txt.add("     " + (revision > 0 ? revision + "ª revisão" : ""));
+		txt.add("     ");
+		txt.add("     \033]8;;https://www.apache.org/licenses/LICENSE-2.0.html\033\\Copyright © 2025\033]8;;\033\\");
+		txt.add("     \033]8;;https://github.com/lucca-pellegrini\033\\Lucca Pellegrini\033]8;;\033\\");
+		txt.add("     \033]8;;https://github.com/Pedro0826\033\\Pedro Vitor Andrade\033]8;;\033\\");
+		txt.add("     ");
+		txt.add("     Algoritmos e Estruturas de Dados III");
+		txt.add("     Engenharia de Computação");
+		txt.add("     PUC Minas");
 
 		// Cria a descrição do programa à direita.
-		String[] bannerRight = new String[5];
-		bannerRight[0] = "Banco de Dados";
-		bannerRight[1] = "de Faixas Musicais";
-		bannerRight[2] = "em formato binário";
-		bannerRight[3] = "Lucca Pellegrini";
-		bannerRight[4] = "Pedro Vitor Andrade";
+		String[] bannerRight = txt.toArray(String[]::new);
 
 		// Aplica a formatação de cor nas linhas de descrição.
-		for (int i = 0; i <= 2; ++i)
-			bannerRight[i] = new AttributedString(
-					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.CYAN))
-					.toAnsi();
-		for (int i = 3; i <= 4; ++i)
-			bannerRight[i] = new AttributedString(
-					bannerRight[i], AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW))
-					.toAnsi();
+		for (int i = 1; i <= 3; ++i)
+			bannerRight[i] = ansi().fgBrightYellow().bold().a(bannerRight[i]).toString();
+		for (int i = 5; i <= 6; ++i)
+			bannerRight[i] = ansi().fgYellow().a(bannerRight[i]).toString();
+		bannerRight[8] = ansi().fgBlue().bold().a(bannerRight[8]).toString();
+		for (int i = 9; i <= 10; ++i)
+			bannerRight[i] = ansi().fgBrightBlue().bold().a(bannerRight[i]).toString();
+		for (int i = 12; i <= 14; ++i)
+			bannerRight[i] = ansi().fgBlue().a(bannerRight[i]).toString();
 
-		// Combina a arte ASCII com a descrição do programa.
-		for (int i = 0; i <= 4; ++i)
+		// Combina a arte ANSI com a descrição do programa.
+		for (int i = 0; i < bannerRight.length; ++i)
 			bannerLeft[i + 1] += bannerRight[i];
 
+		int maxCursorOffset = 0;
+
 		// Exibe o banner completo no terminal.
-		for (String s : bannerLeft)
+		for (String s : bannerLeft) {
 			terminal.writer().println(s);
+			maxCursorOffset = Math.max(maxCursorOffset, s.replaceAll("\u001B\\[[;\\d]*m", "").length() - 42);
+		}
+
+		StringBuilder sep = new StringBuilder(ansi().fgBrightMagenta().toString());
+		for (int i = 0; i < maxCursorOffset; ++i)
+			sep.append("━");
+		sep.append(ansi().reset().a('\n'));
+		terminal.writer().println(sep.toString());
 	}
 
 	static class FileCompleter implements Iterable<String> {

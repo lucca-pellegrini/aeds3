@@ -19,6 +19,8 @@ public class App {
 	protected static final Random RANDOM = new Random();
 	protected static final String APP_NAME = "TrackDB";
 	protected static final String HOME_PROPERTY = "user.home";
+	protected static final int MIN_TERMINAL_WIDTH = 104;
+	protected static final int MIN_TERMINAL_HEIGHT = 36;
 
 	/**
 	 * Método principal do programa.
