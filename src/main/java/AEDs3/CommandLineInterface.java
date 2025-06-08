@@ -80,6 +80,7 @@ import picocli.shell.jline3.PicocliJLineCompleter;
  */
 public class CommandLineInterface {
 	private Terminal terminal;
+	boolean welcomeBannerShown = false;
 
 	/**
 	 * Comando principal para exibir informações sobre o programa e os comandos
@@ -1912,9 +1913,13 @@ public class CommandLineInterface {
 				} catch (UserInterruptException | EndOfFileException e) {
 					terminal.puts(Capability.cursor_visible);
 					terminal.puts(Capability.cursor_normal);
-					commands.info("Programa finalizado");
 					tailtip.disable();
 					suggestions.disable();
+					commands.info("Programa finalizado");
+					if (!this.welcomeBannerShown) {
+						commands.hint("A janela do seu terminal é muito pequena, então você não viu nossa banner!");
+						commands.hint("Tente executar em uma janela maior na próxima vez, se quiser apreciar ;)");
+					}
 					System.exit(0);
 				} catch (Exception e) {
 					systemRegistry.trace(e);
@@ -2015,6 +2020,8 @@ public class CommandLineInterface {
 			sep.append("━");
 		sep.append(ansi().reset().a('\n'));
 		terminal.writer().println(sep.toString());
+
+		this.welcomeBannerShown = true;
 	}
 
 	static class FileCompleter implements Iterable<String> {
