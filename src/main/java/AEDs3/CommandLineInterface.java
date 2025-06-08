@@ -123,6 +123,7 @@ public class CommandLineInterface {
 		static final String DEFAULT_RIGHT_PROMPT = ansi().fgRed().a("[Nenhum arquivo aberto]").toString();
 		static final String ERROR_PROMPT = ansi().bold().render("@|red Erro:|@ ").toString();
 		static final String WARN_PROMPT = ansi().bold().render("@|yellow Warn:|@ ").toString();
+		static final String HINT_PROMPT = ansi().bold().render("@|green Dica:|@ ").toString();
 		static final String INFO_PROMPT = ansi().bold().render("@|blue Info:|@ ").toString();
 
 		CliCommands() {
@@ -208,6 +209,15 @@ public class CommandLineInterface {
 		void printAllTracks() {
 			for (Track track : db)
 				printTrack(track);
+		}
+
+		/**
+		 * Exibe uma dica.
+		 *
+		 * @param msg A dica a ser exibida.
+		 */
+		void hint(String msg) {
+			out.println(HINT_PROMPT + msg);
 		}
 
 		/**
@@ -1781,6 +1791,25 @@ public class CommandLineInterface {
 					systemRegistry.cleanUp();
 					line = reader.readLine(
 							commands.prompt, commands.rightPrompt, (MaskingCallback) null, null);
+
+					if (line.isBlank())
+						continue;
+
+					String command = parser.getCommand(line);
+					if (!systemRegistry.hasCommand(command)) {
+						if (command.isBlank() || command.matches(".*[^a-zA-Z0-9].*"))
+							commands.error("Sintaxe incorreta.");
+						else
+							commands.error(
+									ansi().render(String.format("Comando desconhecido: @|cyan,bold,underline %s|@",
+											command)).toString());
+
+						commands.hint(ansi().render(
+								"Use o comando @|magenta,bold usage|@ ou pressione @|magenta Ctrl-H|@ para obter ajuda.")
+								.toString());
+						continue;
+					}
+
 					systemRegistry.execute(line);
 				} catch (UserInterruptException | EndOfFileException e) {
 					commands.info("Programa finalizado");
