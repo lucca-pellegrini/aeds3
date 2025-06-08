@@ -88,18 +88,63 @@ class FilePacker {
 			}
 
 			// Extrai cada arquivo do arquivo empacotado
+			int outerBarWidth = 50; // Width for the outer progress bar
+			int innerBarWidth = 50; // Width for the inner progress bar
+
+			long lastOuterPrintTime = 0;
+			long lastInnerPrintTime = 0;
+
+			// Scroll content down two lines, to fit the two progress bars.
+			System.out.print("\033[?25l\n\n\033[A\033[A");
+
 			for (int i = 0; i < numFiles; i++) {
 				raf.seek(positions[i]);
 				long fileSize = raf.readLong();
 
+				// Update outer progress bar
+				long currentTime = System.currentTimeMillis();
+				if (currentTime - lastOuterPrintTime >= 50) {
+					printProgressBar(i, numFiles, outerBarWidth, "Total");
+					lastOuterPrintTime = currentTime;
+				}
+
 				try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileNames[i]))) {
+					System.out.print("\033[B\033[2K\033[A");
 					for (long j = 0; j < fileSize; j++) {
 						out.write(raf.read());
+
+						// Update inner progress bar
+						currentTime = System.currentTimeMillis();
+						if (currentTime - lastInnerPrintTime >= 50) {
+							System.out.print("\033[B");
+							printProgressBar(j, fileSize, innerBarWidth, fileNames[i]);
+							System.out.print("\033[A");
+							lastInnerPrintTime = currentTime;
+						}
 					}
 				}
 			}
 
+			System.out.println("\033[?25h\033[2K\033[B\033[2K\033[A\033[A");
 			return fileNames;
 		}
+	}
+
+	// Method to print progress bar
+	private static void printProgressBar(long current, long total, int barWidth, String label) {
+		double progress = (double) current / total;
+		int completed = (int) (progress * barWidth);
+		StringBuilder bar = new StringBuilder("[");
+
+		for (int i = 0; i < barWidth; i++) {
+			if (i < completed) {
+				bar.append("=");
+			} else {
+				bar.append(" ");
+			}
+		}
+		bar.append("]");
+
+		System.out.printf("\r%s % 3d%% %s", bar.toString(), (int) (progress * 100), label);
 	}
 }
