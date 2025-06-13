@@ -1,6 +1,6 @@
-package AEDs3.DataBase.Compression;
+package AEDs3.Compression;
 
-import AEDs3.DataBase.Compression.Compressors.*;
+import AEDs3.Compression.Compressors.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;

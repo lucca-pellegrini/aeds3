@@ -1,4 +1,4 @@
-package AEDs3.DataBase.PatternMatching;
+package AEDs3.PatternMatching;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

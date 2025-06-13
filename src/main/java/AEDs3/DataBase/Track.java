@@ -1,7 +1,7 @@
 package AEDs3.DataBase;
 
-import AEDs3.DataBase.PatternMatching.BoyerMoore;
-import AEDs3.DataBase.PatternMatching.KMP;
+import AEDs3.PatternMatching.BoyerMoore;
+import AEDs3.PatternMatching.KMP;
 
 import java.io.Externalizable;
 import java.io.IOException;

@@ -5,8 +5,8 @@ import static org.fusesource.jansi.Ansi.*;
 
 import AEDs3.DataBase.BalancedMergeSort;
 import AEDs3.DataBase.CSVManager;
-import AEDs3.DataBase.Compression.CompressionType;
-import AEDs3.DataBase.Compression.Compressor;
+import AEDs3.Compression.CompressionType;
+import AEDs3.Compression.Compressor;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.TrackDB.TrackFilter;

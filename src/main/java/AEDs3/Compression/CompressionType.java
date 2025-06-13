@@ -1,8 +1,8 @@
-package AEDs3.DataBase.Compression;
+package AEDs3.Compression;
 
 import java.lang.reflect.InvocationTargetException;
 
-import AEDs3.DataBase.Compression.Compressors.*;
+import AEDs3.Compression.Compressors.*;
 
 /**
  * Enumeração que representa os tipos de compressão disponíveis.
