@@ -960,19 +960,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (value) {
 			if (hasBTreeIndex())
 				throw new IllegalStateException("O índice por Árvore B já está habilitado.");
-			if (order <= 2)
-				throw new InvalidBTreeOrderException(
-						order, InvalidBTreeOrderException.Reason.TOO_SMALL);
-			if (order % 2 != 0)
-				throw new InvalidBTreeOrderException(
-						order, InvalidBTreeOrderException.Reason.NOT_EVEN);
 
-			flags |= Flag.INDEXED_BTREE.getBitmask();
 			setDynamicHashIndex(false);
 
-			index = new BTree(order / 2, filePath + ".BTree");
+			index = new BTree(order, filePath + ".BTree");
 			for (Track t : this)
 				index.insert(t.getId(), lastBinaryTrackPos);
+
+			flags |= Flag.INDEXED_BTREE.getBitmask();
 		} else {
 			flags &= ~Flag.INDEXED_BTREE.getBitmask();
 
@@ -1004,17 +999,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (value) {
 			if (hasDynamicHashIndex())
 				throw new IllegalStateException("O índice por tabela hash já está habilitado.");
-			if (bucketCapacity >= Short.MAX_VALUE)
-				throw new InvalidHashTableCapacityException(
-						bucketCapacity, InvalidHashTableCapacityException.Reason.TOO_LARGE);
 
-			flags |= Flag.INDEXED_HASH.getBitmask();
 			setBTreeIndex(false);
 
 			index = new HashTableIndex(bucketCapacity, filePath + ".buckets", filePath + ".dir",
 					filePath + ".buckets.meta");
 			for (Track t : this)
 				index.insert(t.getId(), lastBinaryTrackPos);
+
+			flags |= Flag.INDEXED_HASH.getBitmask();
 		} else {
 			flags &= ~Flag.INDEXED_HASH.getBitmask();
 

@@ -272,17 +272,24 @@ public class BTree implements Index {
 	 * Construtor que cria uma nova Árvore B com uma ordem especificada e caminho de
 	 * arquivo.
 	 *
-	 * @param m        A ordem da Árvore B, que determina o número máximo de filhos
+	 * @param order    A ordem da Árvore B, que determina o número máximo de filhos
 	 *                 que cada nó pode ter.
 	 * @param filePath O caminho para o arquivo onde a Árvore B será armazenada.
 	 * @throws IOException Se ocorrer um erro de I/O ao criar o arquivo.
 	 */
-	public BTree(int m, String filePath) throws IOException {
+	public BTree(int order, String filePath) throws IOException {
+		if (order <= 2)
+			throw new InvalidBTreeOrderException(
+					order, InvalidBTreeOrderException.Reason.TOO_SMALL);
+		if (order % 2 != 0)
+			throw new InvalidBTreeOrderException(
+					order, InvalidBTreeOrderException.Reason.NOT_EVEN);
+
 		this.filePath = filePath;
 		this.file = new RandomAccessFile(filePath, "rw");
 		this.root = null;
-		this.halfPageCapacity = m;
-		this.pageCapacity = 2 * m;
+		this.halfPageCapacity = order / 2;
+		this.pageCapacity = order;
 
 		file.seek(0);
 		file.writeLong(-1);

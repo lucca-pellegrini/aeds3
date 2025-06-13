@@ -11,9 +11,9 @@ public class InvalidHashTableCapacityException extends IllegalArgumentException 
 	public enum Reason {
 		/**
 		 * A capacidade do Bucket excede o valor máximo permitido.
-		 * A capacidade deve ser menor ou igual a {@link java.lang.Short#MAX_VALUE}.
+		 * A capacidade deve ser menor que 2^{13}.
 		 */
-		TOO_LARGE("A capacidade do Bucket deve ser ≤ " + Short.MAX_VALUE + "."),
+		TOO_LARGE("A capacidade do Bucket deve ser < 8192."),
 
 		/**
 		 * A capacidade do Bucket não é positiva.

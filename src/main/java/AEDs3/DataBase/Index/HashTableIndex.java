@@ -258,14 +258,18 @@ public class HashTableIndex implements Index {
 	/**
 	 * Construtor que inicializa um novo índice de tabela hash.
 	 *
-	 * @param n  Número máximo de elementos por cesto.
+	 * @param bucketCapacity  Número máximo de elementos por cesto.
 	 * @param nc Caminho para o arquivo de cestos.
 	 * @param nd Caminho para o arquivo de diretório.
 	 * @param nm Caminho para o arquivo de metadados.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public HashTableIndex(int n, String nc, String nd, String nm) throws IOException {
-		bucketNumElements = n;
+	public HashTableIndex(int bucketCapacity, String nc, String nd, String nm) throws IOException {
+		if (bucketCapacity >= 8192)
+			throw new InvalidHashTableCapacityException(
+					bucketCapacity, InvalidHashTableCapacityException.Reason.TOO_LARGE);
+
+		bucketNumElements = bucketCapacity;
 		dirFilePath = nd;
 		bucketFilePath = nc;
 		metaFilePath = nm;
