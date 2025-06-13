@@ -20,6 +20,9 @@ public class InvalidBTreeOrderException extends IllegalArgumentException {
 		 */
 		NOT_EVEN("A ordem da Árvore B deve ser um número par.");
 
+		/**
+		 * Mensagem descritiva da razão.
+		 */
 		private final String message;
 
 		/**

@@ -16,6 +16,9 @@ import java.nio.file.Paths;
  * diferentes algoritmos de compressão.
  */
 public class Compressor {
+	/**
+	 * Tamanho do buffer em bytes utilizado para operações de entrada e saída.
+	 */
 	private static final int BUFFER_SIZE_BYTES = 2 * (1 << 20); // 2MB.
 
 	/**

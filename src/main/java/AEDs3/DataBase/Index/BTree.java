@@ -144,6 +144,13 @@ public class BTree implements Index {
 					this.children[i].save();
 		}
 
+		/**
+		 * Salva a posição dos filhos no arquivo.
+		 *
+		 * @param childrenPositions Array de posições dos filhos.
+		 * @param i                 Índice do filho atual.
+		 * @throws IOException Se ocorrer um erro de I/O ao escrever no arquivo.
+		 */
 		private void saveChildren(long[] childrenPositions, int i) throws IOException {
 			if (this.children[i] != null) {
 				if (this.children[i].getPos() < 0)
@@ -238,10 +245,29 @@ public class BTree implements Index {
 		}
 	}
 
+	/**
+	 * A raiz da Árvore B.
+	 */
 	private Page root;
+
+	/**
+	 * Capacidade de meia página da Árvore B.
+	 */
 	private final int halfPageCapacity;
+
+	/**
+	 * Capacidade total de uma página na Árvore B.
+	 */
 	private final int pageCapacity;
+
+	/**
+	 * Caminho do arquivo onde a Árvore B é armazenada.
+	 */
 	private String filePath;
+
+	/**
+	 * Arquivo de acesso aleatório para manipulação da Árvore B.
+	 */
 	private RandomAccessFile file;
 
 	/**
@@ -312,6 +338,9 @@ public class BTree implements Index {
 	/**
 	 * Salva todas as páginas carregadas, partindo da raiz e seguindo
 	 * recursivamente.
+	 *
+	 * @throws IOException Se ocorrer um erro de I/O durante a operação de
+	 *                     salvamento.
 	 */
 	private void save() throws IOException {
 		if (root != null) {
@@ -343,10 +372,26 @@ public class BTree implements Index {
 		return (res != null) ? res.getPos() : -1;
 	}
 
+	/**
+	 * Busca um registro na árvore B a partir de um registro de índice fornecido.
+	 *
+	 * @param reg O registro de índice a ser buscado.
+	 * @return O registro de índice encontrado ou null se não encontrado.
+	 * @throws IOException Se ocorrer um erro de I/O durante a busca.
+	 */
 	private IndexRegister search(IndexRegister reg) throws IOException {
 		return this.search(reg, this.root);
 	}
 
+	/**
+	 * Busca um registro na árvore B a partir de um registro de índice e uma página
+	 * fornecidos.
+	 *
+	 * @param reg  O registro de índice a ser buscado.
+	 * @param page A página atual onde a busca é realizada.
+	 * @return O registro de índice encontrado ou null se não encontrado.
+	 * @throws IOException Se ocorrer um erro de I/O durante a busca.
+	 */
 	private IndexRegister search(IndexRegister reg, Page page) throws IOException {
 		if (page == null)
 			return null; // Registro não encontrado.
@@ -676,6 +721,6 @@ public class BTree implements Index {
 	}
 
 	public String[] listFilePaths() {
-		return new String[] {filePath};
+		return new String[] { filePath };
 	}
 }

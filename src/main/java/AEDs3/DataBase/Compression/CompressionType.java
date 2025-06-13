@@ -8,12 +8,34 @@ import AEDs3.DataBase.Compression.Compressors.*;
  * Enumeração que representa os tipos de compressão disponíveis.
  */
 public enum CompressionType {
+	/**
+	 * Copia dados sem comprimir.
+	 */
 	COPY("Copia dados sem comprimir", CopyCompressor.class, "pack"),
+
+	/**
+	 * Compressão Huffman.
+	 */
 	HUFFMAN("Compressão Huffman", HuffmanCompressor.class, "huffman"),
+
+	/**
+	 * Compressão LZW.
+	 */
 	LZW("Compressão LZW", LZWCompressor.class, "lzw");
 
+	/**
+	 * Descrição do tipo de compressão.
+	 */
 	private final String description;
+
+	/**
+	 * Classe que implementa a compressão.
+	 */
 	private final Class<? extends StreamCompressor> compressorClass;
+
+	/**
+	 * Extensão de arquivo esperada para esse tipo.
+	 */
 	private final String extension;
 
 	/**
@@ -66,8 +88,8 @@ public enum CompressionType {
 	 *
 	 * @param extension A extensão de arquivo para buscar.
 	 * @return O enum CompressionType correspondente à extensão.
-	 * @throws IllegalArgumentException Se a extensão não corresponder a nenhum tipo
-	 *                                  de compressão.
+	 * @throws NoSuchFieldException Se a extensão não corresponder a nenhum tipo
+	 *                              de compressão.
 	 */
 	public static CompressionType fromExtension(String extension) throws NoSuchFieldException {
 		for (CompressionType type : CompressionType.values())

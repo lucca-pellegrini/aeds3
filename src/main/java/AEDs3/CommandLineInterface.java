@@ -81,7 +81,14 @@ import picocli.shell.jline3.PicocliJLineCompleter;
  * Picocli para definir os comandos da interface.
  */
 public class CommandLineInterface {
+	/**
+	 * Terminal utilizado para interação com o usuário.
+	 */
 	private Terminal terminal;
+
+	/**
+	 * Indica se o banner de boas-vindas já foi exibido.
+	 */
 	boolean welcomeBannerShown = false;
 
 	/**
@@ -114,21 +121,69 @@ public class CommandLineInterface {
 							UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
 							CompressCommand.class, DecompressCommand.class, KeyBindingsCommand.class })
 	static class CliCommands implements Runnable {
+		/**
+		 * Leitor de linha para entrada do usuário.
+		 */
 		LineReader reader;
+
+		/**
+		 * Saída para exibição de mensagens.
+		 */
 		PrintWriter out;
+
+		/**
+		 * Widgets de sugestão automática.
+		 */
 		AutosuggestionWidgets suggestions;
+
+		/**
+		 * Banco de dados de faixas.
+		 */
 		TrackDB db;
 
+		/**
+		 * Prompt exibido na linha de comando.
+		 */
 		String prompt;
+
+		/**
+		 * Prompt exibido à direita na linha de comando.
+		 */
 		String rightPrompt;
 
+		/**
+		 * Prompt padrão exibido na linha de comando.
+		 */
 		static final String DEFAULT_PROMPT = ansi().fgYellow().bold().a("TrackDB> ").toString();
+
+		/**
+		 * Prompt padrão exibido à direita quando nenhum arquivo está aberto.
+		 */
 		static final String DEFAULT_RIGHT_PROMPT = ansi().fgRed().a("[Nenhum arquivo aberto]").toString();
+
+		/**
+		 * Mensagem de erro padrão.
+		 */
 		static final String ERROR_PROMPT = ansi().bold().render("@|red Erro:|@ ").toString();
+
+		/**
+		 * Mensagem de aviso padrão.
+		 */
 		static final String WARN_PROMPT = ansi().bold().render("@|yellow Warn:|@ ").toString();
+
+		/**
+		 * Mensagem de dica padrão.
+		 */
 		static final String HINT_PROMPT = ansi().bold().render("@|green Dica:|@ ").toString();
+
+		/**
+		 * Mensagem de informação padrão.
+		 */
 		static final String INFO_PROMPT = ansi().bold().render("@|blue Info:|@ ").toString();
 
+		/**
+		 * Construtor que inicializa os prompts padrão.
+		 */
 		CliCommands() {
 			prompt = DEFAULT_PROMPT;
 			rightPrompt = DEFAULT_RIGHT_PROMPT;
@@ -250,15 +305,30 @@ public class CommandLineInterface {
 			out.println(INFO_PROMPT + msg);
 		}
 
+		/**
+		 * Define o leitor de linha para entrada do usuário.
+		 *
+		 * @param reader O leitor de linha a ser configurado.
+		 */
 		public void setReader(LineReader reader) {
 			this.reader = reader;
 			this.out = reader.getTerminal().writer();
 		}
 
+		/**
+		 * Define os widgets de sugestão automática.
+		 *
+		 * @param suggestions Os widgets de sugestão a serem configurados.
+		 */
 		public void setSuggestions(AutosuggestionWidgets suggestions) {
 			this.suggestions = suggestions;
 		}
 
+		/**
+		 * Define o banco de dados a ser utilizado.
+		 *
+		 * @param dbPath O caminho para o arquivo do banco de dados.
+		 */
 		public void setDb(String dbPath) {
 			if (dbPath == null) {
 				if (this.db != null) {
@@ -310,9 +380,15 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "usage", mixinStandardHelpOptions = true, description = "Exibe a ajuda principal do programa.")
 	static class UsageCommand implements Runnable {
+		/**
+		 * Comando pai que permite acessar o banco de dados e exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa o comando para exibir a ajuda do programa.
+		 */
 		public void run() {
 			parent.out.println(new CommandLine(parent).getUsageMessage());
 		}
@@ -373,19 +449,69 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Comando para fechar o arquivo do banco de dados aberto.
+	 *
+	 * <p>
+	 * Este comando é utilizado para fechar o arquivo TrackDB atualmente aberto. Se
+	 * não houver nenhum arquivo aberto, uma mensagem de aviso será exibida.
+	 * </p>
+	 *
+	 * <p>
+	 * Após o fechamento do arquivo, o prompt da linha de comando será restaurado
+	 * para seus valores padrão.
+	 * </p>
+	 */
+	@Command(name = "close", mixinStandardHelpOptions = true, description = "Fecha o arquivo TrackDB aberto.")
+	static class CloseCommand implements Runnable {
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		/**
+		 * Fecha o arquivo TrackDB aberto e restaura o prompt padrão.
+		 *
+		 * <p>
+		 * Se nenhum arquivo estiver aberto, uma mensagem de aviso será exibida. Caso
+		 * contrário, o banco de dados será fechado e o prompt será restaurado.
+		 * </p>
+		 */
+		public void run() {
+			parent.setDb(null); // Fecha o banco de dados.
+		}
+	}
+
+	/**
+	 * Comando para comprimir o arquivo TrackDB aberto.
+	 */
 	@Command(name = "compress", mixinStandardHelpOptions = true, description = "Comprime o arquivo TrackDB aberto.")
 	static class CompressCommand implements Runnable {
+		/**
+		 * Algoritmo de compressão a ser utilizado.
+		 */
 		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
 		CompressionType method;
 
+		/**
+		 * Fechar e deletar arquivo após comprimir.
+		 */
 		@Option(names = { "-d",
 				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
+		/**
+		 * Especifica um nome customizado para o arquivo comprimido.
+		 */
 		@Option(names = { "-n",
 				"--name" }, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
 		String customName;
 
+		/**
+		 * Cria um backup do DB, incluindo data e hora no nome de arquivo.
+		 */
 		@Option(names = { "-b",
 				"--backup" }, description = "Cria um backup do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
 		boolean backup;
@@ -477,19 +603,34 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Comando para descomprimir um arquivo TrackDB.
+	 */
 	@Command(name = "decompress", mixinStandardHelpOptions = true, description = "Descomprime um arquivo TrackDB.")
 	static class DecompressCommand implements Runnable {
+		/**
+		 * Algoritmo de compressão a ser utilizado.
+		 */
 		@Option(names = { "-m",
 				"--method" }, description = "Algoritmo de compressão a ser utilizado.", required = false)
 		CompressionType method;
 
+		/**
+		 * Abrir arquivo após descomprimir.
+		 */
 		@Option(names = { "-o", "--open" }, description = "Abrir arquivo após descomprimi-lo", defaultValue = "false")
 		boolean open;
 
+		/**
+		 * Deletar arquivo após descomprimir.
+		 */
 		@Option(names = { "-d",
 				"--delete" }, description = "Deletar arquivo após descomprimi-lo", defaultValue = "false")
 		boolean delete;
 
+		/**
+		 * Nome do arquivo a descomprimir.
+		 */
 		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descomprimir.", completionCandidates = FileCompleter.class)
 		String path;
 
@@ -552,42 +693,6 @@ public class CommandLineInterface {
 			} catch (IOException e) {
 				parent.error("Impossível verificar arquivo descomprimido.");
 			}
-		}
-
-	}
-
-	/**
-	 * Comando para fechar o arquivo do banco de dados aberto.
-	 *
-	 * <p>
-	 * Este comando é utilizado para fechar o arquivo TrackDB atualmente aberto. Se
-	 * não houver nenhum arquivo aberto, uma mensagem de aviso será exibida.
-	 * </p>
-	 *
-	 * <p>
-	 * Após o fechamento do arquivo, o prompt da linha de comando será restaurado
-	 * para seus valores padrão.
-	 * </p>
-	 */
-	@Command(name = "close", mixinStandardHelpOptions = true, description = "Fecha o arquivo TrackDB aberto.")
-	static class CloseCommand implements Runnable {
-		/**
-		 * Referência para o comando pai, utilizado para acessar a instância do banco de
-		 * dados e outros recursos.
-		 */
-		@ParentCommand
-		CliCommands parent;
-
-		/**
-		 * Fecha o arquivo TrackDB aberto e restaura o prompt padrão.
-		 *
-		 * <p>
-		 * Se nenhum arquivo estiver aberto, uma mensagem de aviso será exibida. Caso
-		 * contrário, o banco de dados será fechado e o prompt será restaurado.
-		 * </p>
-		 */
-		public void run() {
-			parent.setDb(null); // Fecha o banco de dados.
 		}
 	}
 
@@ -928,10 +1033,21 @@ public class CommandLineInterface {
 				"--regex" }, description = "Buscar strings com expressão regular.", defaultValue = "false")
 		boolean regex = false;
 
+		/**
+		 * Termo de busca para lista invertida de nomes.
+		 */
 		@Option(names = "--name", description = "Termo de busca para lista invertida de nomes.")
 		String nameList;
+
+		/**
+		 * Termo de busca para lista invertida de álbuns.
+		 */
 		@Option(names = "--album", description = "Termo de busca para lista invertida de álbuns.")
 		String albumList;
+
+		/**
+		 * Termo de busca para lista invertida de artistas.
+		 */
 		@Option(names = "--artist", description = "Termo de busca para lista invertida de artistas.")
 		String artistList;
 
@@ -1173,7 +1289,14 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "create", mixinStandardHelpOptions = true, description = "Criar uma nova faixa.")
 	static class CreateCommand implements Runnable {
+		/**
+		 * Prompt à direita exibido na linha de comando durante a operação.
+		 */
 		private Ansi rightPrompt = ansi().bold().bgBrightYellow();
+
+		/**
+		 * Leitor de linha para entrada do usuário.
+		 */
 		LineReader reader;
 
 		/**
@@ -1270,7 +1393,14 @@ public class CommandLineInterface {
 	 */
 	@Command(name = "update", mixinStandardHelpOptions = true, description = "Atualizar uma faixa existente.")
 	static class UpdateCommand implements Runnable {
+		/**
+		 * Prompt à direita exibido na linha de comando durante a operação.
+		 */
 		private Ansi rightPrompt = ansi().bold().bgBrightMagenta();
+
+		/**
+		 * Leitor de linha para entrada do usuário.
+		 */
 		LineReader reader;
 
 		/**
@@ -1630,27 +1760,47 @@ public class CommandLineInterface {
 	@SuppressWarnings("CanBeFinal")
 	@Command(name = "index", mixinStandardHelpOptions = true, description = "Gerencia o índice do banco de dados.")
 	static class IndexCommand implements Runnable {
+		/**
+		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
+		 */
 		@ArgGroup()
 		private final IndexType indexType = new IndexType();
 
 		/**
-		 * Grupo de opções para escolher o tipo de índice a ser gerenciado.
+		 * Classe interna que define o grupo de opções para escolher o tipo de índice a ser
+		 * gerenciado.
 		 */
 		@SuppressWarnings("CanBeFinal")
 		static class IndexType {
+			/**
+			 * Habilita índice por Árvore B.
+			 */
 			@Option(names = "--tree", description = "Habilita índice por Árvore B.", required = true)
 			boolean btree = false;
 
+			/**
+			 * Habilita índice por Hash Dinâmico.
+			 */
 			@Option(names = "--hash", description = "Habilita índice por Hash Dinâmico.", required = true)
 			boolean hash = false;
 
+			/**
+			 * Habilita índice por Lista Invertida.
+			 */
 			@Option(names = "--inverted", description = "Habilita índice por Lista Invertida.", required = true)
 			boolean invertedList = false;
 
+			/**
+			 * Deleta o índice atual.
+			 */
 			@Option(names = "--disable", description = "Deleta o índice atual.", required = true)
 			boolean disable = false;
 
-			@Option(names = "--reindex", description = "Reindexa o arquivo inteiro.", required = true)
+			/**
+			 * Reindexa o arquivo inteiro, recriando o índice primário.
+			 */
+			@Option(names = "--reindex", description =
+				"Reindexa o arquivo inteiro, recriando o índice primário.", required = true)
 			boolean reindex = false;
 		}
 
@@ -2171,8 +2321,17 @@ public class CommandLineInterface {
 		this.welcomeBannerShown = true;
 	}
 
+	/**
+	 * Classe que implementa um iterador para completar nomes de arquivos.
+	 */
 	static class FileCompleter implements Iterable<String> {
 
+		/**
+		 * Obtém o diretório a partir de um caminho fornecido.
+		 *
+		 * @param d Caminho do diretório.
+		 * @return O diretório correspondente.
+		 */
 		public static File getDir(String d) {
 			File f = new File(d);
 			if (f.isDirectory())
@@ -2192,6 +2351,11 @@ public class CommandLineInterface {
 			return new File(".");
 		}
 
+		/**
+		 * Retorna um iterador para os candidatos de autocompletar.
+		 *
+		 * @return Um iterador de strings.
+		 */
 		@Override
 		public Iterator<String> iterator() {
 			ParsedLine line = ModifiedPicocliJLineCompleter.parsedLineThreadLocal.get();
@@ -2213,17 +2377,38 @@ public class CommandLineInterface {
 		}
 	}
 
+	/**
+	 * Classe modificada para completar comandos usando Picocli.
+	 */
 	private static class ModifiedPicocliJLineCompleter extends PicocliJLineCompleter {
 
+		/**
+		 * Armazena a linha analisada atual.
+		 */
 		public static ThreadLocal<ParsedLine> parsedLineThreadLocal = new ThreadLocal<>();
 
+		/**
+		 * Especificação sobrescrita do comando.
+		 */
 		private final CommandSpec shadowedSpec;
 
+		/**
+		 * Construtor que inicializa o completer com a especificação de comando.
+		 *
+		 * @param spec Especificação do comando.
+		 */
 		public ModifiedPicocliJLineCompleter(CommandSpec spec) {
 			super(spec);
 			this.shadowedSpec = spec;
 		}
 
+		/**
+		 * Completa os comandos com base na entrada do usuário.
+		 *
+		 * @param reader     Leitor de linha.
+		 * @param line       Linha analisada.
+		 * @param candidates Lista de candidatos para autocompletar.
+		 */
 		@Override
 		public void complete(LineReader reader, ParsedLine line, List<Candidate> candidates) {
 			parsedLineThreadLocal.set(line);

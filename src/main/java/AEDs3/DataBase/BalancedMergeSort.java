@@ -175,9 +175,23 @@ public class BalancedMergeSort {
 	 * PriorityQueue.
 	 */
 	private static class WeightedTrack implements Comparable<WeightedTrack> {
+		/**
+		 * A faixa de música associada a este objeto.
+		 */
 		public final Track track;
+
+		/**
+		 * O peso associado à faixa de música, usado para ordenação.
+		 */
 		public int weight;
 
+		/**
+		 * Construtor que inicializa uma instância de WeightedTrack com uma faixa de
+		 * música e um peso.
+		 *
+		 * @param track  A faixa de música a ser associada.
+		 * @param weight O peso a ser associado à faixa de música.
+		 */
 		public WeightedTrack(Track track, int weight) {
 			this.track = track;
 			this.weight = weight;
@@ -284,6 +298,9 @@ public class BalancedMergeSort {
 	/**
 	 * Classe auxiliar que agrupa uma Track com o índice do arquivo em que está,
 	 * para uso com o PriorityQueue.
+	 *
+	 * @param track  O registro de Track a ser armazenado.
+	 * @param origin O índice do arquivo de origem onde a Track está localizada.
 	 */
 	private record FileTrack(Track track, int origin) implements Comparable<FileTrack> {
 		/**

@@ -6,9 +6,19 @@ import java.io.*;
  * Classe que representa um registro de índice, contendo um ID e uma posição.
  */
 class IndexRegister implements Externalizable, Comparable<IndexRegister> {
+	/**
+	 * ID do registro de índice.
+	 */
 	int id;
+
+	/**
+	 * Posição do registro no arquivo.
+	 */
 	long pos;
 
+	/**
+	 * Tamanho do registro de índice em bytes.
+	 */
 	static final int SIZE = (Integer.SIZE + Long.SIZE) / 8;
 
 	/**
@@ -139,6 +149,11 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 		pos = dataIn.readLong();
 	}
 
+	/**
+	 * Retorna o tamanho do registro de índice em bytes.
+	 *
+	 * @return O tamanho do registro de índice.
+	 */
 	public short size() {
 		return SIZE;
 	}

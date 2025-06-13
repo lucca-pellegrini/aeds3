@@ -131,19 +131,35 @@ public class LZWCompressor implements StreamCompressor {
 	 * Usada como chave no dicionário de codificação.
 	 */
 	private static class ByteSequence {
+		/**
+		 * Sequência imutável de bytes.
+		 */
 		private final ArrayList<Byte> sequence;
 
+		/**
+		 * Construtor que cria uma sequência com um único byte.
+		 *
+		 * @param b Byte inicial da sequência.
+		 */
 		public ByteSequence(byte b) {
 			sequence = new ArrayList<>();
 			sequence.add(b);
 		}
 
+		/**
+		 * Construtor que cria uma sequência a partir de uma lista de bytes.
+		 *
+		 * @param seq Lista de bytes para inicializar a sequência.
+		 */
 		public ByteSequence(ArrayList<Byte> seq) {
 			sequence = new ArrayList<>(seq);
 		}
 
 		/**
 		 * Retorna um novo ByteSequence que é esta sequência estendida pelo byte b.
+		 *
+		 * @param b Byte a ser adicionado à sequência.
+		 * @return Novo ByteSequence com o byte adicionado.
 		 */
 		public ByteSequence extend(byte b) {
 			ArrayList<Byte> newSeq = new ArrayList<>(this.sequence);

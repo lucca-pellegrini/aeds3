@@ -21,6 +21,9 @@ public class InvalidHashTableCapacityException extends IllegalArgumentException 
 		 */
 		NON_POSITIVE("A capacidade do Bucket deve ser positiva.");
 
+		/**
+		 * Mensagem descritiva da razão.
+		 */
 		private final String message;
 
 		/**

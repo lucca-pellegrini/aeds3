@@ -9,25 +9,33 @@ import java.util.List;
 
 /**
  * A classe KMP implementa o algoritmo de Knuth-Morris-Pratt para busca de
- * padrões em texto.
- * Este algoritmo é eficiente para encontrar todas as ocorrências de um padrão
- * em um texto,
- * utilizando uma tabela de prefixos para otimizar a busca.
+ * padrões em texto. Este algoritmo é eficiente para encontrar todas as
+ * ocorrências de um padrão em um texto, utilizando uma tabela de prefixos para
+ * otimizar a busca.
  *
  * A classe oferece métodos para construir a tabela de prefixos e realizar a
- * busca em um fluxo
- * de entrada binário, preservando o contexto ao redor do padrão encontrado.
+ * busca em um fluxo de entrada binário, preservando o contexto ao redor do
+ * padrão encontrado.
  */
 public class KMP {
 	/**
 	 * Classe interna que representa o resultado de uma ocorrência do padrão no
-	 * texto.
-	 * Contém a posição do padrão no arquivo e o contexto em que foi encontrado.
+	 * texto. Contém a posição do padrão no arquivo e o contexto em que foi
+	 * encontrado.
 	 */
 	protected static class MatchResult {
-		long pos; // Posição do padrão no arquivo
-		String ctx; // Trecho de contexto onde o padrão foi encontrado
+		/** Posição do padrão no arquivo */
+		long pos;
+		/** Trecho de contexto onde o padrão foi encontrado */
+		String ctx;
 
+		/**
+		 * Construtor para inicializar um resultado de correspondência com a posição e o
+		 * contexto.
+		 *
+		 * @param pos A posição do padrão no arquivo.
+		 * @param ctx O contexto em que o padrão foi encontrado.
+		 */
 		MatchResult(long pos, String ctx) {
 			this.pos = pos;
 			this.ctx = ctx;

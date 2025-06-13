@@ -661,10 +661,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * arquivo de dados e quaisquer arquivos de índice.
 	 */
 	/**
-	 * Retorna um array contendo os caminhos de todos os arquivos associados a este banco de dados,
+	 * Retorna um array contendo os caminhos de todos os arquivos associados a este
+	 * banco de dados,
 	 * incluindo o arquivo de dados e quaisquer arquivos de índice.
 	 *
-	 * @return Um array de strings com os caminhos dos arquivos associados ao banco de dados.
+	 * @return Um array de strings com os caminhos dos arquivos associados ao banco
+	 *         de dados.
 	 */
 	public String[] listFilePaths() {
 		List<String> res = new ArrayList<>();
@@ -981,7 +983,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	/**
 	 * Configura o uso de um índice do tipo Hash Dinâmica no banco de dados.
 	 *
-	 * @param value {@code true} para habilitar o índice Hash Dinâmica, {@code false} para desabilitar.
+	 * @param value {@code true} para habilitar o índice Hash Dinâmica,
+	 *              {@code false} para desabilitar.
 	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
 	 */
 	public void setDynamicHashIndex(boolean value) throws IOException {
@@ -989,9 +992,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	}
 
 	/**
-	 * Configura o uso de um índice do tipo Hash Dinâmica no banco de dados com uma capacidade de bucket específica.
+	 * Configura o uso de um índice do tipo Hash Dinâmica no banco de dados com uma
+	 * capacidade de bucket específica.
 	 *
-	 * @param value          {@code true} para habilitar o índice Hash Dinâmica, {@code false} para desabilitar.
+	 * @param value          {@code true} para habilitar o índice Hash Dinâmica,
+	 *                       {@code false} para desabilitar.
 	 * @param bucketCapacity A capacidade do bucket para a tabela hash.
 	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
 	 */
@@ -1024,7 +1029,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @param name   O nome da faixa a ser lido no índice invertido.
 	 * @param album  O nome do álbum a ser lido no índice invertido.
 	 * @param artist O nome do artista a ser lido no índice invertido.
-	 * @return Um array de inteiros contendo os IDs das faixas que correspondem aos critérios.
+	 * @return Um array de inteiros contendo os IDs das faixas que correspondem aos
+	 *         critérios.
 	 * @throws IOException Se ocorrer um erro de leitura no arquivo.
 	 */
 	public int[] readInvertedIndexes(String name, String album, String artist) throws IOException {
@@ -1036,6 +1042,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 	/**
 	 * Encontra a intersecção de N arrays, podendo incluir arrays nulos.
+	 *
+	 * @param arrays Arrays de inteiros que serão processados para encontrar a
+	 *               intersecção.
+	 * @return Um array de inteiros contendo os elementos que estão presentes em
+	 *         todos os arrays fornecidos.
 	 */
 	private static int[] resultsIntersection(int[]... arrays) {
 		HashSet<Integer> intersectionSet = new HashSet<>();
@@ -1068,6 +1079,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return result;
 	}
 
+	/**
+	 * Divide os campos de nome, álbum e artista de uma faixa em partes menores,
+	 * filtrando palavras com mais de 3 caracteres e que correspondem a letras.
+	 *
+	 * @param t A faixa a ser dividida.
+	 * @return Um array de strings contendo as partes divididas do nome, álbum e
+	 *         artista.
+	 */
 	private static String[][] invertedIndexSplit(Track t) {
 		String[] nameParts = Arrays.stream(t.getName().split(" "))
 				.map(String::trim)
@@ -1096,6 +1115,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		return res;
 	}
 
+	/**
+	 * Insere índices invertidos para uma faixa no banco de dados.
+	 *
+	 * @param t A faixa para a qual os índices serão criados.
+	 * @throws IOException Se ocorrer um erro de E/S durante a operação.
+	 */
 	private void insertInvertedIndexes(Track t) throws IOException {
 		int id = t.getId();
 		String[][] parts = invertedIndexSplit(t);
@@ -1107,6 +1132,12 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			artistIndex.create(s, id);
 	}
 
+	/**
+	 * Remove índices invertidos de uma faixa no banco de dados.
+	 *
+	 * @param t A faixa para a qual os índices serão removidos.
+	 * @throws IOException Se ocorrer um erro de E/S durante a operação.
+	 */
 	private void deleteInvertedIndexes(Track t) throws IOException {
 		int id = t.getId();
 		String[][] parts = invertedIndexSplit(t);
@@ -1121,7 +1152,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	/**
 	 * Configura o uso de índices de lista invertida no banco de dados.
 	 *
-	 * @param value {@code true} para habilitar os índices de lista invertida, {@code false} para desabilitar.
+	 * @param value {@code true} para habilitar os índices de lista invertida,
+	 *              {@code false} para desabilitar.
 	 * @throws IOException Se ocorrer um erro de leitura ou escrita no arquivo.
 	 */
 	public void setInvertedListIndex(boolean value) throws IOException {
@@ -1241,7 +1273,14 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
  * @see BinaryTrackWriter
  */
 abstract class BinaryTrack {
+	/**
+	 * Indica se a faixa é uma lápide (registro excluído).
+	 */
 	protected boolean tombstone;
+
+	/**
+	 * Tamanho dos dados binários da faixa.
+	 */
 	protected int size;
 
 	/**
@@ -1290,7 +1329,14 @@ abstract class BinaryTrack {
  * @see BinaryTrack
  */
 class BinaryTrackReader extends BinaryTrack {
+	/**
+	 * Fluxo de entrada para dados binários da faixa.
+	 */
 	protected ByteArrayInputStream stream;
+
+	/**
+	 * Faixa desserializada.
+	 */
 	private Track track;
 
 	/**
@@ -1369,6 +1415,9 @@ class BinaryTrackReader extends BinaryTrack {
  * @see BinaryTrack
  */
 class BinaryTrackWriter extends BinaryTrack {
+	/**
+	 * Fluxo de saída para dados binários da faixa.
+	 */
 	protected ByteArrayOutputStream stream;
 
 	/**
@@ -1455,6 +1504,9 @@ enum Flag {
 	 */
 	INDEXED_INVERSE_LIST(1L << 3);
 
+	/**
+	 * Valor de bitmask associado à flag.
+	 */
 	private final long bitmask;
 
 	/**

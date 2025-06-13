@@ -9,10 +9,26 @@ import java.io.OutputStream;
  * Esta classe acumula bits e escreve bytes completos à medida que são formados.
  */
 class BitOutputStream {
+	/**
+	 * Stream de saída para escrita de bits.
+	 */
 	private final OutputStream out;
+
+	/**
+	 * Byte atual em construção.
+	 */
 	private int currentByte;
+
+	/**
+	 * Número de bits preenchidos no byte atual.
+	 */
 	private int numBitsFilled;
 
+	/**
+	 * Construtor para inicializar o BitOutputStream com uma stream de saída.
+	 *
+	 * @param out Stream de saída para escrita de bits.
+	 */
 	public BitOutputStream(OutputStream out) {
 		this.out = out;
 		this.currentByte = 0;
@@ -63,10 +79,26 @@ class BitOutputStream {
  * um byte de cada vez em memória.
  */
 class BitInputStream {
+	/**
+	 * Stream de entrada para leitura de bits.
+	 */
 	private final InputStream in;
+
+	/**
+	 * Byte atual em leitura.
+	 */
 	private int currentByte;
+
+	/**
+	 * Número de bits restantes no byte atual.
+	 */
 	private int numBitsRemaining;
 
+	/**
+	 * Construtor para inicializar o BitInputStream com uma stream de entrada.
+	 *
+	 * @param in Stream de entrada para leitura de bits.
+	 */
 	public BitInputStream(InputStream in) {
 		this.in = in;
 		this.currentByte = 0;

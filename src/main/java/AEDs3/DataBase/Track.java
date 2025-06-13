@@ -3,8 +3,6 @@ package AEDs3.DataBase;
 import AEDs3.DataBase.PatternMatching.BoyerMoore;
 import AEDs3.DataBase.PatternMatching.KMP;
 
-import static AEDs3.DataBase.Track.Field.BOYER_MOORE;
-
 import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -110,7 +108,10 @@ public class Track implements Externalizable, Comparable<Track> {
 	 */
 	protected int popularity;
 
-	private static final int trackIdNumChars = 22;
+	/**
+	 * Número de caracteres do identificador da faixa.
+	 */
+	private static final int TRACK_ID_NUM_CHARS = 22;
 
 	/**
 	 * Constrói uma instância de {@link Track} com todos os metadados fornecidos.
@@ -713,7 +714,7 @@ public class Track implements Externalizable, Comparable<Track> {
 	 * @return o número de caracteres do identificador da faixa.
 	 */
 	public static int getTrackIdNumChars() {
-		return trackIdNumChars;
+		return TRACK_ID_NUM_CHARS;
 	}
 
 	/**

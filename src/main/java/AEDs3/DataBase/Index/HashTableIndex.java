@@ -20,12 +20,39 @@ import java.util.ArrayList;
  * Gerencia a inserção, busca e remoção de registros em uma estrutura de hash.
  */
 public class HashTableIndex implements Index {
+	/**
+	 * Caminho para o arquivo de diretório.
+	 */
 	String dirFilePath;
+
+	/**
+	 * Caminho para o arquivo de cestos.
+	 */
 	String bucketFilePath;
+
+	/**
+	 * Caminho para o arquivo de metadados.
+	 */
 	String metaFilePath;
+
+	/**
+	 * Arquivo de acesso aleatório para o diretório.
+	 */
 	RandomAccessFile dirFile;
+
+	/**
+	 * Arquivo de acesso aleatório para os cestos.
+	 */
 	RandomAccessFile bucketFile;
+
+	/**
+	 * Número máximo de elementos por cesto.
+	 */
 	int bucketNumElements;
+
+	/**
+	 * Diretório da tabela hash.
+	 */
 	Directory directory;
 
 	/**
@@ -34,18 +61,51 @@ public class HashTableIndex implements Index {
 	 * cesto.
 	 */
 	private class Bucket {
+		/**
+		 * Número máximo de elementos que o cesto pode conter.
+		 */
 		short maxElements;
+
+		/**
+		 * Tamanho de cada elemento no cesto.
+		 */
 		short elementSize;
+
+		/**
+		 * Tamanho total do cesto.
+		 */
 		short bucketSize;
 
+		/**
+		 * Profundidade local do cesto.
+		 */
 		byte localDepth;
+
+		/**
+		 * Número atual de elementos no cesto.
+		 */
 		short numElements;
+
+		/**
+		 * Lista de registros de índice armazenados no cesto.
+		 */
 		ArrayList<IndexRegister> elements;
 
+		/**
+		 * Construtor do cesto com profundidade local padrão.
+		 *
+		 * @param maxElements Número máximo de elementos no cesto.
+		 */
 		public Bucket(int maxElements) {
 			this(maxElements, 0);
 		}
 
+		/**
+		 * Construtor do cesto com profundidade local especificada.
+		 *
+		 * @param maxElements Número máximo de elementos no cesto.
+		 * @param localDepth  Profundidade local do cesto.
+		 */
 		public Bucket(int maxElements, int localDepth) {
 			if (maxElements > Short.MAX_VALUE)
 				throw new IllegalArgumentException(
@@ -61,6 +121,12 @@ public class HashTableIndex implements Index {
 			this.bucketSize = (short) (elementSize * maxElements + 3);
 		}
 
+		/**
+		 * Converte o cesto para um array de bytes.
+		 *
+		 * @return Array de bytes representando o cesto.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
@@ -74,6 +140,12 @@ public class HashTableIndex implements Index {
 			return baos.toByteArray();
 		}
 
+		/**
+		 * Inicializa o cesto a partir de um array de bytes.
+		 *
+		 * @param buf Array de bytes representando o cesto.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public void fromByteArray(byte[] buf) throws IOException {
 			ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 			DataInputStream dis = new DataInputStream(bais);
@@ -90,6 +162,11 @@ public class HashTableIndex implements Index {
 			}
 		}
 
+		/**
+		 * Insere um registro no cesto.
+		 *
+		 * @param register Registro a ser inserido.
+		 */
 		public void insert(IndexRegister register) {
 			if (isFull())
 				throw new IllegalStateException("Bucket já está cheio.");
@@ -100,6 +177,12 @@ public class HashTableIndex implements Index {
 			numElements += 1;
 		}
 
+		/**
+		 * Busca um registro no cesto.
+		 *
+		 * @param id Identificador do registro.
+		 * @return Registro encontrado ou null se não encontrado.
+		 */
 		public IndexRegister search(int id) {
 			if (isEmpty())
 				return null;
@@ -112,6 +195,12 @@ public class HashTableIndex implements Index {
 				return null;
 		}
 
+		/**
+		 * Remove um registro do cesto.
+		 *
+		 * @param id Identificador do registro.
+		 * @return true se o registro foi removido, false caso contrário.
+		 */
 		public boolean delete(int id) {
 			if (isEmpty())
 				return false;
@@ -126,14 +215,29 @@ public class HashTableIndex implements Index {
 			return false;
 		}
 
+		/**
+		 * Verifica se o cesto está vazio.
+		 *
+		 * @return true se o cesto está vazio, false caso contrário.
+		 */
 		public boolean isEmpty() {
 			return numElements == 0;
 		}
 
+		/**
+		 * Verifica se o cesto está cheio.
+		 *
+		 * @return true se o cesto está cheio, false caso contrário.
+		 */
 		public boolean isFull() {
 			return numElements == maxElements;
 		}
 
+		/**
+		 * Retorna o tamanho do cesto.
+		 *
+		 * @return Tamanho do cesto.
+		 */
 		public int getSize() {
 			return bucketSize;
 		}
@@ -144,21 +248,43 @@ public class HashTableIndex implements Index {
 	 * Gerencia a profundidade global e os endereços dos cestos.
 	 */
 	private class Directory {
+		/**
+		 * Profundidade global do diretório.
+		 */
 		byte globalDepth;
+
+		/**
+		 * Endereços dos cestos no diretório.
+		 */
 		long[] addresses;
 
+		/**
+		 * Construtor do diretório, inicializa com profundidade global zero.
+		 */
 		public Directory() {
 			globalDepth = 0;
 			addresses = new long[1];
 			addresses[0] = 0;
 		}
 
+		/**
+		 * Atualiza o endereço de um cesto no diretório.
+		 *
+		 * @param pos Posição do cesto no diretório.
+		 * @param newAddress Novo endereço do cesto.
+		 */
 		public void updateAddresses(int pos, long newAddress) {
 			if (pos > 1 << globalDepth)
 				return;
 			addresses[pos] = newAddress;
 		}
 
+		/**
+		 * Converte o diretório para um array de bytes.
+		 *
+		 * @return Array de bytes representando o diretório.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public byte[] toByteArray() throws IOException {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			DataOutputStream dos = new DataOutputStream(baos);
@@ -169,6 +295,12 @@ public class HashTableIndex implements Index {
 			return baos.toByteArray();
 		}
 
+		/**
+		 * Inicializa o diretório a partir de um array de bytes.
+		 *
+		 * @param buf Array de bytes representando o diretório.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
 		public void fromByteArray(byte[] buf) throws IOException {
 			ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 			DataInputStream dis = new DataInputStream(bais);
@@ -179,12 +311,21 @@ public class HashTableIndex implements Index {
 				addresses[i] = dis.readLong();
 		}
 
+		/**
+		 * Retorna o endereço de um cesto no diretório.
+		 *
+		 * @param pos Posição do cesto no diretório.
+		 * @return Endereço do cesto ou -1 se a posição for inválida.
+		 */
 		protected long address(int pos) {
 			if (pos > 1 << globalDepth)
 				return -1;
 			return addresses[pos];
 		}
 
+		/**
+		 * Duplica o diretório, aumentando a profundidade global.
+		 */
 		protected void duplicate() {
 			if (globalDepth == 0xFF / 2)
 				return;
@@ -203,13 +344,23 @@ public class HashTableIndex implements Index {
 			addresses = newAddresses;
 		}
 
-		// Para efeito de determinar o cesto em que o elemento deve ser inserido,
-		// só serão considerados valores absolutos da chave.
+		/**
+		 * Calcula o hash para determinar o cesto de um elemento.
+		 *
+		 * @param id Identificador do elemento.
+		 * @return Hash calculado.
+		 */
 		protected int hash(int id) {
 			return Math.abs(id) % (1 << globalDepth);
 		}
 
-		// Método auxiliar para atualizar endereço ao duplicar o diretório
+		/**
+		 * Calcula o hash local para atualização de endereço ao duplicar o diretório.
+		 *
+		 * @param id Identificador do elemento.
+		 * @param localDepth Profundidade local do cesto.
+		 * @return Hash local calculado.
+		 */
 		protected int localHash(int id, int localDepth) {
 			return Math.abs(id) % (1 << localDepth);
 		}
@@ -258,10 +409,10 @@ public class HashTableIndex implements Index {
 	/**
 	 * Construtor que inicializa um novo índice de tabela hash.
 	 *
-	 * @param bucketCapacity  Número máximo de elementos por cesto.
-	 * @param nc Caminho para o arquivo de cestos.
-	 * @param nd Caminho para o arquivo de diretório.
-	 * @param nm Caminho para o arquivo de metadados.
+	 * @param bucketCapacity Número máximo de elementos por cesto.
+	 * @param nc             Caminho para o arquivo de cestos.
+	 * @param nd             Caminho para o arquivo de diretório.
+	 * @param nm             Caminho para o arquivo de metadados.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
 	public HashTableIndex(int bucketCapacity, String nc, String nd, String nm) throws IOException {
@@ -322,6 +473,12 @@ public class HashTableIndex implements Index {
 		this.insert(new IndexRegister(id, pos));
 	}
 
+	/**
+	 * Método auxiliar que insere um registro no índice de tabela hash.
+	 *
+	 * @param elem Registro a ser inserido.
+	 * @throws IOException Se ocorrer um erro de I/O.
+	 */
 	private void insert(IndexRegister elem) throws IOException {
 		byte[] dirBuf = new byte[(int) dirFile.length()];
 		dirFile.seek(0);

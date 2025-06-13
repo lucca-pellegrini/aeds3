@@ -149,7 +149,14 @@ class FilePacker {
 		}
 	}
 
-	// Method to print progress bar
+	/**
+	 * Imprime uma barra de progresso no console.
+	 *
+	 * @param current  O progresso atual.
+	 * @param total    O valor total para completar o progresso.
+	 * @param barWidth A largura da barra de progresso.
+	 * @param label    O rótulo associado à barra de progresso.
+	 */
 	private static void printProgressBar(long current, long total, int barWidth, String label) {
 		double progress = (double) current / total;
 		int completed = (int) (progress * barWidth);

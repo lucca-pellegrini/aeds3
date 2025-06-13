@@ -15,9 +15,20 @@ import java.util.List;
  * utilizando uma técnica de pré-processamento para otimizar a busca.
  */
 public class BoyerMoore {
-	private static final int ALPHABET_SIZE = 256; // Tamanho do alfabeto ASCII estendido
-	private byte[] pattern; // Padrão em bytes
-	private int[] badCharTbl; // Tabela de caracteres ruins para desalinhamento
+	/**
+	 * Tamanho do alfabeto ASCII estendido.
+	 */
+	private static final int ALPHABET_SIZE = 256;
+
+	/**
+	 * Padrão em bytes.
+	 */
+	private byte[] pattern;
+
+	/**
+	 * Tabela de caracteres ruins para desalinhamento.
+	 */
+	private int[] badCharTbl;
 
 	/**
 	 * Construtor da classe BoyerMoore que inicializa o padrão a ser buscado e

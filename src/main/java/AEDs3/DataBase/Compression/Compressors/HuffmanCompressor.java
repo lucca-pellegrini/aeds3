@@ -234,15 +234,40 @@ public class HuffmanCompressor implements StreamCompressor {
 	 * Classe auxiliar representando um nó na árvore de Huffman (para compressão).
 	 */
 	private static class HuffmanNode implements Comparable<HuffmanNode> {
+		/**
+		 * Byte representado pelo nó.
+		 */
 		byte b;
+		/**
+		 * Frequência do byte.
+		 */
 		int frequency;
-		HuffmanNode left, right;
+		/**
+		 * Filho esquerdo na árvore de Huffman.
+		 */
+		HuffmanNode left;
+		/**
+		 * Filho direito na árvore de Huffman.
+		 */
+		HuffmanNode right;
 
+		/**
+		 * Construtor para criar um nó de Huffman com um byte e sua frequência.
+		 *
+		 * @param b         Byte representado pelo nó.
+		 * @param frequency Frequência do byte.
+		 */
 		public HuffmanNode(byte b, int frequency) {
 			this.b = b;
 			this.frequency = frequency;
 		}
 
+		/**
+		 * Compara este nó de Huffman com outro nó com base na frequência.
+		 *
+		 * @param o Outro nó de Huffman a ser comparado.
+		 * @return Diferença entre as frequências dos nós.
+		 */
 		@Override
 		public int compareTo(HuffmanNode o) {
 			return this.frequency - o.frequency;
@@ -253,16 +278,32 @@ public class HuffmanCompressor implements StreamCompressor {
 	 * Classe auxiliar para decodificação (árvore de Huffman simplificada).
 	 */
 	private static class DecodeNode {
+		/**
+		 * Byte representado pelo nó.
+		 */
 		byte b;
-		DecodeNode left, right;
+		/**
+		 * Filho esquerdo na árvore de decodificação.
+		 */
+		DecodeNode left;
+		/**
+		 * Filho direito na árvore de decodificação.
+		 */
+		DecodeNode right;
 
-		// Marca este nó como folha
+		/**
+		 * Marca este nó como folha, removendo quaisquer filhos.
+		 */
 		public void setLeaf() {
 			left = null;
 			right = null;
 		}
 
-		// Verifica se o nó é folha (não possui filhos)
+		/**
+		 * Verifica se o nó é uma folha (não possui filhos).
+		 *
+		 * @return true se o nó for uma folha, caso contrário, false.
+		 */
 		public boolean isLeaf() {
 			return left == null && right == null;
 		}

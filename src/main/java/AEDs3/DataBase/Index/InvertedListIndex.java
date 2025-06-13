@@ -1,14 +1,5 @@
 package AEDs3.DataBase.Index;
 
-/**
- * Classe que implementa um índice de lista invertida.
- * Utiliza arquivos para armazenar o dicionário e os blocos de dados.
- *
- * Esta classe fornece métodos para criar, ler e deletar registros associados a palavras-chave,
- * utilizando uma estrutura de lista invertida. Os registros são armazenados em blocos, que são
- * gerenciados por meio de arquivos de acesso aleatório.
- */
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -25,15 +16,35 @@ import java.util.Collections;
  * Classe que implementa um índice de lista invertida.
  * Utiliza arquivos para armazenar o dicionário e os blocos de dados.
  *
- * Esta classe fornece métodos para criar, ler e deletar registros associados a palavras-chave,
- * utilizando uma estrutura de lista invertida. Os registros são armazenados em blocos, que são
- * gerenciados por meio de arquivos de acesso aleatório.
+ * Esta classe fornece métodos para criar, ler e deletar registros associados a
+ * palavras-chave, utilizando uma estrutura de lista invertida. Os registros são
+ * armazenados em blocos, que são gerenciados por meio de arquivos de acesso
+ * aleatório.
  */
 public class InvertedListIndex {
+	/**
+	 * Caminho para o arquivo de dicionário.
+	 */
 	String dictionaryFilePath;
+
+	/**
+	 * Caminho para o arquivo de blocos.
+	 */
 	String blockFilePath;
+
+	/**
+	 * Arquivo de acesso aleatório para o dicionário.
+	 */
 	RandomAccessFile dict;
+
+	/**
+	 * Arquivo de acesso aleatório para os blocos.
+	 */
 	RandomAccessFile blocks;
+
+	/**
+	 * Capacidade máxima de registros por bloco.
+	 */
 	private static final int BLOCK_CAPACITY = 4;
 
 	/**
@@ -41,6 +52,9 @@ public class InvertedListIndex {
 	 * Implementa a interface Comparable para permitir ordenação.
 	 */
 	static class InvertedListRegister implements Comparable<InvertedListRegister> {
+		/**
+		 * ID do registro na lista invertida.
+		 */
 		private int id;
 
 		/**
@@ -100,11 +114,34 @@ public class InvertedListIndex {
 		}
 	}
 
+	/**
+	 * Classe que representa um bloco na lista invertida.
+	 * Gerencia registros e permite operações de adição, remoção e verificação.
+	 */
 	static class Block {
-		short num; // quantidade de dados presentes na lista
-		short max; // quantidade máxima de dados que a lista pode conter
+		/**
+		 * Quantidade de dados presentes na lista.
+		 */
+		short num;
+
+		/**
+		 * Quantidade máxima de dados que a lista pode conter.
+		 */
+		short max;
+
+		/**
+		 * Array de registros na lista invertida.
+		 */
 		InvertedListRegister[] items;
+
+		/**
+		 * Endereço do próximo bloco.
+		 */
 		long next;
+
+		/**
+		 * Tamanho do bloco em bytes.
+		 */
 		short bytesPerBlock;
 
 		/**
