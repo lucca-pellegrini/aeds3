@@ -1,4 +1,4 @@
-package AEDs3.DataBase.Compression;
+package AEDs3.Compression;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
