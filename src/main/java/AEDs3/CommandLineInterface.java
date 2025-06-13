@@ -525,7 +525,7 @@ public class CommandLineInterface {
 
 		public void run() {
 			if (parent.db == null) {
-				parent.warn("Não há nenhum arquivo aberto.");
+				parent.error("Não há nenhum arquivo aberto.");
 				return;
 			}
 
