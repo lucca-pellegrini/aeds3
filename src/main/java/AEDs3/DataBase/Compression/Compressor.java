@@ -31,20 +31,11 @@ public class Compressor {
 	public static void compress(String[] src, String dst, CompressionType type) throws IOException {
 		String packPath = dst + ".pack";
 		FilePacker.pack(src, packPath);
+
 		InputStream in = new BufferedInputStream(new FileInputStream(packPath), BUFFER_SIZE_BYTES / 2);
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(dst), BUFFER_SIZE_BYTES / 2);
 
-		switch (type) {
-			case PACK:
-				new CopyCompressor().compress(in, out);
-				break;
-			case HUFFMAN:
-				new HuffmanCompressor().compress(in, out);
-				break;
-			case LZW:
-				new LZWCompressor().compress(in, out);
-				break;
-		}
+		type.getCompressor().compress(in, out);
 
 		Files.delete(Paths.get(packPath));
 		out.flush();
@@ -66,17 +57,7 @@ public class Compressor {
 		InputStream in = new BufferedInputStream(new FileInputStream(src), BUFFER_SIZE_BYTES / 2);
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(packPath), BUFFER_SIZE_BYTES / 2);
 
-		switch (type) {
-			case PACK:
-				new CopyCompressor().decompress(in, out);
-				break;
-			case HUFFMAN:
-				new HuffmanCompressor().decompress(in, out);
-				break;
-			case LZW:
-				new LZWCompressor().decompress(in, out);
-				break;
-		}
+		type.getCompressor().decompress(in, out);
 
 		// Um flush da stream de saída é necessário para garantir que os dados foram escritos.
 		out.flush();

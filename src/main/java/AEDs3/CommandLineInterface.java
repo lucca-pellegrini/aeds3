@@ -410,7 +410,7 @@ public class CommandLineInterface {
 			String dst = basename // Se `--backup` foi passado, armazena data e hora no nome
 					+ (backup ? '.' + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"))
 							: "")
-					+ '.' + method.toString().toLowerCase();
+					+ '.' + method.getExtension();
 			try {
 				// Calcula o tamanho total dos arquivos originais
 				long originalSize = 0;
@@ -504,16 +504,13 @@ public class CommandLineInterface {
 
 		public void run() {
 			if (method == null) {
-				for (CompressionType type : CompressionType.values()) {
-					if (path.endsWith("." + type.toString().toLowerCase())) {
-						method = type;
-						break;
-					}
-				}
-
-				if (method == null) {
+				try {
+					int dotIndex = path.lastIndexOf('.');
+					String extension = (dotIndex == -1) ? "" : path.substring(dotIndex + 1);
+					method = CompressionType.fromExtension(extension);
+				} catch (NoSuchFieldException e) {
 					parent.error("Impossível determinar algoritmo pelo nome do arquivo.");
-					throw new IllegalArgumentException("Método de descompressão indeterminado.");
+					throw new IllegalArgumentException("Método de descompressão indeterminado.", e);
 				}
 			}
 
