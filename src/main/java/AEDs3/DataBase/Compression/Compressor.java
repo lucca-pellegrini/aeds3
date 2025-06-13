@@ -1,5 +1,6 @@
 package AEDs3.DataBase.Compression;
 
+import AEDs3.DataBase.Compression.Compressors.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -35,13 +36,13 @@ public class Compressor {
 
 		switch (type) {
 			case PACK:
-				new Copy().compress(in, out);
+				new CopyCompressor().compress(in, out);
 				break;
 			case HUFFMAN:
-				new Huffman().compress(in, out);
+				new HuffmanCompressor().compress(in, out);
 				break;
 			case LZW:
-				new LZW().compress(in, out);
+				new LZWCompressor().compress(in, out);
 				break;
 		}
 
@@ -67,13 +68,13 @@ public class Compressor {
 
 		switch (type) {
 			case PACK:
-				new Copy().decompress(in, out);
+				new CopyCompressor().decompress(in, out);
 				break;
 			case HUFFMAN:
-				new Huffman().decompress(in, out);
+				new HuffmanCompressor().decompress(in, out);
 				break;
 			case LZW:
-				new LZW().decompress(in, out);
+				new LZWCompressor().decompress(in, out);
 				break;
 		}
 

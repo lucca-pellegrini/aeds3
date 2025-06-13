@@ -1,4 +1,4 @@
-package AEDs3.DataBase.Compression;
+package AEDs3.DataBase.Compression.Compressors;
 
 import java.io.*;
 import java.util.HashMap;
@@ -11,7 +11,7 @@ import java.util.PriorityQueue;
  * sobre streams, lendo e escrevendo bits de forma incremental para minimizar o
  * uso de memória RAM.
  */
-public class Huffman implements StreamCompressor {
+public class HuffmanCompressor implements StreamCompressor {
 
 	/**
 	 * Comprime os dados lidos de um InputStream utilizando o algoritmo de Huffman e

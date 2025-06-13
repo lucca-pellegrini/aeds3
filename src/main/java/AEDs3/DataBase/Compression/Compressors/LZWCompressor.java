@@ -1,4 +1,4 @@
-package AEDs3.DataBase.Compression;
+package AEDs3.DataBase.Compression.Compressors;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +12,7 @@ import java.util.Map;
  * Nesta versão, os métodos compress e decompress operam sobre streams, lendo e
  * escrevendo bits de forma incremental para minimizar o uso de memória.
  */
-public class LZW implements StreamCompressor {
+public class LZWCompressor implements StreamCompressor {
 	/**
 	 * Tamanho do índice em bits utilizado no algoritmo LZW.
 	 */
