@@ -96,7 +96,6 @@ public class CommandLineInterface {
 	 * <code>InfoCommand</code>, etc.), funcionando como um ponto central para
 	 * agrupar e fornecer um ambiente compartilhado onde os subcomandos podem
 	 * acessar dados e exibir informações na linha de comando (CLI) para o usuário.
-	 * @throws IOException Se ocorrer um erro ao ler o arquivo de banner ANSI.
 	 * </p>
 	 *
 	 * <p>
@@ -609,7 +608,6 @@ public class CommandLineInterface {
 	 * para exibir os atalhos disponíveis.
 	 * </p>
 	 *
-	 * @param args Argumentos de linha de comando passados para o programa.
 	 * @see CliCommands
 	 */
 	@Command(name = "keybindings", mixinStandardHelpOptions = true, description = "Exibe os atalhos do programa disponíveis")
@@ -694,7 +692,8 @@ public class CommandLineInterface {
 	 * A eficiência é calculada como a razão entre o número de faixas e o número
 	 * total de espaços utilizados no banco de dados. A cor da eficiência varia
 	 * conforme o valor: verde para eficiência alta (>= 90%), amarelo para
-	 * eficiência média (>= 50%) e vermelho para eficiência baixa (< 50%).
+	 * eficiência média (maior que 50%) e vermelho para eficiência baixa (menor
+	 * que 50%).
 	 * </p>
 	 */
 	@Command(name = "info", mixinStandardHelpOptions = true, description = "Exibe informações sobre o arquivo aberto.")
