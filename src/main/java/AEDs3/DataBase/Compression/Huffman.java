@@ -7,39 +7,15 @@ import java.util.PriorityQueue;
 
 /**
  * Classe responsável pela compressão e descompressão de dados utilizando o
- * algoritmo de Huffman.
- * Nesta versão, os métodos compress e decompress operam sobre streams, lendo e
- * escrevendo bits
- * de forma incremental para minimizar o uso de memória RAM.
- *
- * Nota:
- * - Para a escrita/leitura de bits, esta implementação utiliza as classes
- * BitOutputStream e BitInputStream,
- * que devem ser incluídas separadamente (como na implementação do LZW que você
- * já possui).
- * - O algoritmo faz uma primeira passagem para contar as frequências (usando
- * apenas um vetor de 256 inteiros)
- * e, em caso de InputStream não suportar reset(), utiliza um arquivo temporário
- * para fazer a segunda passagem.
- *
- * O header escrito no stream de saída é composto por:
- * • um int indicanto o número de entradas do mapa de códigos,
- * • para cada entrada: um byte e uma String (UTF) representando o código
- * Huffman,
- * • um long com o total de bits que serão codificados.
- *
- * Após o header, os bits codificados são escritos via BitOutputStream.
+ * algoritmo de Huffman. Nesta versão, os métodos compress e decompress operam
+ * sobre streams, lendo e escrevendo bits de forma incremental para minimizar o
+ * uso de memória RAM.
  */
 public class Huffman {
 
 	/**
 	 * Comprime os dados lidos de um InputStream utilizando o algoritmo de Huffman e
 	 * os escreve no OutputStream.
-	 *
-	 * O método realiza duas passagens sobre os dados:
-	 * 1. Uma passagem para contar as frequências (e, se necessário, gravar os bytes
-	 * em um arquivo temporário);
-	 * 2. Uma segunda passagem para efetuar a codificação bit a bit.
 	 *
 	 * @param in  Stream de entrada com os dados originais.
 	 * @param out Stream de saída onde os dados comprimidos serão escritos.
@@ -114,11 +90,13 @@ public class Huffman {
 			}
 		}
 
-		// Escreve o header utilizando DataOutputStream.
-		// O header conterá:
-		// • Número de entradas do mapa de códigos
-		// • Para cada entrada: byte e String (UTF) com o código
-		// • O total de bits codificados (long)
+		/*
+		 * Escreve o header utilizando DataOutputStream.
+		 * O header conterá:
+		 * - Número de entradas do mapa de códigos
+		 * - Para cada entrada: byte e String (UTF) com o código
+		 * - O total de bits codificados (long)
+		 */
 		DataOutputStream dos = new DataOutputStream(out);
 		dos.writeInt(codes.size());
 		for (Map.Entry<Byte, String> entry : codes.entrySet()) {
@@ -126,10 +104,8 @@ public class Huffman {
 			dos.writeUTF(entry.getValue());
 		}
 		dos.writeLong(totalBits);
-		// A partir de agora, os dados codificados (bits) serão escritos diretamente no
-		// stream
 
-		// Agora, faz a segunda passagem: lê os bytes novamente e escreve seus códigos
+		// Faz a segunda passagem: lê os bytes novamente e escreve seus códigos
 		// utilizando BitOutputStream.
 		BitOutputStream bitOut = new BitOutputStream(out);
 		int byteRead;
@@ -153,12 +129,10 @@ public class Huffman {
 
 	/**
 	 * Descomprime os dados lidos do InputStream que foram comprimidos com Huffman e
-	 * escreve
-	 * o resultado no OutputStream.
+	 * escreve o resultado no OutputStream.
 	 *
-	 * O método lê o header (mapa de códigos e total de bits codificados) e então
-	 * reconstrói
-	 * a árvore de Huffman para proceder à decodificação bit a bit.
+	 * O método lê o header (mapa de códigos e total de bits codificados) e
+	 * reconstrói a árvore de Huffman para proceder à decodificação bit a bit.
 	 *
 	 * @param in  Stream de entrada com os dados comprimidos.
 	 * @param out Stream de saída onde os dados descomprimidos serão escritos.
