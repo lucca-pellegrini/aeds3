@@ -147,7 +147,7 @@
                         <version>2.2.1</version>
                     </docletArtifact>
                     <additionalOptions>
-                        <additionalOption>--create-puml-files</additionalOption>
+                        <additionalOption>--create-puml-files -private</additionalOption>
                     </additionalOptions>
                 </configuration>
                 <executions>
