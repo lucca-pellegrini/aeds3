@@ -1,17 +1,16 @@
 package AEDs3.DataBase.Compression;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Esta classe implementa o algoritmo de compressão LZW, que é utilizado para
- * comprimir e descomprimir arquivos binários. O algoritmo LZW é eficiente para
- * compressão de dados que possuem padrões repetitivos.
+ * Esta classe implementa o algoritmo de compressão LZW para arquivos binários.
+ * Nesta versão, os métodos compress e decompress operam sobre streams, lendo e
+ * escrevendo bits de forma incremental para minimizar o uso de memória.
  */
 public class LZW {
 	/**
@@ -20,166 +19,109 @@ public class LZW {
 	public static final int BITS_PER_INDEX = 12; // Tamanho do índice em bits
 
 	/**
-	 * Comprime um arquivo utilizando o algoritmo LZW.
+	 * Comprime os dados lidos do InputStream utilizando o algoritmo LZW e os
+	 * escreve no OutputStream.
+	 * As streams são processadas de forma incremental, evitando a carga de todos os
+	 * dados em memória.
 	 *
-	 * @param src Caminho do arquivo de origem a ser comprimido.
-	 * @param dst Caminho do arquivo de destino onde o arquivo comprimido será
-	 *            salvo.
-	 * @throws IOException Se ocorrer um erro de I/O durante a compressão.
+	 * @param in  Stream de entrada com os dados originais.
+	 * @param out Stream de saída onde os dados comprimidos serão escritos.
+	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void compressFile(String src, String dst) throws IOException {
-		FileInputStream fis = new FileInputStream(new File(src));
-		byte[] originalBytes = fis.readAllBytes();
-		fis.close();
-
-		byte[] encodedBytes = encode(originalBytes);
-
-		FileOutputStream fos = new FileOutputStream(dst);
-		fos.write(encodedBytes);
-		fos.close();
-	}
-
-	/**
-	 * Descomprime um arquivo utilizando o algoritmo LZW.
-	 *
-	 * @param src Caminho do arquivo de origem a ser descomprimido.
-	 * @param dst Caminho do arquivo de destino onde o arquivo descomprimido será
-	 *            salvo.
-	 * @throws IOException Se ocorrer um erro de I/O durante a descompressão.
-	 */
-	public static void decompressFile(String src, String dst) throws IOException {
-		FileInputStream fis = new FileInputStream(src);
-		byte[] encodedCopy = fis.readAllBytes();
-		fis.close();
-
-		byte[] decodedBytes = decode(encodedCopy);
-
-		FileOutputStream fos = new FileOutputStream(dst);
-		fos.write(decodedBytes);
-		fos.close();
-	}
-
-	/**
-	 * Codifica uma sequência de bytes utilizando o algoritmo LZW.
-	 *
-	 * @param originalBytes A sequência de bytes original a ser comprimida.
-	 * @return Um array de bytes que representa os dados comprimidos.
-	 * @throws IOException Se ocorrer um erro de I/O durante a compressão.
-	 */
-	public static byte[] encode(byte[] originalBytes) throws IOException {
-		// Usamos um HashMap para fazer buscas rápidas no dicionário.
+	public static void compress(InputStream in, OutputStream out) throws IOException {
+		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127)
 		Map<ByteSequence, Integer> dictionary = new HashMap<>();
-
-		// Inicialização do dicionário com todos os bytes possíveis (-128 a 127)
 		for (int i = -128; i < 128; i++) {
 			ByteSequence seq = new ByteSequence((byte) i);
 			dictionary.put(seq, dictionary.size());
 		}
 		int maxDictSize = (1 << BITS_PER_INDEX) - 1;
 
-		// ArrayList para armazenar os códigos de saída.
-		ArrayList<Integer> output = new ArrayList<>();
+		BitOutputStream bitOut = new BitOutputStream(out);
 
-		// O algoritmo LZW padrão.
-		ByteSequence w = null;
-		for (byte b : originalBytes) {
-			if (w == null) {
-				w = new ByteSequence(b);
-				continue;
-			}
-			ByteSequence wc = w.extend(b);
+		// Leitura do primeiro byte para iniciar o algoritmo
+		int next = in.read();
+		if (next == -1) { // arquivo vazio
+			bitOut.flush();
+			return;
+		}
+		ByteSequence w = new ByteSequence((byte) next);
+
+		int b;
+		while ((b = in.read()) != -1) {
+			byte currentByte = (byte) b;
+			ByteSequence wc = w.extend(currentByte);
 			if (dictionary.containsKey(wc)) {
 				w = wc;
 			} else {
-				output.add(dictionary.get(w));
-				if (dictionary.size() < maxDictSize)
+				int code = dictionary.get(w);
+				bitOut.write(BITS_PER_INDEX, code);
+				if (dictionary.size() < maxDictSize) {
 					dictionary.put(wc, dictionary.size());
-
-				w = new ByteSequence(b);
+				}
+				w = new ByteSequence(currentByte);
 			}
 		}
-
-		if (w != null)
-			output.add(dictionary.get(w));
-
-		// Converte os índices para bits e armazena em um BitArray.
-		BitArray bits = new BitArray(output.size() * BITS_PER_INDEX);
-		int l = output.size() * BITS_PER_INDEX - 1;
-		for (int i = output.size() - 1; i >= 0; i--) {
-			int n = output.get(i);
-			for (int m = 0; m < BITS_PER_INDEX; m++) {
-				if (n % 2 == 0)
-					bits.clear(l);
-				else
-					bits.set(l);
-				l--;
-				n /= 2;
-			}
+		if (w != null) {
+			int code = dictionary.get(w);
+			bitOut.write(BITS_PER_INDEX, code);
 		}
-
-		return bits.toByteArray();
+		bitOut.flush();
 	}
 
 	/**
-	 * Decodifica uma sequência de bytes comprimidos utilizando o algoritmo LZW.
+	 * Descomprime os dados lidos do InputStream utilizando o algoritmo LZW e os
+	 * escreve no OutputStream. A leitura dos códigos é feita de forma incremental,
+	 * de modo que apenas os bits necessários sejam carregados em memória a cada
+	 * momento.
 	 *
-	 * @param encodedBytes A sequência de bytes comprimida a ser descomprimida.
-	 * @return Um array de bytes que representa os dados descomprimidos.
-	 * @throws IOException Se ocorrer um erro de I/O durante a descompressão.
+	 * @param in  Stream de entrada com os dados comprimidos.
+	 * @param out Stream de saída onde os dados descomprimidos serão escritos.
+	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static byte[] decode(byte[] encodedBytes) throws IOException {
-		// Inicializa o BitArray a partir do array de bytes comprimido.
-		BitArray bits = new BitArray(encodedBytes);
-		ArrayList<Integer> indices = new ArrayList<>();
+	public static void decompress(InputStream in, OutputStream out) throws IOException {
+		BitInputStream bitIn = new BitInputStream(in);
 
-		// Recupera os índices a partir do BitArray.
-		int k = 0;
-		for (int i = 0; i < bits.length() / BITS_PER_INDEX; i++) {
-			int n = 0;
-			for (int j = 0; j < BITS_PER_INDEX; j++)
-				n = n * 2 + (bits.get(k++) ? 1 : 0);
-			indices.add(n);
-		}
-
-		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127).
+		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127)
 		ArrayList<ArrayList<Byte>> dictionary = new ArrayList<>();
-		for (int j = -128; j < 128; j++) {
-			ArrayList<Byte> byteSequence = new ArrayList<>();
-			byteSequence.add((byte) j);
-			dictionary.add(byteSequence);
+		for (int i = -128; i < 128; i++) {
+			ArrayList<Byte> seq = new ArrayList<>();
+			seq.add((byte) i);
+			dictionary.add(seq);
 		}
 
-		ArrayList<Byte> originalBytes = new ArrayList<>();
+		int maxDictSize = (1 << BITS_PER_INDEX) - 1;
 
-		// Decodifica os índices para a sequência de bytes original.
-		int firstIndex = indices.get(0);
-		ArrayList<Byte> w = new ArrayList<>(dictionary.get(firstIndex));
-		originalBytes.addAll(w);
+		int firstCode = bitIn.read(BITS_PER_INDEX);
+		if (firstCode == -1)
+			return;
+		ArrayList<Byte> w = new ArrayList<>(dictionary.get(firstCode));
 
-		for (int i = 1; i < indices.size(); i++) {
-			int index = indices.get(i);
+		// Escreve a sequência correspondente ao primeiro código
+		for (byte byteVal : w)
+			out.write(byteVal);
+
+		int code;
+		while ((code = bitIn.read(BITS_PER_INDEX)) != -1) {
 			ArrayList<Byte> entry;
-			if (index < dictionary.size()) {
-				entry = new ArrayList<>(dictionary.get(index));
+			if (code < dictionary.size()) {
+				entry = new ArrayList<>(dictionary.get(code));
 			} else {
+				// Caso especial: código ainda não inserido no dicionário
 				entry = new ArrayList<>(w);
 				entry.add(w.get(0));
 			}
-			originalBytes.addAll(entry);
+			// Escreve os bytes da sequência decodificada
+			for (byte byteVal : entry)
+				out.write(byteVal);
 
 			ArrayList<Byte> newSequence = new ArrayList<>(w);
 			newSequence.add(entry.get(0));
-			if (dictionary.size() < ((1 << BITS_PER_INDEX) - 1))
+			if (dictionary.size() < maxDictSize)
 				dictionary.add(newSequence);
-
 			w = entry;
 		}
-
-		byte[] outputBytes = new byte[originalBytes.size()];
-		for (int i = 0; i < originalBytes.size(); i++)
-			outputBytes[i] = originalBytes.get(i);
-
-		return outputBytes;
+		out.flush();
 	}
 
 	/**
@@ -220,6 +162,112 @@ public class LZW {
 		@Override
 		public int hashCode() {
 			return sequence.hashCode();
+		}
+	}
+
+	/**
+	 * Classe auxiliar para escrita de bits em uma stream de saída.
+	 * Esta classe acumula bits e escreve bytes completos à medida que são formados.
+	 */
+	private static class BitOutputStream {
+		private final OutputStream out;
+		private int currentByte;
+		private int numBitsFilled;
+
+		public BitOutputStream(OutputStream out) {
+			this.out = out;
+			this.currentByte = 0;
+			this.numBitsFilled = 0;
+		}
+
+		/**
+		 * Escreve 'numBits' bits do valor 'value' na stream, do bit mais significativo
+		 * ao menos significativo.
+		 *
+		 * @param numBits Número de bits a escrever.
+		 * @param value   Valor que contém os bits.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
+		public void write(int numBits, int value) throws IOException {
+			for (int i = numBits - 1; i >= 0; i--) {
+				int bit = (value >> i) & 1;
+				currentByte = (currentByte << 1) | bit;
+				numBitsFilled += 1;
+				if (numBitsFilled == 8) {
+					out.write(currentByte);
+					numBitsFilled = 0;
+					currentByte = 0;
+				}
+			}
+		}
+
+		/**
+		 * Finaliza a escrita, preenchendo com zeros os bits não utilizados e
+		 * realizando o flush na stream subjacente.
+		 *
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
+		public void flush() throws IOException {
+			if (numBitsFilled > 0) {
+				currentByte <<= (8 - numBitsFilled);
+				out.write(currentByte);
+				numBitsFilled = 0;
+				currentByte = 0;
+			}
+			out.flush();
+		}
+	}
+
+	/**
+	 * Classe auxiliar para leitura de bits de uma stream de entrada.
+	 * Permite ler exatamente o número de bits solicitados, carregando apenas
+	 * um byte de cada vez em memória.
+	 */
+	private static class BitInputStream {
+		private final InputStream in;
+		private int currentByte;
+		private int numBitsRemaining;
+
+		public BitInputStream(InputStream in) {
+			this.in = in;
+			this.currentByte = 0;
+			this.numBitsRemaining = 0;
+		}
+
+		/**
+		 * Lê 'numBits' bits da stream e retorna o valor correspondente.
+		 * Retorna -1 se não houver bits suficientes (fim da stream).
+		 *
+		 * @param numBits Número de bits a serem lidos.
+		 * @return Valor lido ou -1 se o fim da stream for atingido.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
+		public int read(int numBits) throws IOException {
+			int result = 0;
+			for (int i = 0; i < numBits; i++) {
+				int bit = readBit();
+				if (bit == -1)
+					return -1;
+				result = (result << 1) | bit;
+			}
+			return result;
+		}
+
+		/**
+		 * Lê um único bit da stream.
+		 *
+		 * @return O bit lido (0 ou 1) ou -1 se o fim da stream for atingido.
+		 * @throws IOException Se ocorrer um erro de I/O.
+		 */
+		private int readBit() throws IOException {
+			if (numBitsRemaining == 0) {
+				currentByte = in.read();
+				if (currentByte == -1)
+					return -1;
+				numBitsRemaining = 8;
+			}
+			numBitsRemaining -= 1;
+			return (currentByte >> numBitsRemaining) & 1;
 		}
 	}
 }

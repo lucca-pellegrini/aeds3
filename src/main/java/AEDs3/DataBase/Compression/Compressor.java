@@ -1,6 +1,12 @@
 package AEDs3.DataBase.Compression;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -9,6 +15,7 @@ import java.nio.file.Paths;
  * diferentes algoritmos de compressão.
  */
 public class Compressor {
+	private static final int BUFFER_SIZE_BYTES = 2 * (1 << 20); // 2MB.
 
 	/**
 	 * Comprime os arquivos especificados no array de origem para o destino
@@ -23,6 +30,8 @@ public class Compressor {
 	public static void compress(String[] src, String dst, CompressionType type) throws IOException {
 		String packPath = dst + ".pack";
 		FilePacker.pack(src, packPath);
+		InputStream in = new BufferedInputStream(new FileInputStream(packPath), BUFFER_SIZE_BYTES / 2);
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(dst), BUFFER_SIZE_BYTES / 2);
 
 		switch (type) {
 			case COPY:
@@ -32,7 +41,7 @@ public class Compressor {
 				Huffman.compressFile(packPath, dst);
 				break;
 			case LZW:
-				LZW.compressFile(packPath, dst);
+				LZW.compress(in, out);
 				break;
 		}
 
@@ -52,6 +61,8 @@ public class Compressor {
 	 */
 	public static String[] decompress(String src, CompressionType type) throws IOException {
 		String packPath = src + ".pack";
+		InputStream in = new BufferedInputStream(new FileInputStream(src), BUFFER_SIZE_BYTES / 2);
+		OutputStream out = new BufferedOutputStream(new FileOutputStream(packPath), BUFFER_SIZE_BYTES / 2);
 
 		switch (type) {
 			case COPY:
@@ -61,7 +72,7 @@ public class Compressor {
 				Huffman.decompressFile(src, packPath);
 				break;
 			case LZW:
-				LZW.decompressFile(src, packPath);
+				LZW.decompress(in, out);
 				break;
 		}
 
