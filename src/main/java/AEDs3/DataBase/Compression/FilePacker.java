@@ -70,6 +70,11 @@ class FilePacker {
 	/**
 	 * Desempacota um arquivo empacotado, extraindo os arquivos individuais.
 	 *
+	 * Aviso: esse método foi em grande parte otimizado com ajuda de um LLM. O
+	 * método em si, além da barra de progresso que ele usa, foram escritos à mão,
+	 * mas a implementação do buffer de transcrição, que dramaticamente acelera a
+	 * execução, foi inteiramente feita por um LLM.
+	 *
 	 * @param packedFile O nome do arquivo empacotado a ser desempacotado.
 	 * @return Um array de strings contendo os nomes dos arquivos extraídos.
 	 * @throws IOException Se ocorrer um erro de E/S durante o desempacotamento.
