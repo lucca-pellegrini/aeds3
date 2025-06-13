@@ -12,7 +12,7 @@ import java.util.Map;
  * Nesta versão, os métodos compress e decompress operam sobre streams, lendo e
  * escrevendo bits de forma incremental para minimizar o uso de memória.
  */
-public class LZW {
+public class LZW implements StreamCompressor {
 	/**
 	 * Tamanho do índice em bits utilizado no algoritmo LZW.
 	 */
@@ -28,7 +28,8 @@ public class LZW {
 	 * @param out Stream de saída onde os dados comprimidos serão escritos.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void compress(InputStream in, OutputStream out) throws IOException {
+	@Override
+	public void compress(InputStream in, OutputStream out) throws IOException {
 		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127)
 		Map<ByteSequence, Integer> dictionary = new HashMap<>();
 		for (int i = -128; i < 128; i++) {
@@ -79,7 +80,8 @@ public class LZW {
 	 * @param out Stream de saída onde os dados descomprimidos serão escritos.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void decompress(InputStream in, OutputStream out) throws IOException {
+	@Override
+	public void decompress(InputStream in, OutputStream out) throws IOException {
 		BitInputStream bitIn = new BitInputStream(in);
 
 		// Inicializa o dicionário com todos os bytes possíveis (-128 a 127)

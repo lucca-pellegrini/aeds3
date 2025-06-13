@@ -7,7 +7,7 @@ public enum CompressionType {
 	/**
 	 * Nenhuma compressão. Simplesmente copia as streams.
 	 */
-	COPY("Copia dados sem comprimir"),
+	PACK("Copia dados sem comprimir"),
 
 	/**
 	 * Compressão usando o algoritmo de Huffman.

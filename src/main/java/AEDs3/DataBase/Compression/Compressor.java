@@ -34,18 +34,19 @@ public class Compressor {
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(dst), BUFFER_SIZE_BYTES / 2);
 
 		switch (type) {
-			case COPY:
-				Files.copy(Paths.get(packPath), Paths.get(dst));
+			case PACK:
+				new Copy().compress(in, out);
 				break;
 			case HUFFMAN:
-				Huffman.compress(in, out);
+				new Huffman().compress(in, out);
 				break;
 			case LZW:
-				LZW.compress(in, out);
+				new LZW().compress(in, out);
 				break;
 		}
 
 		Files.delete(Paths.get(packPath));
+		out.flush();
 	}
 
 	/**
@@ -65,17 +66,19 @@ public class Compressor {
 		OutputStream out = new BufferedOutputStream(new FileOutputStream(packPath), BUFFER_SIZE_BYTES / 2);
 
 		switch (type) {
-			case COPY:
-				Files.copy(Paths.get(src), Paths.get(packPath));
+			case PACK:
+				new Copy().decompress(in, out);
 				break;
 			case HUFFMAN:
-				Huffman.decompress(in, out);
+				new Huffman().decompress(in, out);
 				break;
 			case LZW:
-				LZW.decompress(in, out);
+				new LZW().decompress(in, out);
 				break;
 		}
 
+		// Um flush da stream de saída é necessário para garantir que os dados foram escritos.
+		out.flush();
 		String[] res = FilePacker.unpack(packPath);
 		Files.delete(Paths.get(packPath));
 

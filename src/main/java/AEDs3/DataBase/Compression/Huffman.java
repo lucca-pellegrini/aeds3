@@ -11,7 +11,7 @@ import java.util.PriorityQueue;
  * sobre streams, lendo e escrevendo bits de forma incremental para minimizar o
  * uso de memória RAM.
  */
-public class Huffman {
+public class Huffman implements StreamCompressor {
 
 	/**
 	 * Comprime os dados lidos de um InputStream utilizando o algoritmo de Huffman e
@@ -21,7 +21,8 @@ public class Huffman {
 	 * @param out Stream de saída onde os dados comprimidos serão escritos.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void compress(InputStream in, OutputStream out) throws IOException {
+	@Override
+	public void compress(InputStream in, OutputStream out) throws IOException {
 		// Primeira passagem: contar frequências de cada byte (vetor de tamanho fixo:
 		// 256 posições)
 		int[] frequencies = new int[256];
@@ -138,7 +139,8 @@ public class Huffman {
 	 * @param out Stream de saída onde os dados descomprimidos serão escritos.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void decompress(InputStream in, OutputStream out) throws IOException {
+	@Override
+	public void decompress(InputStream in, OutputStream out) throws IOException {
 		DataInputStream dis = new DataInputStream(in);
 		// Lê o header: número de entradas na tabela de códigos
 		int mapSize = dis.readInt();
