@@ -117,6 +117,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	protected static final short HEADER_SIZE = 3 * Long.SIZE / 8 + 3 * Integer.SIZE / 8;
 
+	/**
+	 * Extensão de arquivo padrão utilizada para o banco de dados.
+	 */
+	protected static final String DEFAULT_FILE_EXTENSION = "db";
+
 	// Parâmetros para a ordenação
 	/**
 	 * Indica se o segmento atual de faixas foi completamente processado.
@@ -886,6 +891,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 */
 	public String getFilePath() {
 		return filePath;
+	}
+
+	/**
+	 * Retorna a extensão de arquivo padrão utilizada para o banco de dados.
+	 *
+	 * @return A extensão de arquivo padrão.
+	 */
+	public static String getDefaultFileExtension() {
+		return DEFAULT_FILE_EXTENSION;
 	}
 
 	/**

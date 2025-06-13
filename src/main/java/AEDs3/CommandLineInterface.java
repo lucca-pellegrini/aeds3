@@ -530,11 +530,14 @@ public class CommandLineInterface {
 			}
 
 			String[] files = parent.db.listFilePaths();
-			String basename = (customName.isBlank()) ? files[0] : customName;
-			String dst = basename // Se `--backup` foi passado, armazena data e hora no nome
-					+ (backup ? '.' + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss"))
-							: "")
-					+ '.' + method.getExtension();
+			String baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
+			String basename = (customName.isBlank()) ? baseFileName : customName;
+			StringBuilder dstBuilder = new StringBuilder(basename);
+			if (backup)
+				dstBuilder.append('.').append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")));
+			dstBuilder.append('.').append(method.getExtension());
+			String dst = dstBuilder.toString();
+
 			try {
 				// Calcula o tamanho total dos arquivos originais
 				long originalSize = 0;
