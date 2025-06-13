@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  * que contém elementos e páginas filhas. Páginas só são mantidas na memória
  * enquanto necessário.
  */
-public class BTree implements Index {
+public class BTree implements ForwardIndex {
 	/**
 	 * Representa uma página na Árvore B, que contém elementos e filhos.
 	 */

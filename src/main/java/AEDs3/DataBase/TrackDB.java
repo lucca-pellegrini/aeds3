@@ -53,7 +53,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * Índice primário utilizado para otimizar operações de busca e escrita.
 	 * Pode ser do tipo Árvore B ou Hash Dinâmica, dependendo da configuração.
 	 */
-	protected Index index;
+	protected ForwardIndex index;
 
 	/**
 	 * Índice de lista invertida para otimizar buscas pelo nome da faixa.

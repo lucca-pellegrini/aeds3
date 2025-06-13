@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 /**
  * Interface para definir operações básicas de um índice.
  */
-public interface Index {
+public interface ForwardIndex {
 	/**
 	 * Procura um registro pelo ID.
 	 *

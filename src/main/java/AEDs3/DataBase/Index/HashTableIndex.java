@@ -19,7 +19,7 @@ import java.util.ArrayList;
  * Implementação de um índice de tabela hash extensível.
  * Gerencia a inserção, busca e remoção de registros em uma estrutura de hash.
  */
-public class HashTableIndex implements Index {
+public class HashTableIndex implements ForwardIndex {
 	/**
 	 * Caminho para o arquivo de diretório.
 	 */
