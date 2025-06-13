@@ -1,234 +1,294 @@
 package AEDs3.DataBase.Compression;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
- * Representa um nó na árvore de Huffman.
- * Cada nó armazena um byte, sua frequência de ocorrência e referências para os
- * nós filhos.
- * Implementa a interface Comparable para permitir a ordenação com base na
- * frequência.
- */
-class HuffmanNode implements Comparable<HuffmanNode> {
-	byte b; // Byte armazenado no nó
-	int frequency; // Frequência de ocorrência do byte
-	HuffmanNode left, right; // Referências para os nós filhos (esquerdo e direito)
-
-	/**
-	 * Construtor que inicializa o nó com um byte e sua frequência.
-	 *
-	 * @param b o byte a ser armazenado no nó
-	 * @param f a frequência de ocorrência do byte
-	 */
-	public HuffmanNode(byte b, int f) {
-		this.b = b;
-		this.frequency = f;
-		left = right = null;
-	}
-
-	/**
-	 * Compara este nó com outro nó de Huffman com base na frequência.
-	 *
-	 * @param o o outro nó de Huffman a ser comparado
-	 * @return um valor negativo se este nó tiver menor frequência, zero se igual,
-	 *         ou positivo se maior
-	 */
-	@Override
-	public int compareTo(HuffmanNode o) {
-		return this.frequency - o.frequency;
-	}
-}
-
-/**
- * Classe responsável pela compressão e descompressão de arquivos utilizando o
+ * Classe responsável pela compressão e descompressão de dados utilizando o
  * algoritmo de Huffman.
- * Fornece métodos para comprimir e descomprimir arquivos, além de gerar códigos
- * de Huffman.
+ * Nesta versão, os métodos compress e decompress operam sobre streams, lendo e
+ * escrevendo bits
+ * de forma incremental para minimizar o uso de memória RAM.
+ *
+ * Nota:
+ * - Para a escrita/leitura de bits, esta implementação utiliza as classes
+ * BitOutputStream e BitInputStream,
+ * que devem ser incluídas separadamente (como na implementação do LZW que você
+ * já possui).
+ * - O algoritmo faz uma primeira passagem para contar as frequências (usando
+ * apenas um vetor de 256 inteiros)
+ * e, em caso de InputStream não suportar reset(), utiliza um arquivo temporário
+ * para fazer a segunda passagem.
+ *
+ * O header escrito no stream de saída é composto por:
+ * • um int indicanto o número de entradas do mapa de códigos,
+ * • para cada entrada: um byte e uma String (UTF) representando o código
+ * Huffman,
+ * • um long com o total de bits que serão codificados.
+ *
+ * Após o header, os bits codificados são escritos via BitOutputStream.
  */
 public class Huffman {
+
 	/**
-	 * Comprime um arquivo usando o algoritmo de Huffman.
+	 * Comprime os dados lidos de um InputStream utilizando o algoritmo de Huffman e
+	 * os escreve no OutputStream.
 	 *
-	 * @param src o caminho do arquivo de origem a ser comprimido
-	 * @param dst o caminho do arquivo de destino onde o arquivo comprimido será
-	 *            salvo
-	 * @throws IOException se ocorrer um erro de I/O durante o processo de
-	 *                     compressão
+	 * O método realiza duas passagens sobre os dados:
+	 * 1. Uma passagem para contar as frequências (e, se necessário, gravar os bytes
+	 * em um arquivo temporário);
+	 * 2. Uma segunda passagem para efetuar a codificação bit a bit.
+	 *
+	 * @param in  Stream de entrada com os dados originais.
+	 * @param out Stream de saída onde os dados comprimidos serão escritos.
+	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void compressFile(String src, String dst) throws IOException {
-		// Lê o arquivo original
-		FileInputStream fis = new FileInputStream(src);
-		byte[] originalBytes = fis.readAllBytes();
-		fis.close();
+	public static void compress(InputStream in, OutputStream out) throws IOException {
+		// Primeira passagem: contar frequências de cada byte (vetor de tamanho fixo:
+		// 256 posições)
+		int[] frequencies = new int[256];
+		InputStream encodingStream; // Stream que será usada na segunda passagem (para efetuar a codificação)
 
-		// Gera os códigos de Huffman
-		HashMap<Byte, String> codes = codeToBit(originalBytes);
-
-		// Codifica os bytes originais usando os códigos de Huffman
-		BitArray encodedSequence = new BitArray();
-		int index = 0;
-		for (byte b : originalBytes) {
-			String code = codes.get(b);
-			for (char c : code.toCharArray()) {
-				if (c == '0') {
-					encodedSequence.clear(index++);
-				} else {
-					encodedSequence.set(index++);
+		if (in.markSupported()) {
+			// Se o InputStream suportar reset, marcamos o início, lemos e resetamos
+			in.mark(Integer.MAX_VALUE);
+			int b;
+			while ((b = in.read()) != -1) {
+				frequencies[b & 0xFF]++;
+			}
+			in.reset();
+			encodingStream = in;
+		} else {
+			// Caso não suporte reset, gravamos os dados em um arquivo temporário
+			File tempFile = File.createTempFile("huffman", ".tmp");
+			tempFile.deleteOnExit();
+			try (OutputStream tempOut = new FileOutputStream(tempFile)) {
+				int b;
+				while ((b = in.read()) != -1) {
+					frequencies[b & 0xFF]++;
+					tempOut.write(b);
 				}
+			}
+			encodingStream = new FileInputStream(tempFile);
+		}
+
+		// Construir a árvore de Huffman com os bytes cuja frequência é > 0
+		PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
+		for (int i = 0; i < 256; i++) {
+			if (frequencies[i] > 0) {
+				pq.add(new HuffmanNode((byte) i, frequencies[i]));
+			}
+		}
+		// Se nenhum byte foi lido, não há nada a comprimir
+		if (pq.isEmpty()) {
+			return;
+		}
+		// Se houver apenas um símbolo, crie uma árvore “dupla” para permitir um código
+		// (por exemplo, "0")
+		if (pq.size() == 1) {
+			pq.add(new HuffmanNode((byte) 0, 0));
+		}
+		while (pq.size() > 1) {
+			HuffmanNode left = pq.poll();
+			HuffmanNode right = pq.poll();
+			HuffmanNode parent = new HuffmanNode((byte) 0, left.frequency + right.frequency);
+			parent.left = left;
+			parent.right = right;
+			pq.add(parent);
+		}
+		HuffmanNode root = pq.poll();
+
+		// Gera a tabela de códigos de Huffman (Map de byte para String)
+		HashMap<Byte, String> codes = new HashMap<>();
+		generateCodes(root, "", codes);
+
+		// Calcula o total de bits que serão escritos (somando para cada byte:
+		// frequência * tamanho do código)
+		long totalBits = 0;
+		for (int i = 0; i < 256; i++) {
+			if (frequencies[i] > 0) {
+				String code = codes.get((byte) i);
+				totalBits += (long) frequencies[i] * code.length();
 			}
 		}
 
-		// Escreve os códigos de Huffman e os dados codificados no arquivo de saída
-		FileOutputStream fos = new FileOutputStream(dst);
-		DataOutputStream dos = new DataOutputStream(fos);
-
-		// Escreve o tamanho do mapa de códigos
+		// Escreve o header utilizando DataOutputStream.
+		// O header conterá:
+		// • Número de entradas do mapa de códigos
+		// • Para cada entrada: byte e String (UTF) com o código
+		// • O total de bits codificados (long)
+		DataOutputStream dos = new DataOutputStream(out);
 		dos.writeInt(codes.size());
-
-		// Escreve o mapa de códigos de Huffman
 		for (Map.Entry<Byte, String> entry : codes.entrySet()) {
 			dos.writeByte(entry.getKey());
 			dos.writeUTF(entry.getValue());
 		}
+		dos.writeLong(totalBits);
+		// A partir de agora, os dados codificados (bits) serão escritos diretamente no
+		// stream
 
-		// Escreve o array de bytes codificados
-		byte[] encodedBytes = encodedSequence.toByteArray();
-		dos.writeInt(encodedBytes.length);
-		dos.write(encodedBytes);
-
-		dos.close();
-		fos.close();
+		// Agora, faz a segunda passagem: lê os bytes novamente e escreve seus códigos
+		// utilizando BitOutputStream.
+		BitOutputStream bitOut = new BitOutputStream(out);
+		int byteRead;
+		while ((byteRead = encodingStream.read()) != -1) {
+			byte b = (byte) byteRead;
+			String code = codes.get(b);
+			for (int i = 0; i < code.length(); i++) {
+				char c = code.charAt(i);
+				// Escreve 1 bit por vez (0 ou 1)
+				if (c == '1') {
+					bitOut.write(1, 1);
+				} else { // assume '0'
+					bitOut.write(1, 0);
+				}
+			}
+		}
+		bitOut.flush();
+		dos.flush();
+		encodingStream.close();
 	}
 
 	/**
-	 * Descomprime um arquivo que foi comprimido usando o algoritmo de Huffman.
+	 * Descomprime os dados lidos do InputStream que foram comprimidos com Huffman e
+	 * escreve
+	 * o resultado no OutputStream.
 	 *
-	 * @param src o caminho do arquivo comprimido de origem
-	 * @param dst o caminho do arquivo de destino onde o arquivo descomprimido será
-	 *            salvo
-	 * @throws IOException se ocorrer um erro de I/O durante o processo de
-	 *                     descompressão
+	 * O método lê o header (mapa de códigos e total de bits codificados) e então
+	 * reconstrói
+	 * a árvore de Huffman para proceder à decodificação bit a bit.
+	 *
+	 * @param in  Stream de entrada com os dados comprimidos.
+	 * @param out Stream de saída onde os dados descomprimidos serão escritos.
+	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	public static void decompressFile(String src, String dst) throws IOException {
-		// Lê o arquivo comprimido
-		FileInputStream fis = new FileInputStream(src);
-		DataInputStream dis = new DataInputStream(fis);
-
-		// Lê o tamanho do mapa de códigos
+	public static void decompress(InputStream in, OutputStream out) throws IOException {
+		DataInputStream dis = new DataInputStream(in);
+		// Lê o header: número de entradas na tabela de códigos
 		int mapSize = dis.readInt();
-
-		// Lê o mapa de códigos de Huffman
 		HashMap<Byte, String> codes = new HashMap<>();
 		for (int i = 0; i < mapSize; i++) {
 			byte b = dis.readByte();
 			String code = dis.readUTF();
 			codes.put(b, code);
 		}
+		long totalBits = dis.readLong();
 
-		// Lê o comprimento do array de bytes codificados
-		int encodedLength = dis.readInt();
-		byte[] encodedBytes = new byte[encodedLength];
-		dis.readFully(encodedBytes);
+		// Reconstrói a árvore de decodificação a partir do mapa de códigos
+		DecodeNode root = buildDecodingTree(codes);
 
-		dis.close();
-		fis.close();
-
-		// Decodifica o array de bytes codificados
-		BitArray encodedSequence = new BitArray(encodedBytes);
-		String bitString = encodedSequence.bitString();
-		byte[] decodedBytes = decode(bitString, codes);
-
-		// Escreve os bytes decodificados no arquivo de saída
-		FileOutputStream fos = new FileOutputStream(dst);
-		fos.write(decodedBytes);
-		fos.close();
+		// Agora, decodifica os bits restantes utilizando BitInputStream.
+		// Como o header já foi lido do stream, basta criar o BitInputStream sobre o
+		// DataInputStream "dis".
+		BitInputStream bitIn = new BitInputStream(dis);
+		long bitsRead = 0;
+		DecodeNode current = root;
+		while (bitsRead < totalBits) {
+			int bit = bitIn.read(1);
+			if (bit == -1) {
+				break; // Não deveria ocorrer antes de totalBits
+			}
+			bitsRead++;
+			current = (bit == 0) ? current.left : current.right;
+			if (current.isLeaf()) {
+				out.write(current.b);
+				current = root;
+			}
+		}
+		out.flush();
 	}
 
 	/**
-	 * Gera a tabela de códigos de Huffman para cada byte da sequência fornecida.
+	 * Método auxiliar recursivo para gerar a tabela de códigos de Huffman.
 	 *
-	 * @param sequence a sequência de bytes a ser comprimida
-	 * @return um HashMap onde a chave é o byte e o valor é seu código binário
-	 *         correspondente
-	 */
-	public static HashMap<Byte, String> codeToBit(byte[] sequence) {
-		Map<Byte, Integer> frequencyMap = new HashMap<>();
-		for (byte c : sequence) {
-			frequencyMap.put(c, frequencyMap.getOrDefault(c, 0) + 1);
-		}
-
-		PriorityQueue<HuffmanNode> pq = new PriorityQueue<>();
-		for (Byte b : frequencyMap.keySet()) {
-			pq.add(new HuffmanNode(b, frequencyMap.get(b)));
-		}
-
-		while (pq.size() > 1) {
-			HuffmanNode left = pq.poll();
-			HuffmanNode right = pq.poll();
-			HuffmanNode father = new HuffmanNode((byte) 0, left.frequency + right.frequency);
-			father.left = left;
-			father.right = right;
-			pq.add(father);
-		}
-
-		HuffmanNode root = pq.poll();
-		HashMap<Byte, String> codes = new HashMap<>();
-		generateCodes(root, "", codes);
-
-		return codes;
-	}
-
-	/**
-	 * Gera recursivamente os códigos binários a partir da árvore de Huffman.
-	 *
-	 * @param node  o nó atual da árvore de Huffman
-	 * @param code  o código binário acumulado até o nó atual
-	 * @param codes o mapa que armazena os códigos binários gerados
+	 * @param node  Nó atual na árvore de Huffman.
+	 * @param code  Código acumulado até o momento.
+	 * @param codes Mapa que armazena os códigos resultantes.
 	 */
 	private static void generateCodes(HuffmanNode node, String code, HashMap<Byte, String> codes) {
 		if (node == null) {
 			return;
 		}
+		// Se é folha, insere no mapa (se o código estiver vazio – ocorrendo quando só
+		// há um símbolo – define "0")
 		if (node.left == null && node.right == null) {
-			codes.put(node.b, code);
+			codes.put(node.b, code.length() > 0 ? code : "0");
+		} else {
+			generateCodes(node.left, code + "0", codes);
+			generateCodes(node.right, code + "1", codes);
 		}
-		generateCodes(node.left, code + "0", codes);
-		generateCodes(node.right, code + "1", codes);
 	}
 
 	/**
-	 * Decodifica uma sequência de bits para o texto original utilizando a tabela de
-	 * códigos de Huffman.
+	 * Reconstrói a árvore de decodificação de Huffman a partir da tabela de
+	 * códigos.
 	 *
-	 * @param codedSequence a sequência de bits codificada
-	 * @param codes         o mapa de códigos de Huffman
-	 * @return um array de bytes representando o texto original decodificado
+	 * @param codes Tabela de códigos (Map de byte para String).
+	 * @return A raiz da árvore de decodificação.
 	 */
-	public static byte[] decode(String codedSequence, Map<Byte, String> codes) {
-		ByteArrayOutputStream decodedSequence = new ByteArrayOutputStream();
-		StringBuilder currentCode = new StringBuilder();
-		Map<String, Byte> reverseCodes = new HashMap<>();
-
+	private static DecodeNode buildDecodingTree(Map<Byte, String> codes) {
+		DecodeNode root = new DecodeNode();
 		for (Map.Entry<Byte, String> entry : codes.entrySet()) {
-			reverseCodes.put(entry.getValue(), entry.getKey());
-		}
-
-		for (int i = 0; i < codedSequence.length(); i++) {
-			currentCode.append(codedSequence.charAt(i));
-			if (reverseCodes.containsKey(currentCode.toString())) {
-				decodedSequence.write(reverseCodes.get(currentCode.toString()));
-				currentCode.setLength(0);
+			byte b = entry.getKey();
+			String code = entry.getValue();
+			DecodeNode current = root;
+			for (int i = 0; i < code.length(); i++) {
+				char c = code.charAt(i);
+				if (c == '0') {
+					if (current.left == null) {
+						current.left = new DecodeNode();
+					}
+					current = current.left;
+				} else { // c == '1'
+					if (current.right == null) {
+						current.right = new DecodeNode();
+					}
+					current = current.right;
+				}
 			}
+			current.b = b;
+			current.setLeaf(); // Marca como nó folha
+		}
+		return root;
+	}
+
+	/**
+	 * Classe auxiliar representando um nó na árvore de Huffman (para compressão).
+	 */
+	private static class HuffmanNode implements Comparable<HuffmanNode> {
+		byte b;
+		int frequency;
+		HuffmanNode left, right;
+
+		public HuffmanNode(byte b, int frequency) {
+			this.b = b;
+			this.frequency = frequency;
 		}
 
-		return decodedSequence.toByteArray();
+		@Override
+		public int compareTo(HuffmanNode o) {
+			return this.frequency - o.frequency;
+		}
+	}
+
+	/**
+	 * Classe auxiliar para decodificação (árvore de Huffman simplificada).
+	 */
+	private static class DecodeNode {
+		byte b;
+		DecodeNode left, right;
+
+		// Marca este nó como folha
+		public void setLeaf() {
+			left = null;
+			right = null;
+		}
+
+		// Verifica se o nó é folha (não possui filhos)
+		public boolean isLeaf() {
+			return left == null && right == null;
+		}
 	}
 }

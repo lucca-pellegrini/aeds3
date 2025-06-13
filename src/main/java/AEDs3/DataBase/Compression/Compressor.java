@@ -38,7 +38,7 @@ public class Compressor {
 				Files.copy(Paths.get(packPath), Paths.get(dst));
 				break;
 			case HUFFMAN:
-				Huffman.compressFile(packPath, dst);
+				Huffman.compress(in, out);
 				break;
 			case LZW:
 				LZW.compress(in, out);
@@ -69,7 +69,7 @@ public class Compressor {
 				Files.copy(Paths.get(src), Paths.get(packPath));
 				break;
 			case HUFFMAN:
-				Huffman.decompressFile(src, packPath);
+				Huffman.decompress(in, out);
 				break;
 			case LZW:
 				LZW.decompress(in, out);
