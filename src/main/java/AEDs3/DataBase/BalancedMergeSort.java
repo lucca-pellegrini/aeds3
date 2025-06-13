@@ -285,18 +285,18 @@ public class BalancedMergeSort {
 	 * Classe auxiliar que agrupa uma Track com o índice do arquivo em que está,
 	 * para uso com o PriorityQueue.
 	 */
-		private record FileTrack(Track track, int origin) implements Comparable<FileTrack> {
+	private record FileTrack(Track track, int origin) implements Comparable<FileTrack> {
 		/**
 		 * Compara duas instâncias de FileTrack com base no registro de Track.
 		 *
 		 * @param other O outro objeto FileTrack a ser comparado.
 		 * @return O valor da comparação entre os dois objetos.
 		 */
-			@Override
-			public int compareTo(FileTrack other) {
-				return track.compareTo(other.track);
-			}
+		@Override
+		public int compareTo(FileTrack other) {
+			return track.compareTo(other.track);
 		}
+	}
 
 	// Getters & Setters.
 
@@ -355,7 +355,8 @@ public class BalancedMergeSort {
 	}
 
 	/**
-	 * Retorna o número máximo de registros a serem armazenados no heap durante a intercalação.
+	 * Retorna o número máximo de registros a serem armazenados no heap durante a
+	 * intercalação.
 	 *
 	 * @return O número máximo de registros no heap.
 	 */
@@ -364,7 +365,8 @@ public class BalancedMergeSort {
 	}
 
 	/**
-	 * Define o número máximo de registros a serem armazenados no heap durante a intercalação.
+	 * Define o número máximo de registros a serem armazenados no heap durante a
+	 * intercalação.
 	 *
 	 * @param maxHeapNodes O número máximo de registros no heap a ser definido.
 	 */
@@ -375,7 +377,8 @@ public class BalancedMergeSort {
 	/**
 	 * Indica se a intercalação está ocorrendo do primeiro grupo de arquivos.
 	 *
-	 * @return {@code true} se a intercalação está ocorrendo do primeiro grupo, caso contrário {@code false}.
+	 * @return {@code true} se a intercalação está ocorrendo do primeiro grupo, caso
+	 *         contrário {@code false}.
 	 */
 	public boolean isMergingFromFirstGroup() {
 		return mergingFromFirstGroup;
@@ -384,7 +387,8 @@ public class BalancedMergeSort {
 	/**
 	 * Define se a intercalação deve ocorrer do primeiro grupo de arquivos.
 	 *
-	 * @param grupo {@code true} para intercalar do primeiro grupo, caso contrário {@code false}.
+	 * @param grupo {@code true} para intercalar do primeiro grupo, caso contrário
+	 *              {@code false}.
 	 */
 	public void setMergingFromFirstGroup(boolean grupo) {
 		this.mergingFromFirstGroup = grupo;
@@ -393,7 +397,8 @@ public class BalancedMergeSort {
 	/**
 	 * Indica se a execução deve exibir passos detalhados no console.
 	 *
-	 * @return {@code true} se a execução deve ser detalhada, caso contrário {@code false}.
+	 * @return {@code true} se a execução deve ser detalhada, caso contrário
+	 *         {@code false}.
 	 */
 	public boolean isVerbose() {
 		return verbose;
@@ -402,7 +407,8 @@ public class BalancedMergeSort {
 	/**
 	 * Define se a execução deve exibir passos detalhados no console.
 	 *
-	 * @param verbose {@code true} para exibir passos detalhados, caso contrário {@code false}.
+	 * @param verbose {@code true} para exibir passos detalhados, caso contrário
+	 *                {@code false}.
 	 */
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
