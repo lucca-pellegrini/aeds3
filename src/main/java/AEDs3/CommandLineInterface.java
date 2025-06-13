@@ -504,11 +504,14 @@ public class CommandLineInterface {
 
 		public void run() {
 			if (method == null) {
-				if (path.endsWith(".huffman")) {
-					method = CompressionType.HUFFMAN;
-				} else if (path.endsWith(".lzw")) {
-					method = CompressionType.LZW;
-				} else {
+				for (CompressionType type : CompressionType.values()) {
+					if (path.endsWith("." + type.toString().toLowerCase())) {
+						method = type;
+						break;
+					}
+				}
+
+				if (method == null) {
 					parent.error("Impossível determinar algoritmo pelo nome do arquivo.");
 					throw new IllegalArgumentException("Método de descompressão indeterminado.");
 				}

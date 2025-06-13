@@ -25,6 +25,9 @@ public class Compressor {
 		FilePacker.pack(src, packPath);
 
 		switch (type) {
+			case COPY:
+				Files.copy(Paths.get(packPath), Paths.get(dst));
+				break;
 			case HUFFMAN:
 				Huffman.compressFile(packPath, dst);
 				break;
@@ -51,6 +54,9 @@ public class Compressor {
 		String packPath = src + ".pack";
 
 		switch (type) {
+			case COPY:
+				Files.copy(Paths.get(src), Paths.get(packPath));
+				break;
 			case HUFFMAN:
 				Huffman.decompressFile(src, packPath);
 				break;

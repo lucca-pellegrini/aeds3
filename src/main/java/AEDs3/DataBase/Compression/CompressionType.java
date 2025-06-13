@@ -5,6 +5,11 @@ package AEDs3.DataBase.Compression;
  */
 public enum CompressionType {
 	/**
+	 * Nenhuma compressão. Simplesmente copia as streams.
+	 */
+	COPY("Copia dados sem comprimir"),
+
+	/**
 	 * Compressão usando o algoritmo de Huffman.
 	 */
 	HUFFMAN("Compressão Huffman"),
