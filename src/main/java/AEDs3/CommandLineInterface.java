@@ -420,6 +420,17 @@ public class CommandLineInterface {
 		private boolean create;
 
 		/**
+		 * Opção que indica se a extensão padrão deve ser omitida ao criar um novo arquivo.
+		 *
+		 * <p>
+		 * Quando esta opção é ativada, a extensão padrão não será adicionada automaticamente
+		 * ao nome do arquivo ao criar um novo arquivo TrackDB.
+		 * </p>
+		 */
+		@Option(names = {"--no-extension"}, description = "Não apende extensão padrão ao criar um novo arquivo." )
+		private boolean omitExtension;
+
+		/**
 		 * Caminho do arquivo que será aberto ou criado, se necessário.
 		 */
 		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo.", completionCandidates = FileCompleter.class)
@@ -438,14 +449,28 @@ public class CommandLineInterface {
 		 * <p>
 		 * Se o arquivo não existir e o parâmetro <code>--new</code> não for
 		 * especificado, um erro será exibido. Caso o arquivo exista, ele será carregado
-		 * e o prompt será alterado para refletir o arquivo aberto.
+		 * e o prompt será alterado para refletir o arquivo aberto. Se um arquivo novo
+		 * for criado, mas nenhuma extensão for especificada, uma extensão padrão será
+		 * inserida.
 		 * </p>
 		 */
 		public void run() {
-			if (!create && !new File(param.toString()).exists())
-				parent.error("O arquivo não existe.");
-			else
-				parent.setDb(param.toString()); // Carrega o banco de dados.
+			boolean paramExists = new File(param.toString()).exists();
+
+			if (!create || paramExists)  {
+				if (!paramExists)
+					parent.error("O arquivo não existe.");
+				else
+					parent.setDb(param.toString()); // Carrega o banco de dados.
+			} else {
+				String paramString = param.toString();
+				StringBuilder name = new StringBuilder(paramString);
+
+				if (!(omitExtension || paramString.contains(".")))
+					name.append('.').append(TrackDB.getDefaultFileExtension());
+
+				parent.setDb(name.toString());
+			}
 		}
 	}
 
