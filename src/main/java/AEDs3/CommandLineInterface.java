@@ -60,8 +60,6 @@ import org.jline.reader.Widget;
 import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.AttributedString;
-import org.jline.utils.AttributedStyle;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.widget.AutosuggestionWidgets;
 import org.jline.widget.TailTipWidgets;
