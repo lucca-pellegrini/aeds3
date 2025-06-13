@@ -76,32 +76,35 @@ class FilePacker {
 	 */
 	public static String[] unpack(String packedFile) throws IOException {
 		try (RandomAccessFile raf = new RandomAccessFile(packedFile, "r")) {
-			// Lê o número de arquivos no arquivo empacotado
+			// Read the number of files and their metadata (file names and positions)
 			int numFiles = raf.readInt();
 			String[] fileNames = new String[numFiles];
 			long[] positions = new long[numFiles];
 
-			// Lê os nomes dos arquivos e suas posições
 			for (int i = 0; i < numFiles; i++) {
 				fileNames[i] = raf.readUTF();
 				positions[i] = raf.readLong();
 			}
 
-			// Extrai cada arquivo do arquivo empacotado
-			int outerBarWidth = 50; // Width for the outer progress bar
-			int innerBarWidth = 50; // Width for the inner progress bar
-
+			// Set up progress bar parameters
+			int outerBarWidth = 50; // for overall progress
+			int innerBarWidth = 50; // for each file's progress
 			long lastOuterPrintTime = 0;
 			long lastInnerPrintTime = 0;
 
-			// Scroll content down two lines, to fit the two progress bars.
+			// Hide the cursor and position the progress bars on-screen
 			System.out.print("\033[?25l\n\n\033[A\033[A");
 
+			// Create a buffer to read chunks (e.g., 8KB)
+			byte[] buffer = new byte[8192];
+
+			// Process each file in the packed archive
 			for (int i = 0; i < numFiles; i++) {
 				raf.seek(positions[i]);
 				long fileSize = raf.readLong();
+				long totalBytesRead = 0;
 
-				// Update outer progress bar
+				// Update outer progress bar occasionally
 				long currentTime = System.currentTimeMillis();
 				if (currentTime - lastOuterPrintTime >= 50) {
 					printProgressBar(i, numFiles, outerBarWidth, "Total");
@@ -109,22 +112,33 @@ class FilePacker {
 				}
 
 				try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileNames[i]))) {
+					// Adjust the terminal cursor for the inner progress bar (per file)
 					System.out.print("\033[B\033[2K\033[A");
-					for (long j = 0; j < fileSize; j++) {
-						out.write(raf.read());
 
-						// Update inner progress bar
+					long remaining = fileSize;
+					while (remaining > 0) {
+						int chunkSize = (int) Math.min(buffer.length, remaining);
+						int bytesRead = raf.read(buffer, 0, chunkSize);
+						if (bytesRead == -1)
+							break; // safeguard, though it shouldn't happen here
+
+						out.write(buffer, 0, bytesRead);
+						totalBytesRead += bytesRead;
+						remaining -= bytesRead;
+
+						// Update inner progress bar every ~50ms
 						currentTime = System.currentTimeMillis();
 						if (currentTime - lastInnerPrintTime >= 50) {
-							System.out.print("\033[B");
-							printProgressBar(j, fileSize, innerBarWidth, fileNames[i]);
-							System.out.print("\033[A");
+							System.out.print("\033[B"); // move the cursor down for the progress bar
+							printProgressBar(totalBytesRead, fileSize, innerBarWidth, fileNames[i]);
+							System.out.print("\033[A"); // move it back up
 							lastInnerPrintTime = currentTime;
 						}
 					}
 				}
 			}
 
+			// Restore the cursor and clean up progress bar display
 			System.out.println("\033[?25h\033[2K\033[B\033[2K\033[A\033[A");
 			return fileNames;
 		}
