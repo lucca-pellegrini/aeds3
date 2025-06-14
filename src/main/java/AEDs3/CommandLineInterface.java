@@ -570,6 +570,7 @@ public class CommandLineInterface {
 				files = parent.db.listFilePaths();
 				baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
 			} else {
+				// Verifica se algum dos arquivos é um TrackDB.
 				try {
 					for (String file : standaloneFiles) {
 						if (TrackDB.isTrackDB(file)) {
@@ -585,6 +586,7 @@ public class CommandLineInterface {
 					}
 				} catch (IOException e) {
 					parent.error("Não foi possível verificar os arquivos: " + e.getMessage());
+					return;
 				}
 				files = standaloneFiles;
 				baseFileName = files[0];
