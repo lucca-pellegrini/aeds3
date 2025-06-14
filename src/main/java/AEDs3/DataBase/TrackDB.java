@@ -1247,9 +1247,9 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 			// Seta um cache bem grande para a criação inicial dos índices.
 			if (numTracks > (1 << 13)) {
-				nameIndex.setCacheSize(1 << 16);
-				albumIndex.setCacheSize(1 << 16);
-				artistIndex.setCacheSize(1 << 16);
+				nameIndex.setCacheSize(1 << 15);
+				albumIndex.setCacheSize(1 << 15);
+				artistIndex.setCacheSize(1 << 15);
 			}
 
 			int i = 0;

@@ -30,7 +30,7 @@ import java.util.List;
 public class InvertedListIndex implements AutoCloseable {
 
 	private static final int DEFAULT_CACHE_SIZE = 1 << 10;
-	private static final int MAX_FREQUENCY = 1 << 14;
+	private static final int MAX_FREQUENCY = 1 << 12;
 
 	private final String blocksFilePath;
 	private final String directoryFilePath;
