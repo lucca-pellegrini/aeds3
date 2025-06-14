@@ -16,8 +16,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -1078,41 +1080,51 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	}
 
 	/**
-	 * Encontra a intersecção de N arrays, podendo incluir arrays nulos.
+	 * Encontra a intersecção de N arrays, podendo incluir arrays nulos ou vazios.
 	 *
 	 * @param arrays Arrays de inteiros que serão processados para encontrar a
 	 *               intersecção.
 	 * @return Um array de inteiros contendo os elementos que estão presentes em
-	 *         todos os arrays fornecidos.
+	 *         todos os arrays fornecidos, ignorando aqueles que são nulos ou
+	 *         vazios.
 	 */
 	private static int[] resultsIntersection(int[]... arrays) {
-		HashSet<Integer> intersectionSet = new HashSet<>();
-
-		// Verifique se há arrays não nulos e adicione o primeiro array não nulo ao
-		// conjunto de interseção.
-		for (int[] array : arrays)
-			if (array != null && intersectionSet.isEmpty())
-				for (int num : array)
-					intersectionSet.add(num);
-
-		// Para cada array não nulo subsequente, mantenha apenas os elementos que já
-		// estão no conjunto de interseção.
+		if (arrays == null || arrays.length == 0) {
+			return new int[0];
+		}
+		Set<Integer> resultSet = null;
 		for (int[] array : arrays) {
-			if (array != null) {
-				HashSet<Integer> currentSet = new HashSet<>();
-				for (int num : array)
-					if (intersectionSet.contains(num))
-						currentSet.add(num);
-				intersectionSet.retainAll(currentSet);
+			if (array == null || array.length == 0) {
+				// ignore null or empty arrays
+				continue;
+			}
+			if (resultSet == null) {
+				// first non-empty array — initialize resultSet preserving insertion order
+				resultSet = new LinkedHashSet<>();
+				for (int num : array) {
+					resultSet.add(num);
+				}
+			} else {
+				// intersect with the next array
+				Set<Integer> currentSet = new HashSet<>();
+				for (int num : array) {
+					currentSet.add(num);
+				}
+				resultSet.retainAll(currentSet);
+				if (resultSet.isEmpty()) {
+					break; // no need to continue if intersection is empty
+				}
 			}
 		}
-
-		// Converta o conjunto de interseção em um array.
-		int[] result = new int[intersectionSet.size()];
-		int index = 0;
-		for (int num : intersectionSet)
-			result[index++] = num;
-
+		if (resultSet == null || resultSet.isEmpty()) {
+			return new int[0];
+		}
+		// convert to int[]
+		int[] result = new int[resultSet.size()];
+		int i = 0;
+		for (int num : resultSet) {
+			result[i++] = num;
+		}
 		return result;
 	}
 
