@@ -2284,6 +2284,10 @@ public class CommandLineInterface {
 				}
 			}
 
+			// Tenta fechar o arquivo de dados.
+			if (commands.db != null)
+				commands.db.close();
+
 			// Desabilita widgets do terminal.
 			tailtip.disable();
 			suggestions.disable();
