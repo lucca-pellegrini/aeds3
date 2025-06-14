@@ -544,6 +544,15 @@ public class CommandLineInterface {
 				defaultValue = "false")
 		boolean backup;
 
+		/**
+		 * Especifica arquivos externos a serem comprimidos, em vez do arquivo TrackDB atualmente aberto.
+		 *
+		 * <p>
+		 * Esta opção permite que o usuário comprima arquivos externos, fornecendo um ou mais caminhos
+		 * para os arquivos a serem comprimidos. Os arquivos especificados não devem ser arquivos TrackDB,
+		 * pois esses devem ser manipulados diretamente pelo sistema.
+		 * </p>
+		 */
 		@Option(names = { "-f", "--file" }, description =
 				"Comprime um arquivo externo qualquer, e não o TrackDB aberto.",
 				completionCandidates = FileCompleter.class)
