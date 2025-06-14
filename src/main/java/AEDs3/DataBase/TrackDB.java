@@ -217,11 +217,13 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 						filePath + ".buckets", filePath + ".dir", filePath + ".buckets.meta");
 
 			if (hasInvertedListIndex()) {
-				nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
+				nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks",
+						filePath + ".name.list.freq");
 				albumIndex = new InvertedListIndex(
-						filePath + ".album.list.dir", filePath + ".album.list.blocks");
+						filePath + ".album.list.dir", filePath + ".album.list.blocks", filePath + ".album.list.freq");
 				artistIndex = new InvertedListIndex(
-						filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+						filePath + ".artist.list.dir", filePath + ".artist.list.blocks",
+						filePath + ".artist.list.freq");
 			}
 		} catch (FileNotFoundException e) {
 			throw new IllegalStateException("Arquivo(s) de índice esperado(s) não encontrado(s): " + e.getMessage());
@@ -234,6 +236,11 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException Se ocorrer um erro ao fechar o arquivo.
 	 */
 	public void close() throws IOException {
+		if (this.hasInvertedListIndex()) {
+			nameIndex.close();
+			albumIndex.close();
+			artistIndex.close();
+		}
 		file.close();
 		index = null;
 	}
@@ -1173,12 +1180,30 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	private void insertInvertedIndexes(Track t) throws IOException {
 		int id = t.getId();
 		String[][] parts = invertedIndexSplit(t);
-		for (String s : parts[0])
-			nameIndex.create(s, id);
-		for (String s : parts[1])
-			albumIndex.create(s, id);
-		for (String s : parts[2])
-			artistIndex.create(s, id);
+		for (String s : parts[0]) {
+			try {
+				nameIndex.create(s, id);
+			} catch (IllegalStateException e) {
+				System.out.println("\r\033[2KPalavra “" + s + "” ocorre muitas vezes. Pulando...");
+				System.out.flush();
+			}
+		}
+		for (String s : parts[1]) {
+			try {
+				albumIndex.create(s, id);
+			} catch (IllegalStateException e) {
+				System.out.println("\r\033[2KPalavra “" + s + "” ocorre muitas vezes. Pulando...");
+				System.out.flush();
+			}
+		}
+		for (String s : parts[2]) {
+			try {
+				artistIndex.create(s, id);
+			} catch (IllegalStateException e) {
+				System.out.println("\r\033[2KPalavra “" + s + "” ocorre muitas vezes. Pulando...");
+				System.out.flush();
+			}
+		}
 	}
 
 	/**
