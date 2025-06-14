@@ -5,6 +5,7 @@ import AEDs3.DataBase.Track.Field;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -161,11 +162,15 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException Se ocorrer um erro ao abrir o arquivo ou ler os dados.
 	 */
 	public void open() throws IOException {
-		file = new RandomAccessFile(filePath, "rw");
+		File testFile = new File(filePath);
+		if (testFile.exists() && testFile.length() < HEADER_SIZE)
+			throw new IllegalStateException("Arquivo menor que tamanho mínimo");
+
+		file = new RandomAccessFile(testFile, "rw");
 		file.seek(0);
 
 		// Tenta ler os metadados do arquivo
-		try {
+		if (file.length() >= HEADER_SIZE) {
 			long major = file.readLong();
 			long minor = file.readLong();
 			uuid = new UUID(major, minor);
@@ -173,7 +178,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 			flags = file.readLong();
 			numTracks = file.readInt();
 			numSpaces = file.readInt();
-		} catch (EOFException e) {
+		} else {
 			// Caso o arquivo esteja vazio, inicializa os valores
 			uuid = UUID.randomUUID();
 			lastId = 0;
@@ -229,6 +234,22 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	public void close() throws IOException {
 		file.close();
 		index = null;
+	}
+
+	/**
+	 * Verifica se um arquivo é um arquivo de banco de dados TrackDB válido.
+	 *
+	 * @param file O caminho para o arquivo a ser verificado.
+	 * @return {@code true} se o arquivo não for um arquivo TrackDB válido,
+	 *         {@code false} caso contrário.
+	 * @throws IOException Se ocorrer um erro de leitura ao acessar o arquivo.
+	 */
+	public static boolean isTrackDB(String file) throws IOException {
+		try (TrackDB temp = new TrackDB(file)) {
+			return true;
+		} catch (IllegalStateException e) {
+			return false;
+		}
 	}
 
 	/**

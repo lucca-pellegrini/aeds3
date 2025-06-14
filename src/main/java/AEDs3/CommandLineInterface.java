@@ -570,6 +570,22 @@ public class CommandLineInterface {
 				files = parent.db.listFilePaths();
 				baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
 			} else {
+				try {
+					for (String file : standaloneFiles) {
+						if (TrackDB.isTrackDB(file)) {
+							parent.error("Arquivo " + file + " é um arquivo TrackDB");
+							parent.error(ansi().render(
+								"Não é possível comprimi-lo isoladamente com @|cyan --file|@")
+								.toString());
+							parent.error(ansi().render(
+								"Abra-o (@|magenta Ctrl-O|@) e use o comando @|magenta,bold compress|@ diretamente")
+								.toString());
+							return;
+						}
+					}
+				} catch (IOException e) {
+					parent.error("Não foi possível verificar os arquivos: " + e.getMessage());
+				}
 				files = standaloneFiles;
 				baseFileName = files[0];
 			}
