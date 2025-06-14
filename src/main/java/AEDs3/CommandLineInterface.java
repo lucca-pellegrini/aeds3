@@ -457,19 +457,26 @@ public class CommandLineInterface {
 		public void run() {
 			boolean paramExists = new File(param.toString()).exists();
 
-			if (!create || paramExists)  {
+			if (!create || paramExists) {
 				if (!paramExists)
 					parent.error("O arquivo não existe.");
 				else
 					parent.setDb(param.toString()); // Carrega o banco de dados.
 			} else {
 				String paramString = param.toString();
-				StringBuilder name = new StringBuilder(paramString);
+				StringBuilder nameBuilder = new StringBuilder(paramString);
 
 				if (!(omitExtension || paramString.contains(".")))
-					name.append('.').append(TrackDB.getDefaultFileExtension());
+					nameBuilder.append('.').append(TrackDB.getDefaultFileExtension());
 
-				parent.setDb(name.toString());
+				String name = nameBuilder.toString();
+
+				File parentDir = new File(new File(name).getParent());
+				if (parentDir != null && !parentDir.exists())
+					if (!parentDir.mkdirs())
+						throw new RuntimeException("Falha ao criar diretórios para: " + name);
+
+				parent.setDb(name);
 			}
 		}
 	}
