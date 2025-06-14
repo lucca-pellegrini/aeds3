@@ -245,6 +245,8 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 * @throws IOException Se ocorrer um erro de leitura ao acessar o arquivo.
 	 */
 	public static boolean isTrackDB(String file) throws IOException {
+		if (!new File(file).isFile())
+			return false;
 		try (TrackDB temp = new TrackDB(file)) {
 			return true;
 		} catch (IllegalStateException e) {
