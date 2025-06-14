@@ -517,29 +517,37 @@ public class CommandLineInterface {
 		/**
 		 * Algoritmo de compressão a ser utilizado.
 		 */
-		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
+		@Option(names = { "-m", "--method" }, description =
+			"Algoritmo de compressão a ser utilizado.", required = true)
 		CompressionType method;
 
 		/**
 		 * Fechar e deletar arquivo após comprimir.
 		 */
-		@Option(names = { "-d",
-				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
+		@Option(names = { "-d", "--delete" }, description =
+			"Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
 		/**
 		 * Especifica um nome customizado para o arquivo comprimido.
 		 */
-		@Option(names = { "-n",
-				"--name" }, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
+		@Option(names = { "-n", "--name" }, description =
+				"Especifica um nome customizado para o arquivo comprimido",
+				defaultValue = "", completionCandidates = FileCompleter.class)
 		String customName;
 
 		/**
 		 * Cria um backup do DB, incluindo data e hora no nome de arquivo.
 		 */
-		@Option(names = { "-b",
-				"--backup" }, description = "Cria um backup do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
+		@Option(names = { "-b", "--backup" }, description =
+				"Cria um backup do DB, incluindo data e hora no nome de arquivo",
+				defaultValue = "false")
 		boolean backup;
+
+		@Option(names = { "-f", "--file" }, description =
+				"Comprime um arquivo externo qualquer, e não o TrackDB aberto.",
+				completionCandidates = FileCompleter.class)
+		String[] standaloneFiles;
 
 		/**
 		 * Referência para o comando pai, utilizado para acessar a instância do banco de
@@ -549,18 +557,30 @@ public class CommandLineInterface {
 		CliCommands parent;
 
 		public void run() {
-			if (parent.db == null) {
+			if (parent.db == null && standaloneFiles == null) {
 				parent.error("Não há nenhum arquivo aberto.");
 				return;
 			}
 
-			String[] files = parent.db.listFilePaths();
-			String baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
+			String[] files;
+			String baseFileName;
+
+			// Determina arquivos de origem e base do arquivo destino.
+			if (standaloneFiles == null) {
+				files = parent.db.listFilePaths();
+				baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
+			} else {
+				files = standaloneFiles;
+				baseFileName = files[0];
+			}
+
+			// Usa nome customizado, se recebido.
 			String basename = (customName.isBlank()) ? baseFileName : customName;
+
 			StringBuilder dstBuilder = new StringBuilder(basename);
-			if (backup)
+			if (backup) // Se `--backup` foi passado, apende data e hora
 				dstBuilder.append('.').append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")));
-			dstBuilder.append('.').append(method.getExtension());
+			dstBuilder.append('.').append(method.getExtension()); // Apende extensão
 			String dst = dstBuilder.toString();
 
 			try {
