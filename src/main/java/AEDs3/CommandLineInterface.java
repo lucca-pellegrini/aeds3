@@ -1931,8 +1931,9 @@ public class CommandLineInterface {
 			// para garantir que o aviso será exibido.
 			if ((indexType.btree || indexType.hash) && parent.db.getNumTracks() >= 50000) {
 				parent.warn("Indexando arquivo com muitos elementos. Isso pode demorar.");
-			} else if (indexType.invertedList && parent.db.getNumTracks() >= 1000) {
-				parent.warn("Esteja ciente que a criação da lista invertida demora MUITO em arquivos grandes!");
+			} else if (indexType.invertedList && parent.db.getNumTracks() >= (1 << 13)) {
+				parent.warn("Muitos elementos para indexar com lista invertida!");
+				parent.warn(ansi().render("@|magenta,bold,italic Aumentando cache em memória temporariamente para acelerar|@").toString());
 			}
 
 			parent.out.flush();

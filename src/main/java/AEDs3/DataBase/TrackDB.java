@@ -1238,17 +1238,39 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 
 			flags |= Flag.INDEXED_INVERSE_LIST.getBitmask();
 
-			nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks");
+			nameIndex = new InvertedListIndex(filePath + ".name.list.dir", filePath + ".name.list.blocks",
+					filePath + ".name.list.freq");
 			albumIndex = new InvertedListIndex(
-					filePath + ".album.list.dir", filePath + ".album.list.blocks");
+					filePath + ".album.list.dir", filePath + ".album.list.blocks", filePath + ".album.list.freq");
 			artistIndex = new InvertedListIndex(
-					filePath + ".artist.list.dir", filePath + ".artist.list.blocks");
+					filePath + ".artist.list.dir", filePath + ".artist.list.blocks", filePath + ".artist.list.freq");
+
+			// Seta um cache bem grande para a criação inicial dos índices.
+			if (numTracks > (1 << 13)) {
+				nameIndex.setCacheSize(1 << 16);
+				albumIndex.setCacheSize(1 << 16);
+				artistIndex.setCacheSize(1 << 16);
+			}
+
 			int i = 0;
+			int totalTracks = numTracks;
 			for (Track t : this) {
-				System.err.println(
-						"Inserindo elemento " + ++i + "/" + numTracks + "\tID: " + t.getId());
+				int progress = (int) (((double) ++i / totalTracks) * 100);
+				System.out.print("\033[2K\rInserindo elemento " + i + "/" + totalTracks + "\tID: " + t.getId()
+						+ "\tProgresso: " + progress + "%");
 				insertInvertedIndexes(t);
 			}
+			System.out.println(); // Move to the next line after completion
+
+			// Esvazia os caches para que persistam em disco.
+			nameIndex.flushAllPostingsToDisk();
+			albumIndex.flushAllPostingsToDisk();
+			artistIndex.flushAllPostingsToDisk();
+
+			// Reseta os caches para o tamanho original.
+			nameIndex.setCacheSize(InvertedListIndex.getDefaultCacheSize());
+			albumIndex.setCacheSize(InvertedListIndex.getDefaultCacheSize());
+			artistIndex.setCacheSize(InvertedListIndex.getDefaultCacheSize());
 		} else {
 			flags &= ~Flag.INDEXED_INVERSE_LIST.getBitmask();
 
