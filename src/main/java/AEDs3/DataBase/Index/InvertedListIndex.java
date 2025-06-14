@@ -10,45 +10,79 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * InvertedListIndex
+ * Classe que implementa um índice reverso por Lista Invertida.
  *
- * Manages an inverted index on disk, keeping a limited (LRU)
- * cache in memory of at most 1000 entries. The rest is backed
- * by the disk files:
- * - blocksFilePath: stores the actual postings (word -> list of IDs).
- * - directoryFilePath: stores the dictionary mapping word -> offset in blocks.
- * - frequencyFilePath: stores the dictionary mapping word -> frequency.
- *
- * Usage constraints:
- * 1) If none of the three files exist, create them.
- * 2) If all three exist, "load" them (minimal initialization).
- * 3) If some exist and others don't, throw error.
- * 4) If a word's frequency surpasses 10000, further insertions for that word
- * or searches for that word throw an exception.
- * 5) The in-memory cache never exceeds 1000 entries.
+ * Gerencia um índice invertido no disco, mantendo um cache limitado (LRU)
+ * na memória com número ajustável de entradas. O restante é armazenado nos
+ * arquivos em disco.
  */
 public class InvertedListIndex implements AutoCloseable {
 
+	/**
+	 * Tamanho padrão do cache, definido como 1024.
+	 */
 	private static final int DEFAULT_CACHE_SIZE = 1 << 10;
+
+	/**
+	 * Frequência máxima permitida para uma palavra, definida como 4096.
+	 */
 	private static final int MAX_FREQUENCY = 1 << 12;
 
+	/**
+	 * Caminho para o arquivo que armazena as postagens reais (palavra para lista de
+	 * IDs).
+	 */
 	private final String blocksFilePath;
+
+	/**
+	 * Caminho para o arquivo que armazena o dicionário mapeando palavra para offset
+	 * nos blocos.
+	 */
 	private final String directoryFilePath;
+
+	/**
+	 * Caminho para o arquivo que armazena o dicionário mapeando palavra para
+	 * frequência.
+	 */
 	private final String frequencyFilePath;
 
+	/**
+	 * Acesso aleatório ao arquivo de blocos.
+	 */
 	private final RandomAccessFile blkRaf;
+
+	/**
+	 * Acesso aleatório ao arquivo de diretório.
+	 */
 	private final RandomAccessFile dirRaf;
+
+	/**
+	 * Acesso aleatório ao arquivo de frequência.
+	 */
 	private final RandomAccessFile freqRaf;
 
+	/**
+	 * Tamanho atual do cache.
+	 */
 	private long cacheSize;
 
-	// This cache holds the postings for up to 1000 words
-	// LRU-based eviction (LinkedHashMap with access-order = true).
+	/**
+	 * Este cache armazena as postagens para até {@link cacheSize} palavras.
+	 * Evicção baseada em LRU (LinkedHashMap com ordem de acesso = true).
+	 */
 	private final Map<String, CachedPosting> cache = new LinkedHashMap<>(16, 0.75f, true) {
+		/**
+		 * Remove a entrada mais antiga do cache se o tamanho do cache exceder o limite
+		 * definido.
+		 *
+		 * @param eldest A entrada mais antiga no cache.
+		 * @return true se a entrada mais antiga deve ser removida, false caso
+		 *         contrário.
+		 */
 		@Override
 		protected boolean removeEldestEntry(Map.Entry<String, CachedPosting> eldest) {
 			if (size() > getCacheSize()) {
-				// Write the postings for the evicted word out to disk
+				// Escreve as postagens da palavra removida de volta no disco
 				flushPostingToDisk(eldest.getKey(), eldest.getValue());
 				return true;
 			}
@@ -56,24 +90,37 @@ public class InvertedListIndex implements AutoCloseable {
 		}
 	};
 
-	// Simple structure to hold a posting list (list of IDs) and its frequency
+	/**
+	 * Representa uma postagem em cache, contendo uma lista de IDs associados a uma
+	 * palavra e a frequência dessa palavra.
+	 */
 	private static class CachedPosting {
+		/**
+		 * Lista de IDs associados a uma palavra específica.
+		 */
 		List<Integer> ids = new ArrayList<>();
+		/**
+		 * Frequência da palavra associada à lista de IDs.
+		 */
 		int frequency;
 	}
 
 	/**
-	 * Constructor
+	 * Construtor único.
 	 *
-	 * @param blocksFilePath    Path to the blocks file (postings).
-	 * @param directoryFilePath Path to the directory file (word -> offset).
-	 * @param frequencyFilePath Path to the frequency file (word -> frequency).
+	 * @param blocksFilePath    Caminho para o arquivo de blocos (postagens).
+	 * @param directoryFilePath Caminho para o arquivo de diretório (palavra para
+	 *                          offset).
+	 * @param frequencyFilePath Caminho para o arquivo de frequência (palavra para
+	 *                          frequência).
 	 *
-	 *                          Throws IllegalStateException if some files exist
-	 *                          while others do not.
-	 *                          Creates new empty files if none exist; otherwise,
-	 *                          re-loads existing files
-	 *                          minimally (does not read them entirely into memory).
+	 * @throws IllegalStateException se alguns arquivos existirem enquanto outros
+	 *                               não. Cria novos arquivos vazios se nenhum
+	 *                               existir; caso contrário, recarrega os arquivos
+	 *                               existentes minimamente (não os lê inteiramente
+	 *                               na memória).
+	 * @throws IOException           se ocorrer um erro de entrada/saída durante a
+	 *                               inicialização.
 	 */
 	public InvertedListIndex(
 			String blocksFilePath,
@@ -91,130 +138,129 @@ public class InvertedListIndex implements AutoCloseable {
 	}
 
 	/**
-	 * Create (insert) a new entry.
+	 * Cria (insere) uma nova entrada.
 	 *
-	 * @param word The word to insert.
-	 * @param id   The document/entity ID to associate with that word.
-	 * @return true if the entry was created successfully.
-	 * @throws IllegalStateException if word's frequency is > 10000 or any other
-	 *                               logic error.
+	 * @param word A palavra a ser inserida.
+	 * @param id   O ID do documento/entidade a ser associado a essa palavra.
+	 * @return true se a entrada foi criada com sucesso.
+	 * @throws IllegalStateException se a frequência da palavra for > 10000 ou
+	 *                               qualquer outro erro lógico.
 	 */
 	public boolean create(String word, int id) {
 		if (word == null)
 			return false;
 
-		// 1) Get the posting from cache or disk
+		// 1) Obter a postagem do cache ou disco
 		CachedPosting posting = getPosting(word);
 
-		// 2) Check if frequency is already too high
+		// 2) Verificar se a frequência já está muito alta
 		if (posting.frequency >= MAX_FREQUENCY) {
-			throw new IllegalStateException("Word '" + word + "' exceeds max frequency of " + MAX_FREQUENCY);
+			throw new IllegalStateException("Palavra '" + word + "' excede a frequência máxima de " + MAX_FREQUENCY);
 		}
 
-		// 3) Insert the ID if not already present
+		// 3) Inserir o ID se ainda não estiver presente
 		if (!posting.ids.contains(id)) {
 			posting.ids.add(id);
 			posting.frequency++;
 		}
 
-		// Possibly flush to disk if the cache LRU decides to evict soon...
+		// Possivelmente descarregar para o disco se o cache LRU decidir remover
 		cache.put(word, posting);
 
-		// 4) Return success
+		// 4) Retornar sucesso
 		return true;
 	}
 
 	/**
-	 * Read (search) for an entry.
+	 * Lê (busca) uma entrada.
 	 *
-	 * @param word The word to look up.
-	 * @return All matching IDs, or empty array if none.
-	 * @throws IllegalStateException if word's frequency is > 10000.
+	 * @param word A palavra a ser buscada.
+	 * @return Todos os IDs correspondentes, ou um array vazio se nenhum for
+	 *         encontrado.
+	 * @throws IllegalStateException se a frequência da palavra for > 10000.
 	 */
 	public int[] read(String word) {
 		if (word == null)
 			return new int[0];
 
-		// 1) Check if we have it
+		// 1) Verifique se já temos a postagem
 		CachedPosting posting = getPosting(word);
-		// System.out.println("Got posting.\nfreq = " + posting.frequency + "\nids:");
-		// for (int i : posting.ids)
-		// System.out.print(" " + i);
-		// System.out.println();
 
-		// 2) If freq > 10000, throw
+		// 2) Se a frequência for maior que o máximo, lance uma exceção
 		if (posting.frequency > MAX_FREQUENCY) {
-			throw new IllegalStateException("Word '" + word + "' exceeds max frequency of " + MAX_FREQUENCY);
+			throw new IllegalStateException("Palavra '" + word + "' excede a frequência máxima de " + MAX_FREQUENCY);
 		}
 
 		if (posting.ids.isEmpty())
 			return new int[0];
 
-		// 3) Return the IDs as an int array
+		// 3) Retorne os IDs como um array de inteiros
 		return posting.ids.stream().mapToInt(Integer::intValue).toArray();
 	}
 
 	/**
-	 * Delete an association (word -> id).
+	 * Deleta uma associação (palavra para id).
 	 *
-	 * @param word the word to update
-	 * @param id   the ID to remove from its postings
-	 * @return true if it was actually removed; false if not found
+	 * @param word a palavra a ser atualizada
+	 * @param id   o ID a ser removido de suas postagens
+	 * @return true se foi realmente removido; false se não encontrado
 	 */
 	public boolean delete(String word, int id) {
 		if (word == null)
 			return false;
 
-		// 1) Retrieve or create from disk
+		// 1) Recuperar ou criar do disco
 		CachedPosting posting = getPosting(word);
 
-		// 2) Attempt to remove the ID
+		// 2) Tentar remover o ID
 		boolean removed = posting.ids.remove((Integer) id);
 		if (removed) {
 			posting.frequency--;
-			if (posting.frequency < 0) {
-				posting.frequency = 0; // Just as a safety net
-			}
+			if (posting.frequency < 0)
+				posting.frequency = 0; // Pra garantir
 		}
 
-		// 3) Save back to cache
+		// 3) Salvar de volta no cache
 		cache.put(word, posting);
 		return removed;
 	}
 
 	/**
-	 * Destruct
+	 * Destrói o índice invertido.
 	 *
-	 * Delete all files that this index manages from disk.
+	 * Este método deleta todos os arquivos associados a este índice do disco,
+	 * garantindo que todos os dados em cache sejam primeiro descarregados para o
+	 * disco.
+	 *
+	 * @throws IOException se ocorrer um erro de entrada/saída durante o processo.
 	 */
-	public void destruct() {
-		// Close any open resources, flush, etc.
-		flushAllPostingsToDisk();
-		// Delete the files from disk
+	public void destruct() throws IOException {
+		this.close();
 		new File(blocksFilePath).delete();
 		new File(directoryFilePath).delete();
 		new File(frequencyFilePath).delete();
 	}
 
 	/**
-	 * List all file paths
+	 * Lista todos os caminhos de arquivo
 	 *
-	 * @return an array of file paths that this object manages
+	 * @return um array de caminhos de arquivo que este objeto gerencia
 	 */
 	public String[] listFilePaths() {
 		return new String[] { blocksFilePath, directoryFilePath, frequencyFilePath };
 	}
 
-	// ----------------------------------------------------------------------------------
-	// Private Implementation Details
-	// ----------------------------------------------------------------------------------
-
 	/**
-	 * Initializes the index files:
-	 * - Checks if they exist.
-	 * - If none exist, creates them.
-	 * - If all exist, open them for read/write minimal usage.
-	 * - Otherwise, throw error if partially exist.
+	 * Inicializa os arquivos necessários para o índice invertido.
+	 *
+	 * Verifica a existência dos arquivos de blocos, diretório e frequência.
+	 * Se nenhum dos arquivos existir, cria novos arquivos vazios.
+	 * Se apenas alguns dos arquivos existirem, lança uma exceção indicando
+	 * que não é possível inicializar o índice devido à inconsistência.
+	 *
+	 * @throws RuntimeException      se ocorrer um erro ao criar novos arquivos.
+	 * @throws IllegalStateException se alguns arquivos existirem enquanto outros
+	 *                               não.
 	 */
 	private void initFiles() {
 		File blocksFile = new File(blocksFilePath);
@@ -225,7 +271,7 @@ public class InvertedListIndex implements AutoCloseable {
 		boolean directoryExists = directoryFile.exists();
 		boolean freqExists = freqFile.exists();
 
-		// 1) If none exist, create them
+		// Cria arquivos se não existirem
 		if (!blocksExists && !directoryExists && !freqExists) {
 			try {
 				blocksFile.createNewFile();
@@ -234,51 +280,50 @@ public class InvertedListIndex implements AutoCloseable {
 			} catch (IOException e) {
 				throw new RuntimeException("Could not create index files", e);
 			}
-		}
-		// 2) If all exist, we consider that a "load" scenario
-		else if (blocksExists && directoryExists && freqExists) {
-			// No heavy loading - just open the files for future read/writes
-			// If needed, do some minimal scanning or caching of metadata
-		}
-		// 3) Otherwise, partial existence -> error
-		else {
+		} else if (!(blocksExists && directoryExists && freqExists)) {
+			// Se nem todos existem, lança um erro.
 			throw new IllegalStateException("Some index files exist while others do not. Cannot initialize.");
 		}
 	}
 
 	/**
-	 * Retrieves a posting from the cache, or loads it from disk if it isn't cached.
-	 * If there's no entry on disk (word not found in directory), returns a new
-	 * posting.
+	 * Recupera uma postagem do cache ou a carrega do disco se não estiver em cache.
+	 * Se não houver entrada no disco (palavra não encontrada no diretório), retorna
+	 * uma nova postagem.
+	 *
+	 * @param word A palavra cuja postagem deve ser recuperada.
+	 * @return A postagem em cache correspondente à palavra, ou uma nova postagem se
+	 *         não encontrada.
 	 */
 	private CachedPosting getPosting(String word) {
-		// Check if already in cache
-		if (cache.containsKey(word)) {
-			// System.out.println(word + " <- aleary cached");
+		if (cache.containsKey(word))
 			return cache.get(word);
-		}
 
-		// Otherwise, load from disk if it exists
-		// System.out.println(word + " <- not cached");
+		// Se não estiver no cache, lê do disco e posta no cache.
 		CachedPosting posting = loadPostingFromDisk(word);
-		// Put into cache
 		cache.put(word, posting);
-		// System.out.println(word + " <- dded to cache!");
 		return posting;
 	}
 
-	/** Small helper to remember where a block lives on disk */
-	private static class DirectoryEntry {
-		final long offset;
-		final int blockSize;
-
-		DirectoryEntry(long offset, int blockSize) {
-			this.offset = offset;
-			this.blockSize = blockSize;
-		}
+	/**
+	 * Classe auxiliar para armazenar informações sobre a localização de um bloco no
+	 * disco.
+	 *
+	 * @param offset    Posição inicial do bloco no arquivo.
+	 * @param blockSize Tamanho do bloco em bytes.
+	 */
+	private static record DirectoryEntry(long offset, int blockSize) {
 	}
 
-	/** Read a length-prefixed UTF-8 string */
+	/**
+	 * Método auxiliar que lê uma string codificada em UTF-8 a partir de um arquivo
+	 * de acesso aleatório. A string é precedida por um inteiro que indica seu
+	 * comprimento.
+	 *
+	 * @param raf O arquivo de acesso aleatório de onde a string será lida.
+	 * @return A string lida do arquivo.
+	 * @throws IOException Se ocorrer um erro de entrada/saída durante a leitura.
+	 */
 	private static String readString(RandomAccessFile raf) throws IOException {
 		int len = raf.readInt();
 		byte[] buf = new byte[len];
@@ -286,50 +331,61 @@ public class InvertedListIndex implements AutoCloseable {
 		return new String(buf, StandardCharsets.UTF_8);
 	}
 
-	/** Write a length-prefixed UTF-8 string */
+	/**
+	 * Método auxiliar que escreve uma string codificada em UTF-8 em um arquivo de
+	 * acesso aleatório, precedida por um inteiro que indica o comprimento da
+	 * string.
+	 *
+	 * @param raf O arquivo de acesso aleatório onde a string será escrita.
+	 * @param s   A string a ser escrita no arquivo.
+	 * @throws IOException Se ocorrer um erro de entrada/saída durante a escrita.
+	 */
 	private static void writeString(RandomAccessFile raf, String s) throws IOException {
 		byte[] buf = s.getBytes(StandardCharsets.UTF_8);
 		raf.writeInt(buf.length);
 		raf.write(buf);
 	}
 
-	/** Loads (or creates) the posting list + frequency for `word` from disk. */
+	/**
+	 * Carrega ou cria a lista de postagens e frequência para uma palavra específica
+	 * do disco.
+	 *
+	 * @param word A palavra cuja lista de postagens deve ser recuperada.
+	 * @return A postagem em cache correspondente à palavra, ou uma nova postagem se
+	 *         não encontrada.
+	 * @throws RuntimeException Se ocorrer um erro de entrada/saída ao carregar a
+	 *                          palavra.
+	 */
 	private CachedPosting loadPostingFromDisk(String word) {
 		CachedPosting posting = new CachedPosting();
 		try {
 			dirRaf.seek(0);
 			freqRaf.seek(0);
 
-			// 1) Find the *last* directory record for `word`
-			// System.out.println("Find last dir");
+			// Encontra o último registro da palavra no diretório.
 			DirectoryEntry last = null;
 			while (dirRaf.getFilePointer() < dirRaf.length()) {
 				String w = readString(dirRaf);
 				long off = dirRaf.readLong();
 				int sz = dirRaf.readInt();
-				if (w.equals(word)) {
+				if (w.equals(word))
 					last = new DirectoryEntry(off, sz);
-				}
-			}
-			// 2) If found, read the block from blocksFile
-			if (last != null) {
-				// System.out.println("Found! reading block");
-				blkRaf.seek(last.offset);
-				int count = blkRaf.readInt();
-				for (int i = 0; i < count; i++) {
-					posting.ids.add(blkRaf.readInt());
-				}
 			}
 
-			// 3) Now scan the frequency file for the *last* freq record
-			// System.out.println("Scanning frequency");
+			// Se encontrou, lê o bloco do arquivo de blocos.
+			if (last != null) {
+				blkRaf.seek(last.offset);
+				int count = blkRaf.readInt();
+				for (int i = 0; i < count; i++)
+					posting.ids.add(blkRaf.readInt());
+			}
+
+			// Finalmente, lê o último registro de frequência para a palavra.
 			while (freqRaf.getFilePointer() < freqRaf.length()) {
 				String w = readString(freqRaf);
 				int f = freqRaf.readInt();
-				if (w.equals(word)) {
+				if (w.equals(word))
 					posting.frequency = f;
-					// System.out.println("Frequency is: " + f);
-				}
 			}
 		} catch (IOException e) {
 			throw new RuntimeException("I/O error loading '" + word + "'", e);
@@ -337,28 +393,34 @@ public class InvertedListIndex implements AutoCloseable {
 		return posting;
 	}
 
-	/** Flushes the in-memory posting back out to disk (appending new records). */
+	/**
+	 * Salva a postagem que está na memória de volta para o disco, adicionando novos
+	 * registros.
+	 *
+	 * @param word    A palavra cuja postagem deve ser salva.
+	 * @param posting A postagem em cache que contém a lista de IDs e a frequência
+	 *                da palavra.
+	 */
 	private void flushPostingToDisk(String word, CachedPosting posting) {
 		try {
-			// 1) Append to blocksFile
+			// Apende ao arquivo de blocos.
 			long offset;
 			int blockSize;
 			offset = blkRaf.length();
 			blkRaf.seek(offset);
 			int count = posting.ids.size();
 			blkRaf.writeInt(count);
-			for (int id : posting.ids) {
+			for (int id : posting.ids)
 				blkRaf.writeInt(id);
-			}
 			blockSize = 4 + 4 * count;
 
-			// 2) Append a new directory record
+			// Apende um novo registro de diretório.
 			dirRaf.seek(dirRaf.length());
 			writeString(dirRaf, word);
 			dirRaf.writeLong(offset);
 			dirRaf.writeInt(blockSize);
 
-			// 3) Append a new frequency record
+			// Apende um novo registro de frequência.
 			freqRaf.seek(freqRaf.length());
 			writeString(freqRaf, word);
 			freqRaf.writeInt(posting.frequency);
@@ -369,26 +431,55 @@ public class InvertedListIndex implements AutoCloseable {
 	}
 
 	/**
-	 * Flush all postings that are currently in the cache to disk.
+	 * Descarrega todas as postagens que estão atualmente no cache para o disco.
+	 *
+	 * Este método itera sobre todas as entradas no cache, salvando cada postagem
+	 * no disco e, em seguida, limpa o cache. Isso garante que todas as alterações
+	 * feitas nas postagens em cache sejam persistidas no armazenamento permanente.
 	 */
 	public void flushAllPostingsToDisk() {
-		for (Map.Entry<String, CachedPosting> e : cache.entrySet()) {
+		for (Map.Entry<String, CachedPosting> e : cache.entrySet())
 			flushPostingToDisk(e.getKey(), e.getValue());
-		}
 		cache.clear();
 	}
 
-	public void close() {
+	/**
+	 * Fecha o índice invertido, garantindo que todas as postagens em cache sejam
+	 * descarregadas para o disco antes de fechar os arquivos de acesso aleatório.
+	 *
+	 * @throws IOException se ocorrer um erro de entrada/saída ao fechar os
+	 *                     arquivos.
+	 */
+	public void close() throws IOException {
 		flushAllPostingsToDisk();
+		blkRaf.close();
+		dirRaf.close();
+		freqRaf.close();
 	}
 
+	/**
+	 * Retorna o tamanho padrão do cache.
+	 *
+	 * @return O tamanho padrão do cache.
+	 */
 	public static int getDefaultCacheSize() {
 		return DEFAULT_CACHE_SIZE;
 	}
+
+	/**
+	 * Retorna o tamanho atual do cache.
+	 *
+	 * @return O tamanho atual do cache.
+	 */
 	public long getCacheSize() {
 		return cacheSize;
 	}
 
+	/**
+	 * Define o tamanho do cache.
+	 *
+	 * @param cacheSize O novo tamanho do cache.
+	 */
 	public void setCacheSize(long cacheSize) {
 		this.cacheSize = cacheSize;
 	}
