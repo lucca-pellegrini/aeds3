@@ -1,599 +1,395 @@
 package AEDs3.DataBase.Index;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
 /**
- * Classe que implementa um índice de lista invertida.
- * Utiliza arquivos para armazenar o dicionário e os blocos de dados.
+ * InvertedListIndex
  *
- * Esta classe fornece métodos para criar, ler e deletar registros associados a
- * palavras-chave, utilizando uma estrutura de lista invertida. Os registros são
- * armazenados em blocos, que são gerenciados por meio de arquivos de acesso
- * aleatório.
+ * Manages an inverted index on disk, keeping a limited (LRU)
+ * cache in memory of at most 1000 entries. The rest is backed
+ * by the disk files:
+ * - blocksFilePath: stores the actual postings (word -> list of IDs).
+ * - directoryFilePath: stores the dictionary mapping word -> offset in blocks.
+ * - frequencyFilePath: stores the dictionary mapping word -> frequency.
+ *
+ * Usage constraints:
+ * 1) If none of the three files exist, create them.
+ * 2) If all three exist, "load" them (minimal initialization).
+ * 3) If some exist and others don't, throw error.
+ * 4) If a word's frequency surpasses 10000, further insertions for that word
+ * or searches for that word throw an exception.
+ * 5) The in-memory cache never exceeds 1000 entries.
  */
-public class InvertedListIndex {
-	/**
-	 * Caminho para o arquivo de dicionário.
-	 */
-	String dictionaryFilePath;
+public class InvertedListIndex implements AutoCloseable {
 
-	/**
-	 * Caminho para o arquivo de blocos.
-	 */
-	String blockFilePath;
+	private static final int DEFAULT_CACHE_SIZE = 1 << 10;
+	private static final int MAX_FREQUENCY = 1 << 14;
 
-	/**
-	 * Arquivo de acesso aleatório para o dicionário.
-	 */
-	RandomAccessFile dict;
+	private final String blocksFilePath;
+	private final String directoryFilePath;
+	private final String frequencyFilePath;
 
-	/**
-	 * Arquivo de acesso aleatório para os blocos.
-	 */
-	RandomAccessFile blocks;
+	private final RandomAccessFile blkRaf;
+	private final RandomAccessFile dirRaf;
+	private final RandomAccessFile freqRaf;
 
-	/**
-	 * Capacidade máxima de registros por bloco.
-	 */
-	private static final int BLOCK_CAPACITY = 4;
+	private long cacheSize;
 
-	/**
-	 * Classe que representa um registro na lista invertida.
-	 * Implementa a interface Comparable para permitir ordenação.
-	 */
-	static class InvertedListRegister implements Comparable<InvertedListRegister> {
-		/**
-		 * ID do registro na lista invertida.
-		 */
-		private int id;
-
-		/**
-		 * Construtor que inicializa o registro com um ID.
-		 *
-		 * @param i ID do registro.
-		 */
-		public InvertedListRegister(int i) {
-			this.id = i;
-		}
-
-		/**
-		 * Obtém o ID do registro.
-		 *
-		 * @return ID do registro.
-		 */
-		public int getId() {
-			return id;
-		}
-
-		/**
-		 * Define o ID do registro.
-		 *
-		 * @param id Novo ID do registro.
-		 */
-		public void setId(int id) {
-			this.id = id;
-		}
-
-		/**
-		 * Construtor de cópia.
-		 *
-		 * @param other Outro registro a ser copiado.
-		 */
-		public InvertedListRegister(InvertedListRegister other) {
-			this.id = other.id;
-		}
-
+	// This cache holds the postings for up to 1000 words
+	// LRU-based eviction (LinkedHashMap with access-order = true).
+	private final Map<String, CachedPosting> cache = new LinkedHashMap<>(16, 0.75f, true) {
 		@Override
-		public int compareTo(InvertedListRegister other) {
-			return Integer.compare(this.id, other.id);
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
+		protected boolean removeEldestEntry(Map.Entry<String, CachedPosting> eldest) {
+			if (size() > getCacheSize()) {
+				// Write the postings for the evicted word out to disk
+				flushPostingToDisk(eldest.getKey(), eldest.getValue());
 				return true;
-			if (obj == null || getClass() != obj.getClass())
-				return false;
-			InvertedListRegister other = (InvertedListRegister) obj;
-			return this.id == other.id;
-		}
-
-		@Override
-		public int hashCode() {
-			return Integer.hashCode(this.id);
-		}
-	}
-
-	/**
-	 * Classe que representa um bloco na lista invertida.
-	 * Gerencia registros e permite operações de adição, remoção e verificação.
-	 */
-	static class Block {
-		/**
-		 * Quantidade de dados presentes na lista.
-		 */
-		short num;
-
-		/**
-		 * Quantidade máxima de dados que a lista pode conter.
-		 */
-		short max;
-
-		/**
-		 * Array de registros na lista invertida.
-		 */
-		InvertedListRegister[] items;
-
-		/**
-		 * Endereço do próximo bloco.
-		 */
-		long next;
-
-		/**
-		 * Tamanho do bloco em bytes.
-		 */
-		short bytesPerBlock;
-
-		/**
-		 * Construtor que inicializa um bloco com capacidade máxima.
-		 *
-		 * @param qtdmax Capacidade máxima do bloco.
-		 */
-		public Block(int qtdmax) {
-			num = 0;
-			max = (short) qtdmax;
-			items = new InvertedListRegister[max];
-			next = -1;
-			bytesPerBlock = (short) (2 + 4 * max + 8);
-		}
-
-		/**
-		 * Converte o bloco em um array de bytes.
-		 *
-		 * @return Array de bytes representando o bloco.
-		 * @throws IOException Se ocorrer um erro de I/O.
-		 */
-		public byte[] toByteArray() throws IOException {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			DataOutputStream dos = new DataOutputStream(baos);
-			dos.writeShort(num);
-			int i = 0;
-			for (i = 0; i < num; ++i)
-				dos.writeInt(items[i].getId());
-			for (; i < max; ++i)
-				dos.writeInt(-1);
-			dos.writeLong(next);
-			return baos.toByteArray();
-		}
-
-		/**
-		 * Inicializa o bloco a partir de um array de bytes.
-		 *
-		 * @param ba Array de bytes a ser lido.
-		 * @throws IOException Se ocorrer um erro de I/O.
-		 */
-		public void fromByteArray(byte[] ba) throws IOException {
-			ByteArrayInputStream bais = new ByteArrayInputStream(ba);
-			DataInputStream dis = new DataInputStream(bais);
-			num = dis.readShort();
-			for (int i = 0; i < max; ++i)
-				items[i] = new InvertedListRegister(dis.readInt());
-			next = dis.readLong();
-		}
-
-		/**
-		 * Adiciona um registro ao bloco.
-		 *
-		 * @param e Registro a ser adicionado.
-		 * @return true se o registro foi adicionado com sucesso, false se o bloco
-		 *         estiver cheio.
-		 */
-		public boolean create(InvertedListRegister e) {
-			if (full())
-				return false;
-			int i;
-			for (i = num - 1; i >= 0 && e.getId() < items[i].getId(); --i)
-				items[i + 1] = items[i];
-			items[++i] = new InvertedListRegister(e);
-			num += 1;
-			return true;
-		}
-
-		/**
-		 * Verifica se um ID está presente no bloco.
-		 *
-		 * @param id ID a ser verificado.
-		 * @return true se o ID estiver presente, false caso contrário.
-		 */
-		public boolean test(int id) {
-			if (empty())
-				return false;
-			int i;
-			for (i = 0; i < num && id > items[i].getId(); ++i)
-				;
-			return i < num && id == items[i].getId();
-		}
-
-		/**
-		 * Remove um registro do bloco pelo ID.
-		 *
-		 * @param id ID do registro a ser removido.
-		 * @return true se o registro foi removido, false se não foi encontrado.
-		 */
-		public boolean delete(int id) {
-			if (empty())
-				return false;
-			int i;
-			for (i = 0; i < num && id > items[i].getId(); ++i)
-				;
-			if (id == items[i].getId()) {
-				for (; i < num - 1; ++i)
-					items[i] = items[i + 1];
-				num -= 1;
-				return true;
-			} else {
-				return false;
 			}
+			return false;
 		}
+	};
 
-		/**
-		 * Obtém o último registro do bloco.
-		 *
-		 * @return Último registro do bloco.
-		 */
-		public InvertedListRegister last() {
-			return items[num - 1];
-		}
-
-		/**
-		 * Lista todos os registros presentes no bloco.
-		 *
-		 * @return Array de registros presentes no bloco.
-		 */
-		public InvertedListRegister[] list() {
-			InvertedListRegister[] res = new InvertedListRegister[num];
-			for (int i = 0; i < num; i++)
-				res[i] = new InvertedListRegister(items[i]);
-			return res;
-		}
-
-		/**
-		 * Verifica se o bloco está vazio.
-		 *
-		 * @return true se o bloco estiver vazio, false caso contrário.
-		 */
-		public boolean empty() {
-			return num == 0;
-		}
-
-		/**
-		 * Verifica se o bloco está cheio.
-		 *
-		 * @return true se o bloco estiver cheio, false caso contrário.
-		 */
-		public boolean full() {
-			return num == max;
-		}
-
-		/**
-		 * Obtém o endereço do próximo bloco.
-		 *
-		 * @return Endereço do próximo bloco.
-		 */
-		public long next() {
-			return next;
-		}
-
-		/**
-		 * Define o endereço do próximo bloco.
-		 *
-		 * @param p Endereço do próximo bloco.
-		 */
-		public void setNext(long p) {
-			next = p;
-		}
-
-		/**
-		 * Obtém o tamanho do bloco em bytes.
-		 *
-		 * @return Tamanho do bloco em bytes.
-		 */
-		public int size() {
-			return bytesPerBlock;
-		}
+	// Simple structure to hold a posting list (list of IDs) and its frequency
+	private static class CachedPosting {
+		List<Integer> ids = new ArrayList<>();
+		int frequency;
 	}
 
 	/**
-	 * Construtor que inicializa o índice de lista invertida com os caminhos dos
-	 * arquivos.
+	 * Constructor
 	 *
-	 * @param dictionaryFilePath Caminho para o arquivo de dicionário.
-	 * @param blockFilePath      Caminho para o arquivo de blocos.
-	 * @throws IOException Se ocorrer um erro de I/O.
+	 * @param blocksFilePath    Path to the blocks file (postings).
+	 * @param directoryFilePath Path to the directory file (word -> offset).
+	 * @param frequencyFilePath Path to the frequency file (word -> frequency).
+	 *
+	 *                          Throws IllegalStateException if some files exist
+	 *                          while others do not.
+	 *                          Creates new empty files if none exist; otherwise,
+	 *                          re-loads existing files
+	 *                          minimally (does not read them entirely into memory).
 	 */
-	public InvertedListIndex(String dictionaryFilePath, String blockFilePath) throws IOException {
-		// XOR garante que se um arquivo existe, o outro também existe.
-		if (Files.exists(Paths.get(dictionaryFilePath)) ^ Files.exists(Paths.get(blockFilePath)))
-			throw new FileNotFoundException("Um dos arquivos de Lista Invertida não existe.");
+	public InvertedListIndex(
+			String blocksFilePath,
+			String directoryFilePath,
+			String frequencyFilePath) throws IOException {
+		this.blocksFilePath = blocksFilePath;
+		this.directoryFilePath = directoryFilePath;
+		this.frequencyFilePath = frequencyFilePath;
+		this.blkRaf = new RandomAccessFile(blocksFilePath, "rw");
+		this.dirRaf = new RandomAccessFile(directoryFilePath, "rw");
+		this.freqRaf = new RandomAccessFile(frequencyFilePath, "rw");
+		this.cacheSize = DEFAULT_CACHE_SIZE;
 
-		this.dictionaryFilePath = dictionaryFilePath;
-		this.blockFilePath = blockFilePath;
-
-		dict = new RandomAccessFile(dictionaryFilePath, "rw");
-		if (dict.length() < 4) { // cabeçalho do arquivo com número de entidades
-			dict.seek(0);
-			dict.writeInt(0);
-		}
-		blocks = new RandomAccessFile(blockFilePath, "rw");
+		initFiles();
 	}
 
 	/**
-	 * Cria um novo registro na lista invertida para uma palavra e ID.
+	 * Create (insert) a new entry.
 	 *
-	 * @param word Palavra chave.
-	 * @param id   ID do registro.
-	 * @return true se o registro foi criado com sucesso, false se já existir.
-	 * @throws IOException Se ocorrer um erro de I/O.
+	 * @param word The word to insert.
+	 * @param id   The document/entity ID to associate with that word.
+	 * @return true if the entry was created successfully.
+	 * @throws IllegalStateException if word's frequency is > 10000 or any other
+	 *                               logic error.
 	 */
-	public boolean create(String word, int id) throws IOException {
-		return this.create(word, new InvertedListRegister(id));
-	}
+	public boolean create(String word, int id) {
+		if (word == null)
+			return false;
 
-	// Insere um dado na lista da chave de forma NÃO ORDENADA
-	/**
-	 * Insere um registro na lista da chave de forma NÃO ORDENADA.
-	 *
-	 * @param word Palavra chave.
-	 * @param reg  Registro a ser inserido.
-	 * @return true se o registro foi inserido com sucesso, false se já existir.
-	 * @throws IOException Se ocorrer um erro de I/O.
-	 */
-	private boolean create(String word, InvertedListRegister reg) throws IOException {
-		// Percorre toda a lista testando se já não existe
-		// o dado associado a essa chave
-		InvertedListRegister[] elements = readElement(word);
-		for (int i = 0; i < elements.length; i++)
-			if (elements[i].getId() == reg.getId())
-				return false;
+		// 1) Get the posting from cache or disk
+		CachedPosting posting = getPosting(word);
 
-		String key = "";
-		long address = -1;
-		boolean exists = false;
-
-		// localiza a chave no dicionário
-		dict.seek(4);
-		while (dict.getFilePointer() != dict.length()) {
-			key = dict.readUTF();
-			address = dict.readLong();
-			if (key.compareTo(word) == 0) {
-				exists = true;
-				break;
-			}
+		// 2) Check if frequency is already too high
+		if (posting.frequency >= MAX_FREQUENCY) {
+			throw new IllegalStateException("Word '" + word + "' exceeds max frequency of " + MAX_FREQUENCY);
 		}
 
-		// Se não encontrou, cria um novo bloco para essa chave
-		if (!exists) {
-			// Cria um novo bloco
-			Block b = new Block(BLOCK_CAPACITY);
-			address = blocks.length();
-			blocks.seek(address);
-			blocks.write(b.toByteArray());
-
-			// Insere a nova chave no dicionário
-			dict.seek(dict.length());
-			dict.writeUTF(word);
-			dict.writeLong(address);
+		// 3) Insert the ID if not already present
+		if (!posting.ids.contains(id)) {
+			posting.ids.add(id);
+			posting.frequency++;
 		}
 
-		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Block b = new Block(BLOCK_CAPACITY);
-		byte[] bd;
-		while (address != -1) {
-			long next = -1;
+		// Possibly flush to disk if the cache LRU decides to evict soon...
+		cache.put(word, posting);
 
-			// Carrega o bloco
-			blocks.seek(address);
-			bd = new byte[b.size()];
-			blocks.read(bd);
-			b.fromByteArray(bd);
-
-			// Testa se o dado cabe nesse bloco
-			if (!b.full()) {
-				b.create(reg);
-			} else {
-				// Avança para o próximo bloco
-				next = b.next();
-				if (next == -1) {
-					// Se não existir um novo bloco, cria esse novo bloco
-					Block b1 = new Block(BLOCK_CAPACITY);
-					next = blocks.length();
-					blocks.seek(next);
-					blocks.write(b1.toByteArray());
-
-					// Atualiza o ponteiro do bloco anterior
-					b.setNext(next);
-				}
-			}
-
-			// Atualiza o bloco atual
-			blocks.seek(address);
-			blocks.write(b.toByteArray());
-			address = next;
-		}
+		// 4) Return success
 		return true;
 	}
 
 	/**
-	 * Lê todos os IDs associados a uma palavra chave.
+	 * Read (search) for an entry.
 	 *
-	 * @param word Palavra chave.
-	 * @return Array de IDs associados à palavra.
-	 * @throws IOException Se ocorrer um erro de I/O.
+	 * @param word The word to look up.
+	 * @return All matching IDs, or empty array if none.
+	 * @throws IllegalStateException if word's frequency is > 10000.
 	 */
-	public int[] read(String word) throws IOException {
+	public int[] read(String word) {
 		if (word == null)
-			return null;
-		InvertedListRegister[] elementos = readElement(word);
-		int[] ids = new int[elementos.length];
-		for (int i = 0; i < ids.length; ++i)
-			ids[i] = elementos[i].getId();
-		return ids;
+			return new int[0];
+
+		// 1) Check if we have it
+		CachedPosting posting = getPosting(word);
+		// System.out.println("Got posting.\nfreq = " + posting.frequency + "\nids:");
+		// for (int i : posting.ids)
+		// System.out.print(" " + i);
+		// System.out.println();
+
+		// 2) If freq > 10000, throw
+		if (posting.frequency > MAX_FREQUENCY) {
+			throw new IllegalStateException("Word '" + word + "' exceeds max frequency of " + MAX_FREQUENCY);
+		}
+
+		if (posting.ids.isEmpty())
+			return new int[0];
+
+		// 3) Return the IDs as an int array
+		return posting.ids.stream().mapToInt(Integer::intValue).toArray();
 	}
 
-	// Retorna a lista de dados de uma determinada chave
 	/**
-	 * Retorna a lista de registros de uma determinada chave.
+	 * Delete an association (word -> id).
 	 *
-	 * @param c Palavra chave.
-	 * @return Array de registros associados à palavra.
-	 * @throws IOException Se ocorrer um erro de I/O.
+	 * @param word the word to update
+	 * @param id   the ID to remove from its postings
+	 * @return true if it was actually removed; false if not found
 	 */
-	private InvertedListRegister[] readElement(String c) throws IOException {
-		ArrayList<InvertedListRegister> lista = new ArrayList<>();
-
-		String chave = "";
-		long endereco = -1;
-		boolean jaExiste = false;
-
-		// localiza a chave no dicionário
-		dict.seek(4);
-		while (dict.getFilePointer() != dict.length()) {
-			chave = dict.readUTF();
-			endereco = dict.readLong();
-			if (chave.compareTo(c) == 0) {
-				jaExiste = true;
-				break;
-			}
-		}
-		if (!jaExiste)
-			return new InvertedListRegister[0];
-
-		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Block b = new Block(BLOCK_CAPACITY);
-		byte[] bd;
-		while (endereco != -1) {
-			// Carrega o bloco
-			blocks.seek(endereco);
-			bd = new byte[b.size()];
-			blocks.read(bd);
-			b.fromByteArray(bd);
-
-			// Acrescenta cada valor à lista
-			InvertedListRegister[] lb = b.list();
-			Collections.addAll(lista, lb);
-
-			// Avança para o próximo bloco
-			endereco = b.next();
-		}
-
-		// Constrói o vetor de respostas
-		lista.sort(null);
-		InvertedListRegister[] resposta = new InvertedListRegister[lista.size()];
-		for (int j = 0; j < lista.size(); j++)
-			resposta[j] = lista.get(j);
-		return resposta;
-	}
-
-	// Remove o dado de uma chave (mas não apaga a chave nem apaga blocos)
-	/**
-	 * Remove o registro de uma chave pelo ID (não apaga a chave nem blocos).
-	 *
-	 * @param c  Palavra chave.
-	 * @param id ID do registro a ser removido.
-	 * @return true se o registro foi removido, false se não foi encontrado.
-	 * @throws IOException Se ocorrer um erro de I/O.
-	 */
-	public boolean delete(String c, int id) throws IOException {
-		String chave = "";
-		long endereco = -1;
-		boolean jaExiste = false;
-
-		// localiza a chave no dicionário
-		dict.seek(4);
-		while (dict.getFilePointer() != dict.length()) {
-			chave = dict.readUTF();
-			endereco = dict.readLong();
-			if (chave.compareTo(c) == 0) {
-				jaExiste = true;
-				break;
-			}
-		}
-		if (!jaExiste)
+	public boolean delete(String word, int id) {
+		if (word == null)
 			return false;
 
-		// Cria um laço para percorrer todos os blocos encadeados nesse endereço
-		Block b = new Block(BLOCK_CAPACITY);
-		byte[] bd;
-		while (endereco != -1) {
-			// Carrega o bloco
-			blocks.seek(endereco);
-			bd = new byte[b.size()];
-			blocks.read(bd);
-			b.fromByteArray(bd);
+		// 1) Retrieve or create from disk
+		CachedPosting posting = getPosting(word);
 
-			// Testa se o valor está neste bloco e sai do laço
-			if (b.test(id)) {
-				b.delete(id);
-				blocks.seek(endereco);
-				blocks.write(b.toByteArray());
-				return true;
+		// 2) Attempt to remove the ID
+		boolean removed = posting.ids.remove((Integer) id);
+		if (removed) {
+			posting.frequency--;
+			if (posting.frequency < 0) {
+				posting.frequency = 0; // Just as a safety net
 			}
-
-			// Avança para o próximo bloco
-			endereco = b.next();
 		}
 
-		// chave não encontrada
-		return false;
+		// 3) Save back to cache
+		cache.put(word, posting);
+		return removed;
 	}
 
 	/**
-	 * Fecha os arquivos e deleta os arquivos de dicionário e blocos.
+	 * Destruct
 	 *
-	 * @throws IOException Se ocorrer um erro de I/O.
+	 * Delete all files that this index manages from disk.
 	 */
-	public void destruct() throws IOException {
-		blocks.close();
-		dict.close();
-		Files.delete(Paths.get(blockFilePath));
-		Files.delete(Paths.get(dictionaryFilePath));
+	public void destruct() {
+		// Close any open resources, flush, etc.
+		flushAllPostingsToDisk();
+		// Delete the files from disk
+		new File(blocksFilePath).delete();
+		new File(directoryFilePath).delete();
+		new File(frequencyFilePath).delete();
 	}
 
 	/**
-	 * Obtém o caminho do arquivo de dicionário.
+	 * List all file paths
 	 *
-	 * @return Caminho do arquivo de dicionário.
-	 */
-	public String getDirFilePath() {
-		return this.dictionaryFilePath;
-	}
-
-	/**
-	 * Obtém o caminho do arquivo de blocos.
-	 *
-	 * @return Caminho do arquivo de blocos.
-	 */
-	public String getBlockFilePath() {
-		return this.blockFilePath;
-	}
-
-	/**
-	 * Lista os caminhos dos arquivos de dicionário e blocos.
-	 *
-	 * @return Array com os caminhos dos arquivos.
+	 * @return an array of file paths that this object manages
 	 */
 	public String[] listFilePaths() {
-		return new String[] { dictionaryFilePath, blockFilePath };
+		return new String[] { blocksFilePath, directoryFilePath, frequencyFilePath };
 	}
 
+	// ----------------------------------------------------------------------------------
+	// Private Implementation Details
+	// ----------------------------------------------------------------------------------
+
+	/**
+	 * Initializes the index files:
+	 * - Checks if they exist.
+	 * - If none exist, creates them.
+	 * - If all exist, open them for read/write minimal usage.
+	 * - Otherwise, throw error if partially exist.
+	 */
+	private void initFiles() {
+		File blocksFile = new File(blocksFilePath);
+		File directoryFile = new File(directoryFilePath);
+		File freqFile = new File(frequencyFilePath);
+
+		boolean blocksExists = blocksFile.exists();
+		boolean directoryExists = directoryFile.exists();
+		boolean freqExists = freqFile.exists();
+
+		// 1) If none exist, create them
+		if (!blocksExists && !directoryExists && !freqExists) {
+			try {
+				blocksFile.createNewFile();
+				directoryFile.createNewFile();
+				freqFile.createNewFile();
+			} catch (IOException e) {
+				throw new RuntimeException("Could not create index files", e);
+			}
+		}
+		// 2) If all exist, we consider that a "load" scenario
+		else if (blocksExists && directoryExists && freqExists) {
+			// No heavy loading - just open the files for future read/writes
+			// If needed, do some minimal scanning or caching of metadata
+		}
+		// 3) Otherwise, partial existence -> error
+		else {
+			throw new IllegalStateException("Some index files exist while others do not. Cannot initialize.");
+		}
+	}
+
+	/**
+	 * Retrieves a posting from the cache, or loads it from disk if it isn't cached.
+	 * If there's no entry on disk (word not found in directory), returns a new
+	 * posting.
+	 */
+	private CachedPosting getPosting(String word) {
+		// Check if already in cache
+		if (cache.containsKey(word)) {
+			// System.out.println(word + " <- aleary cached");
+			return cache.get(word);
+		}
+
+		// Otherwise, load from disk if it exists
+		// System.out.println(word + " <- not cached");
+		CachedPosting posting = loadPostingFromDisk(word);
+		// Put into cache
+		cache.put(word, posting);
+		// System.out.println(word + " <- dded to cache!");
+		return posting;
+	}
+
+	/** Small helper to remember where a block lives on disk */
+	private static class DirectoryEntry {
+		final long offset;
+		final int blockSize;
+
+		DirectoryEntry(long offset, int blockSize) {
+			this.offset = offset;
+			this.blockSize = blockSize;
+		}
+	}
+
+	/** Read a length-prefixed UTF-8 string */
+	private static String readString(RandomAccessFile raf) throws IOException {
+		int len = raf.readInt();
+		byte[] buf = new byte[len];
+		raf.readFully(buf);
+		return new String(buf, StandardCharsets.UTF_8);
+	}
+
+	/** Write a length-prefixed UTF-8 string */
+	private static void writeString(RandomAccessFile raf, String s) throws IOException {
+		byte[] buf = s.getBytes(StandardCharsets.UTF_8);
+		raf.writeInt(buf.length);
+		raf.write(buf);
+	}
+
+	/** Loads (or creates) the posting list + frequency for `word` from disk. */
+	private CachedPosting loadPostingFromDisk(String word) {
+		CachedPosting posting = new CachedPosting();
+		try {
+			dirRaf.seek(0);
+			freqRaf.seek(0);
+
+			// 1) Find the *last* directory record for `word`
+			// System.out.println("Find last dir");
+			DirectoryEntry last = null;
+			while (dirRaf.getFilePointer() < dirRaf.length()) {
+				String w = readString(dirRaf);
+				long off = dirRaf.readLong();
+				int sz = dirRaf.readInt();
+				if (w.equals(word)) {
+					last = new DirectoryEntry(off, sz);
+				}
+			}
+			// 2) If found, read the block from blocksFile
+			if (last != null) {
+				// System.out.println("Found! reading block");
+				blkRaf.seek(last.offset);
+				int count = blkRaf.readInt();
+				for (int i = 0; i < count; i++) {
+					posting.ids.add(blkRaf.readInt());
+				}
+			}
+
+			// 3) Now scan the frequency file for the *last* freq record
+			// System.out.println("Scanning frequency");
+			while (freqRaf.getFilePointer() < freqRaf.length()) {
+				String w = readString(freqRaf);
+				int f = freqRaf.readInt();
+				if (w.equals(word)) {
+					posting.frequency = f;
+					// System.out.println("Frequency is: " + f);
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("I/O error loading '" + word + "'", e);
+		}
+		return posting;
+	}
+
+	/** Flushes the in-memory posting back out to disk (appending new records). */
+	private void flushPostingToDisk(String word, CachedPosting posting) {
+		try {
+			// 1) Append to blocksFile
+			long offset;
+			int blockSize;
+			offset = blkRaf.length();
+			blkRaf.seek(offset);
+			int count = posting.ids.size();
+			blkRaf.writeInt(count);
+			for (int id : posting.ids) {
+				blkRaf.writeInt(id);
+			}
+			blockSize = 4 + 4 * count;
+
+			// 2) Append a new directory record
+			dirRaf.seek(dirRaf.length());
+			writeString(dirRaf, word);
+			dirRaf.writeLong(offset);
+			dirRaf.writeInt(blockSize);
+
+			// 3) Append a new frequency record
+			freqRaf.seek(freqRaf.length());
+			writeString(freqRaf, word);
+			freqRaf.writeInt(posting.frequency);
+
+		} catch (IOException e) {
+			throw new RuntimeException("I/O error flushing '" + word + "'", e);
+		}
+	}
+
+	/**
+	 * Flush all postings that are currently in the cache to disk.
+	 */
+	public void flushAllPostingsToDisk() {
+		for (Map.Entry<String, CachedPosting> e : cache.entrySet()) {
+			flushPostingToDisk(e.getKey(), e.getValue());
+		}
+		cache.clear();
+	}
+
+	public void close() {
+		flushAllPostingsToDisk();
+	}
+
+	public static int getDefaultCacheSize() {
+		return DEFAULT_CACHE_SIZE;
+	}
+	public long getCacheSize() {
+		return cacheSize;
+	}
+
+	public void setCacheSize(long cacheSize) {
+		this.cacheSize = cacheSize;
+	}
 }
