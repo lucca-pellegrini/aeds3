@@ -60,7 +60,7 @@ public class HybridDecryption {
      * Exemplo de uso da descriptografia híbrida.
      */
     public static void main(String[] args) throws Exception {
-        PrivateKey privateKey = RSAKeyLoader.loadPrivateKey("privateKey.bin");
-        decryptFileWithRSA_AES("secure.bin", "recovered_original.bin", privateKey);
+        PrivateKey privateKey = RSAKeyLoader.loadPrivateKey("src/main/java/AEDs3/Cryptography/RSA/privateKey.bin");
+        decryptFileWithRSA_AES("src/main/java/AEDs3/Cryptography/RSA/secure.bin", "src/main/java/AEDs3/Cryptography/RSA/recovered_original.bin", privateKey);
     }
 }

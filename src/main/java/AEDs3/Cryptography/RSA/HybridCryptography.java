@@ -63,10 +63,10 @@ public class HybridCryptography {
      * Exemplo de uso da criptografia híbrida.
      */
     public static void main(String[] args) throws Exception {
-        PublicKey publicKey = RSAKeyLoader.loadPublicKey("publicKey.bin");
+        PublicKey publicKey = RSAKeyLoader.loadPublicKey("src/main/java/AEDs3/Cryptography/RSA/publicKey.bin");
 
         String originalFile = "C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\AEDs-III\\src\\test\\resources\\CSVManagerTestDataset.csv";
-        String encryptedFile = "secure.bin";
+        String encryptedFile = "src/main/java/AEDs3/Cryptography/RSA/secure.bin";
 
         encryptFileWithRSA_AES(originalFile, encryptedFile, publicKey);
     }

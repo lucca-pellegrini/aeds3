@@ -39,6 +39,6 @@ public class RSAKeyGenerator {
      * @throws Exception Caso ocorra erro durante a geração ou salvamento das chaves.
      */
     public static void main(String[] args) throws Exception {
-        generateAndSaveKeys("publicKey.bin", "privateKey.bin");
+        generateAndSaveKeys("src/main/java/AEDs3/Cryptography/RSA/publicKey.bin", "src/main/java/AEDs3/Cryptography/RSA/privateKey.bin");
     }
 }
