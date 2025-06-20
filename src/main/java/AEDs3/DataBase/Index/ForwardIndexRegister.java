@@ -5,7 +5,7 @@ import java.io.*;
 /**
  * Classe que representa um registro de índice, contendo um ID e uma posição.
  */
-class IndexRegister implements Externalizable, Comparable<IndexRegister> {
+class ForwardIndexRegister implements Externalizable, Comparable<ForwardIndexRegister> {
 	/**
 	 * ID do registro de índice.
 	 */
@@ -24,7 +24,7 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	/**
 	 * Construtor padrão para criação de um registro de índice vazio.
 	 */
-	public IndexRegister() {
+	public ForwardIndexRegister() {
 	}
 
 	/**
@@ -34,7 +34,7 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	 * @param id  O ID do registro.
 	 * @param pos A posição do registro no arquivo.
 	 */
-	public IndexRegister(int id, long pos) {
+	public ForwardIndexRegister(int id, long pos) {
 		this.id = id;
 		this.pos = pos;
 	}
@@ -62,7 +62,7 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 			return true;
 		if (obj == null || getClass() != obj.getClass())
 			return false;
-		IndexRegister other = (IndexRegister) obj;
+		ForwardIndexRegister other = (ForwardIndexRegister) obj;
 		return this.id == other.id;
 	}
 
@@ -74,7 +74,7 @@ class IndexRegister implements Externalizable, Comparable<IndexRegister> {
 	 *         menor, igual ou maior
 	 *         que o outro.
 	 */
-	public int compareTo(IndexRegister other) {
+	public int compareTo(ForwardIndexRegister other) {
 		return Integer.compare(id, other.getId());
 	}
 

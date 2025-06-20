@@ -89,7 +89,7 @@ public class HashTableIndex implements ForwardIndex {
 		/**
 		 * Lista de registros de índice armazenados no cesto.
 		 */
-		ArrayList<IndexRegister> elements;
+		ArrayList<ForwardIndexRegister> elements;
 
 		/**
 		 * Construtor do cesto com profundidade local padrão.
@@ -117,7 +117,7 @@ public class HashTableIndex implements ForwardIndex {
 			this.numElements = 0;
 			this.maxElements = (short) maxElements;
 			this.elements = new ArrayList<>(maxElements);
-			this.elementSize = IndexRegister.SIZE;
+			this.elementSize = ForwardIndexRegister.SIZE;
 			this.bucketSize = (short) (elementSize * maxElements + 3);
 		}
 
@@ -153,10 +153,10 @@ public class HashTableIndex implements ForwardIndex {
 			numElements = dis.readShort();
 			elements = new ArrayList<>(maxElements);
 			byte[] newBuf = new byte[elementSize];
-			IndexRegister element;
+			ForwardIndexRegister element;
 			for (int i = 0; i < maxElements; ++i) {
 				dis.read(newBuf);
-				element = new IndexRegister();
+				element = new ForwardIndexRegister();
 				element.fromByteArray(newBuf);
 				elements.add(element);
 			}
@@ -167,7 +167,7 @@ public class HashTableIndex implements ForwardIndex {
 		 *
 		 * @param register Registro a ser inserido.
 		 */
-		public void insert(IndexRegister register) {
+		public void insert(ForwardIndexRegister register) {
 			if (isFull())
 				throw new IllegalStateException("Bucket já está cheio.");
 			int i;
@@ -183,7 +183,7 @@ public class HashTableIndex implements ForwardIndex {
 		 * @param id Identificador do registro.
 		 * @return Registro encontrado ou null se não encontrado.
 		 */
-		public IndexRegister search(int id) {
+		public ForwardIndexRegister search(int id) {
 			if (isEmpty())
 				return null;
 			int i;
@@ -470,7 +470,7 @@ public class HashTableIndex implements ForwardIndex {
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
 	public void insert(int id, long pos) throws IOException {
-		this.insert(new IndexRegister(id, pos));
+		this.insert(new ForwardIndexRegister(id, pos));
 	}
 
 	/**
@@ -479,7 +479,7 @@ public class HashTableIndex implements ForwardIndex {
 	 * @param elem Registro a ser inserido.
 	 * @throws IOException Se ocorrer um erro de I/O.
 	 */
-	private void insert(IndexRegister elem) throws IOException {
+	private void insert(ForwardIndexRegister elem) throws IOException {
 		byte[] dirBuf = new byte[(int) dirFile.length()];
 		dirFile.seek(0);
 		dirFile.read(dirBuf);
@@ -576,7 +576,7 @@ public class HashTableIndex implements ForwardIndex {
 		bucketFile.read(ba);
 		bucket.fromByteArray(ba);
 
-		IndexRegister res = bucket.search(id);
+		ForwardIndexRegister res = bucket.search(id);
 		return res != null ? res.getPos() : -1;
 	}
 
