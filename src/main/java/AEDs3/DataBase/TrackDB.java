@@ -1096,42 +1096,42 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 	 *         vazios.
 	 */
 	private static int[] resultsIntersection(int[]... arrays) {
-		if (arrays == null || arrays.length == 0) {
+		if (arrays == null || arrays.length == 0)
 			return new int[0];
-		}
-		Set<Integer> resultSet = null;
+
+		Set<Integer> resultSet = null; // Conjunto de inteiros resultado.
 		for (int[] array : arrays) {
-			if (array == null || array.length == 0) {
-				// ignore null or empty arrays
+			// Ignora arrays nulos ou vazios.
+			if (array == null || array.length == 0)
 				continue;
-			}
+
 			if (resultSet == null) {
-				// first non-empty array — initialize resultSet preserving insertion order
+				// Primeiro array não vazio: inicializa resultSet preservando a ordem.
 				resultSet = new LinkedHashSet<>();
-				for (int num : array) {
+				for (int num : array)
 					resultSet.add(num);
-				}
 			} else {
-				// intersect with the next array
+				// Faz interseção com o próximo array.
 				Set<Integer> currentSet = new HashSet<>();
-				for (int num : array) {
+				for (int num : array)
 					currentSet.add(num);
-				}
-				resultSet.retainAll(currentSet);
-				if (resultSet.isEmpty()) {
-					break; // no need to continue if intersection is empty
-				}
+				resultSet.retainAll(currentSet); // Remove elementos não contidos neste.
+
+				if (resultSet.isEmpty())
+					break;
 			}
 		}
-		if (resultSet == null || resultSet.isEmpty()) {
+
+		// Se não houve nenhum resultado, retorna uma interseção vazia.
+		if (resultSet == null || resultSet.isEmpty())
 			return new int[0];
-		}
-		// convert to int[]
+
+		// converte para int[].
 		int[] result = new int[resultSet.size()];
 		int i = 0;
-		for (int num : resultSet) {
+		for (int num : resultSet)
 			result[i++] = num;
-		}
+
 		return result;
 	}
 

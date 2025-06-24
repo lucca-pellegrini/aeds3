@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -236,9 +238,9 @@ public class InvertedListIndex implements AutoCloseable {
 	 */
 	public void destruct() throws IOException {
 		this.close();
-		new File(blocksFilePath).delete();
-		new File(directoryFilePath).delete();
-		new File(frequencyFilePath).delete();
+		Files.delete(Paths.get(blocksFilePath));
+		Files.delete(Paths.get(directoryFilePath));
+		Files.delete(Paths.get(frequencyFilePath));
 	}
 
 	/**

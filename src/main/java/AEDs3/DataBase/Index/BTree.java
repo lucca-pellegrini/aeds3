@@ -30,7 +30,7 @@ public class BTree implements ForwardIndex {
 		/**
 		 * Array de registros de índice armazenados na página.
 		 */
-		private IndexRegister[] elements;
+		private ForwardIndexRegister[] elements;
 
 		/**
 		 * Array de filhos da página.
@@ -57,7 +57,7 @@ public class BTree implements ForwardIndex {
 			this.pos = file.length();
 			this.loaded = true;
 			this.numElements = 0;
-			this.elements = new IndexRegister[maxElements];
+			this.elements = new ForwardIndexRegister[maxElements];
 			this.children = new Page[maxElements + 1];
 			save();
 		}
@@ -84,7 +84,7 @@ public class BTree implements ForwardIndex {
 
 			file.seek(this.pos);
 			this.numElements = file.readInt();
-			this.elements = new IndexRegister[pageCapacity];
+			this.elements = new ForwardIndexRegister[pageCapacity];
 			this.children = new Page[pageCapacity + 1];
 
 			for (int i = 0; i < pageCapacity; i++) {
@@ -95,7 +95,7 @@ public class BTree implements ForwardIndex {
 					this.children[i] = null; // Placeholder, não precisamos de nova página.
 
 				if (i < this.numElements) {
-					this.elements[i] = new IndexRegister();
+					this.elements[i] = new ForwardIndexRegister();
 					this.elements[i].readExternal(file);
 				} else {
 					this.elements[i] = null; // Placeholder para elementos não inicializados.
@@ -131,7 +131,7 @@ public class BTree implements ForwardIndex {
 					this.elements[i].writeExternal(file);
 				else
 					// Placeholder para elementos não inicializados.
-					new IndexRegister(-1, -1).writeExternal(file);
+					new ForwardIndexRegister(-1, -1).writeExternal(file);
 			}
 
 			// Salva a posição do último filho.
@@ -200,7 +200,7 @@ public class BTree implements ForwardIndex {
 		 * @return Um array de registros de índice na página.
 		 * @throws IOException Se ocorrer um erro de I/O ao carregar a página.
 		 */
-		public IndexRegister[] getElements() throws IOException {
+		public ForwardIndexRegister[] getElements() throws IOException {
 			load();
 			return elements;
 		}
@@ -366,7 +366,7 @@ public class BTree implements ForwardIndex {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de busca.
 	 */
 	public long search(int id) throws IOException {
-		IndexRegister res = this.search(new IndexRegister(id, -1));
+		ForwardIndexRegister res = this.search(new ForwardIndexRegister(id, -1));
 		this.save();
 		this.unload();
 		return (res != null) ? res.getPos() : -1;
@@ -379,7 +379,7 @@ public class BTree implements ForwardIndex {
 	 * @return O registro de índice encontrado ou null se não encontrado.
 	 * @throws IOException Se ocorrer um erro de I/O durante a busca.
 	 */
-	private IndexRegister search(IndexRegister reg) throws IOException {
+	private ForwardIndexRegister search(ForwardIndexRegister reg) throws IOException {
 		return this.search(reg, this.root);
 	}
 
@@ -392,7 +392,7 @@ public class BTree implements ForwardIndex {
 	 * @return O registro de índice encontrado ou null se não encontrado.
 	 * @throws IOException Se ocorrer um erro de I/O durante a busca.
 	 */
-	private IndexRegister search(IndexRegister reg, Page page) throws IOException {
+	private ForwardIndexRegister search(ForwardIndexRegister reg, Page page) throws IOException {
 		if (page == null)
 			return null; // Registro não encontrado.
 
@@ -416,7 +416,7 @@ public class BTree implements ForwardIndex {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de inserção.
 	 */
 	public void insert(int id, long pos) throws IOException {
-		this.insere(new IndexRegister(id, pos));
+		this.insere(new ForwardIndexRegister(id, pos));
 		this.save();
 		this.unload();
 	}
@@ -427,8 +427,8 @@ public class BTree implements ForwardIndex {
 	 * @param reg O registro a ser inserido.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de inserção.
 	 */
-	private void insere(IndexRegister reg) throws IOException {
-		IndexRegister[] regRetorno = new IndexRegister[1]; // Array para armazenar o registro retornado.
+	private void insere(ForwardIndexRegister reg) throws IOException {
+		ForwardIndexRegister[] regRetorno = new ForwardIndexRegister[1]; // Array para armazenar o registro retornado.
 		boolean[] cresceu = new boolean[1]; // Array para indicar se a árvore cresceu.
 		Page apRetorno = this.insere(reg, this.root, regRetorno, cresceu); // Insere o registro na árvore.
 		if (cresceu[0]) { // Se a árvore cresceu, cria uma nova raiz.
@@ -452,7 +452,7 @@ public class BTree implements ForwardIndex {
 	 * @return A página resultante após a inserção.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de inserção.
 	 */
-	private Page insere(IndexRegister reg, Page page, IndexRegister[] regRet, boolean[] grown)
+	private Page insere(ForwardIndexRegister reg, Page page, ForwardIndexRegister[] regRet, boolean[] grown)
 			throws IOException {
 		Page pageRet = null;
 		// Se a página for nula, o registro não foi encontrado.
@@ -510,7 +510,7 @@ public class BTree implements ForwardIndex {
 	 * @param pageRight A página à direita do registro inserido.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de inserção.
 	 */
-	private void pageInsert(Page page, IndexRegister reg, Page pageRight) throws IOException {
+	private void pageInsert(Page page, ForwardIndexRegister reg, Page pageRight) throws IOException {
 		int k = page.getNumElements() - 1;
 		// Move os elementos e filhos para abrir espaço para o novo registro.
 		while ((k >= 0) && (reg.compareTo(page.getElements()[k]) < 0)) {
@@ -531,7 +531,7 @@ public class BTree implements ForwardIndex {
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de remoção.
 	 */
 	public void delete(int id) throws IOException {
-		delete(new IndexRegister(id, -1));
+		delete(new ForwardIndexRegister(id, -1));
 
 		this.save();
 		this.unload();
@@ -543,7 +543,7 @@ public class BTree implements ForwardIndex {
 	 * @param reg O registro a ser removido.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de remoção.
 	 */
-	private void delete(IndexRegister reg) throws IOException {
+	private void delete(ForwardIndexRegister reg) throws IOException {
 		boolean[] diminuiu = new boolean[1];
 		this.delete(reg, this.root, diminuiu);
 		if (diminuiu[0] && (this.root.getNumElements() == 0)) { // Árvore diminui na altura.
@@ -560,7 +560,7 @@ public class BTree implements ForwardIndex {
 	 * @return A página resultante após a remoção.
 	 * @throws IOException Se ocorrer um erro de I/O durante a operação de remoção.
 	 */
-	private Page delete(IndexRegister reg, Page page, boolean[] shrunk) throws IOException {
+	private Page delete(ForwardIndexRegister reg, Page page, boolean[] shrunk) throws IOException {
 		if (page == null) {
 			System.out.println("Erro : Registro nao encontrado");
 			shrunk[0] = false;

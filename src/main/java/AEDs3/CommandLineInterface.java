@@ -470,11 +470,13 @@ public class CommandLineInterface {
 					nameBuilder.append('.').append(TrackDB.getDefaultFileExtension());
 
 				String name = nameBuilder.toString();
+				String parentDirName = new File(name).getParent();
 
-				File parentDir = new File(new File(name).getParent());
-				if (parentDir != null && !parentDir.exists())
-					if (!parentDir.mkdirs())
-						throw new RuntimeException("Falha ao criar diretórios para: " + name);
+				if (parentDirName != null) {
+					File parentDir = new File(parentDirName);
+					if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs())
+							throw new RuntimeException("Falha ao criar diretórios para: " + name);
+				}
 
 				parent.setDb(name);
 			}
