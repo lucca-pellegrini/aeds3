@@ -660,7 +660,7 @@ public class CommandLineInterface {
 				parent.info(String.format("Redução de %.2f%%", compressionRate));
 				parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
 
-				if (delete) {
+				if (delete && standaloneFiles == null) {
 					// Destrói os índices
 					parent.db.setBTreeIndex(false);
 					parent.db.setDynamicHashIndex(false);
