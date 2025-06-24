@@ -257,7 +257,7 @@ public class TrackDB implements Iterable<Track>, AutoCloseable {
 		if (!new File(file).isFile())
 			return false;
 		try (TrackDB temp = new TrackDB(file)) {
-			return true;
+			return !(temp.getUUID().getMostSignificantBits() == 0L || temp.getUUID().getLeastSignificantBits() == 0L);
 		} catch (IllegalStateException e) {
 			return false;
 		}
