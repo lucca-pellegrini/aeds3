@@ -1,92 +1,96 @@
 package AEDs3.Cryptography;
 
-import java.io.*;
+/**
+ * A classe Vigenere fornece métodos para criptografar e descriptografar
+ * arquivos usando o método de cifra de Vigenère.
+ */
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+
+/**
+ * A classe Vigenere fornece métodos para criptografar e descriptografar
+ * arquivos usando a cifra de Vigenère. A cifra de Vigenère é um método de
+ * criptografia que utiliza uma série de diferentes cifras de César baseadas
+ * nas letras de uma palavra-chave. Esta classe garante que a chave utilizada
+ * contenha apenas caracteres ASCII.
+ */
 public class Vigenere {
-
 	/**
-	 * Método principal que executa a criptografia e a descriptografia de um
-	 * arquivo.
+	 * Criptografa um arquivo de entrada usando a cifra de Vigenère e salva o
+	 * resultado em um arquivo de saída.
 	 *
-	 * @param args Argumentos da linha de comando (não utilizados).
-	 * @throws Exception Caso ocorra erro de leitura ou escrita de arquivos.
+	 * @param inputPath  o caminho do arquivo de entrada a ser criptografado.
+	 * @param outputPath o caminho do arquivo onde o resultado criptografado será
+	 *                   salvo.
+	 * @param key        a chave de criptografia, que deve conter apenas caracteres
+	 *                   ASCII.
+	 * @throws IOException se ocorrer um erro de I/O durante o processo.
 	 */
-	public static void main(String[] args) throws Exception {
-		String key = "minhaChave";
-		encrypt("C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\AEDs-III\\src\\test\\resources\\CSVManagerTestDataset.csv",
-				key);
-		decrypt("C:\\Users\\pedro\\OneDrive\\Área de Trabalho\\AEDs-III\\src\\test\\resources\\CSVManagerTestDataset.csv.vig",
-				key);
+	public static void encrypt(String inputPath, String outputPath, String key) throws IOException {
+		validateKey(key);
+
+		try (InputStream inputStream = new BufferedInputStream(new FileInputStream(inputPath));
+				OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputPath))) {
+
+			byte[] keyBytes = key.getBytes(StandardCharsets.US_ASCII);
+			int keyLength = keyBytes.length;
+			int data;
+
+			for (int position = 0; (data = inputStream.read()) != -1; ++position) {
+				int keyIndex = position % keyLength;
+				data = (data + keyBytes[keyIndex]) % 256;
+				outputStream.write(data);
+			}
+		}
 	}
 
 	/**
-	 * Criptografa um arquivo binário utilizando a cifra de Vigenère adaptada para
-	 * bytes.
-	 * O arquivo de saída é criado automaticamente com a extensão ".vig".
+	 * Descriptografa um arquivo de entrada que foi criptografado usando a cifra
+	 * de Vigenère e salva o resultado em um arquivo de saída.
 	 *
-	 * @param inputPath Caminho completo do arquivo de entrada (original).
-	 * @param key       Chave de criptografia (string repetida para criptografar os
-	 *                  bytes).
-	 * @throws IOException Caso ocorra erro ao ler ou gravar os arquivos.
+	 * @param inputPath  o caminho do arquivo de entrada a ser descriptografado
+	 * @param outputPath o caminho do arquivo onde o resultado descriptografado será
+	 *                   salvo.
+	 * @param key        a chave de descriptografia, que deve conter apenas
+	 *                   caracteres ASCII.
+	 * @throws IOException se ocorrer um erro de I/O durante o processo.
 	 */
-	public static void encrypt(String inputPath, String key) throws IOException {
-		FileInputStream inputStream = new FileInputStream(inputPath);
-		String outputPath = inputPath + ".vig";
-		FileOutputStream outputStream = new FileOutputStream(outputPath);
+	public static void decrypt(String inputPath, String outputPath, String key) throws IOException {
+		validateKey(key);
 
-		byte[] keyBytes = key.getBytes();
-		int keyLength = keyBytes.length;
+		try (InputStream inputStream = new BufferedInputStream(new FileInputStream(inputPath));
+				OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(outputPath))) {
 
-		byte[] buffer = new byte[4096];
-		int bytesRead;
-		int position = 0;
+			byte[] keyBytes = key.getBytes(StandardCharsets.US_ASCII);
+			int keyLength = keyBytes.length;
+			int data;
 
-		while ((bytesRead = inputStream.read(buffer)) != -1) {
-			for (int i = 0; i < bytesRead; i++) {
-				int keyIndex = (position + i) % keyLength;
-				buffer[i] = (byte) ((buffer[i] + keyBytes[keyIndex]) % 256);
+			for (int position = 0; (data = inputStream.read()) != -1; ++position) {
+				int keyIndex = position % keyLength;
+				data = (data - keyBytes[keyIndex] + 256) % 256; // Ensure no negative values
+				outputStream.write(data);
 			}
-			outputStream.write(buffer, 0, bytesRead);
-			position += bytesRead;
 		}
-
-		inputStream.close();
-		outputStream.close();
-		System.out.println("Arquivo criptografado: " + outputPath);
 	}
 
 	/**
-	 * Descriptografa um arquivo criptografado com a cifra de Vigenère adaptada.
-	 * O arquivo de saída é criado automaticamente com a extensão ".dec".
+	 * Valida se a chave fornecida contém apenas caracteres ASCII.
 	 *
-	 * @param inputPath Caminho completo do arquivo criptografado (com extensão
-	 *                  ".vig").
-	 * @param key       Chave de criptografia usada para reverter a operação.
-	 * @throws IOException Caso ocorra erro ao ler ou gravar os arquivos.
+	 * @param key a chave a ser validada.
+	 * @throws IllegalArgumentException se a chave contiver caracteres não ASCII.
 	 */
-	public static void decrypt(String inputPath, String key) throws IOException {
-		FileInputStream inputStream = new FileInputStream(inputPath);
-		String outputPath = inputPath.replace(".vig", "") + ".dec";
-		FileOutputStream outputStream = new FileOutputStream(outputPath);
-
-		byte[] keyBytes = key.getBytes();
-		int keyLength = keyBytes.length;
-
-		byte[] buffer = new byte[4096];
-		int bytesRead;
-		int position = 0;
-
-		while ((bytesRead = inputStream.read(buffer)) != -1) {
-			for (int i = 0; i < bytesRead; i++) {
-				int keyIndex = (position + i) % keyLength;
-				buffer[i] = (byte) ((buffer[i] - keyBytes[keyIndex] + 256) % 256);
+	private static void validateKey(String key) {
+		for (char c : key.toCharArray()) {
+			if (c < 0 || c > 127) {
+				throw new IllegalArgumentException("Key contains non-ASCII characters: " + c);
 			}
-			outputStream.write(buffer, 0, bytesRead);
-			position += bytesRead;
 		}
-
-		inputStream.close();
-		outputStream.close();
-		System.out.println("Arquivo descriptografado: " + outputPath);
 	}
 }
