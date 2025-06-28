@@ -12,6 +12,7 @@ import AEDs3.Cryptography.EncryptionSystem;
 import AEDs3.Cryptography.Vigenere;
 import AEDs3.Cryptography.VigenereKey;
 import AEDs3.Cryptography.RSA.RSAHybridCryptography;
+import AEDs3.Cryptography.RSA.RSAKeyGenerator;
 import AEDs3.Cryptography.RSA.RSAKeyLoader;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.Track;
@@ -131,7 +132,7 @@ public class CommandLineInterface {
 							ReadCommand.class, DeleteCommand.class, CreateCommand.class, UpdateCommand.class,
 							PlayCommand.class, SortCommand.class, IndexCommand.class, CompressCommand.class,
 							DecompressCommand.class, KeyBindingsCommand.class,
-							EncryptCommand.class, DecryptCommand.class })
+							EncryptCommand.class, DecryptCommand.class, KeygenCommand.class})
 	static class CliCommands implements Runnable {
 		/**
 		 * Leitor de linha para entrada do usuário.
@@ -996,7 +997,7 @@ public class CommandLineInterface {
 					reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal())
 							.completer(new FilesCompleter(new File("."))).build();
 					system = new RSAHybridCryptography();
-					String keyPath = read("Entre o caminho da chave pública", false);
+					String keyPath = read("Entre o caminho da chave pública", false).trim();
 					try {
 						encryptionKey = RSAKeyLoader.loadPublicKey(keyPath);
 					} catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
@@ -1191,6 +1192,33 @@ public class CommandLineInterface {
 		private String read(String prompt, boolean hide) {
 			return reader.readLine(ansi().bold().fgBrightMagenta().a(prompt + ": ").reset().toString(),
 					this.rightPrompt.toString(), hide ? '*' : null, null);
+		}
+	}
+
+	@Command(name = "keygen", mixinStandardHelpOptions = true, description = "Gera um par de chaves pública e privada para RSA.")
+	static class KeygenCommand implements Runnable {
+		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo privado.", completionCandidates = FileCompleter.class)
+		private String param;
+
+		@ParentCommand
+		CliCommands parent;
+
+		public void run() {
+			if (new File(param).exists() || new File(param + ".pub").exists()) {
+				parent.error("Recusando a criar chave com caminho de arquivo já existente.");
+				return;
+			}
+
+			try {
+				RSAKeyGenerator.generateKeys(param, param + ".pub");
+			} catch (IOException e) {
+				parent.error("Erro fatal ao gerar par de chaves.");
+				return;
+			}
+
+			parent.info(String.format("Chaves geradas em: %s e %s",
+				ansi().bold().fgBrightYellow().a(param).reset(),
+				ansi().bold().fgBrightYellow().a(param + ".pub")));
 		}
 	}
 

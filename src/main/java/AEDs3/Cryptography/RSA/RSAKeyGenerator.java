@@ -19,7 +19,7 @@ public class RSAKeyGenerator {
 	 * @throws Exception Caso ocorra erro durante a geração ou salvamento das
 	 *                   chaves.
 	 */
-	public static void generateKeys(String publicKeyPath, String privateKeyPath) throws IOException {
+	public static void generateKeys(String privateKeyPath, String publicKeyPath) throws IOException {
 		try {
 			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 			generator.initialize(2048);
