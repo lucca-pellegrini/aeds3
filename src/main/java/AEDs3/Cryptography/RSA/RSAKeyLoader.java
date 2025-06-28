@@ -11,17 +11,20 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * Classe para carregar chaves RSA a partir de arquivos binários.
+ * Classe responsável por carregar chaves RSA a partir de arquivos binários.
+ * Fornece métodos para carregar tanto chaves públicas quanto privadas.
  */
 public class RSAKeyLoader {
 
 	/**
-	 * Carrega uma chave pública RSA a partir do arquivo especificado.
+	 * Carrega uma chave pública RSA a partir de um arquivo binário especificado.
 	 *
-	 * @param path Caminho do arquivo que contém a chave pública codificada.
+	 * @param path Caminho do arquivo que contém a chave pública codificada em
+	 *             formato X.509.
 	 * @return A chave pública RSA carregada.
-	 * @throws Exception Caso ocorra erro na leitura do arquivo ou na geração da
-	 *                   chave.
+	 * @throws InvalidKeySpecException  Se a especificação da chave for inválida.
+	 * @throws NoSuchAlgorithmException Se o algoritmo RSA não for encontrado.
+	 * @throws IOException              Se ocorrer um erro na leitura do arquivo.
 	 */
 	public static PublicKey loadPublicKey(String path)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, IOException {
@@ -33,12 +36,14 @@ public class RSAKeyLoader {
 	}
 
 	/**
-	 * Carrega uma chave privada RSA a partir do arquivo especificado.
+	 * Carrega uma chave privada RSA a partir de um arquivo binário especificado.
 	 *
-	 * @param path Caminho do arquivo que contém a chave privada codificada.
+	 * @param path Caminho do arquivo que contém a chave privada codificada em
+	 *             formato PKCS#8.
 	 * @return A chave privada RSA carregada.
-	 * @throws Exception Caso ocorra erro na leitura do arquivo ou na geração da
-	 *                   chave.
+	 * @throws InvalidKeySpecException  Se a especificação da chave for inválida.
+	 * @throws NoSuchAlgorithmException Se o algoritmo RSA não for encontrado.
+	 * @throws IOException              Se ocorrer um erro na leitura do arquivo.
 	 */
 	public static PrivateKey loadPrivateKey(String path)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, IOException {
