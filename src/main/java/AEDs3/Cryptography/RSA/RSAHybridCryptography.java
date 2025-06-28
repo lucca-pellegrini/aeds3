@@ -24,20 +24,25 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
 /**
- * Classe para criptografia híbrida de arquivos usando AES (para conteúdo)
- * e RSA (para criptografar a chave AES).
+ * Classe responsável pela criptografia híbrida de arquivos utilizando AES para
+ * o conteúdo e RSA para a criptografia da chave AES. O AES é usado para
+ * criptografar o conteúdo do arquivo, enquanto o RSA é utilizado para
+ * criptografar a chave AES, garantindo assim a segurança dos dados.
  */
 public class RSAHybridCryptography implements EncryptionSystem {
 
 	/**
-	 * Criptografa um arquivo usando uma chave AES gerada aleatoriamente
-	 * e criptografa essa chave com RSA (modo manual, via BigInteger).
+	 * Criptografa um arquivo utilizando uma chave AES gerada aleatoriamente e, em
+	 * seguida, criptografa essa chave AES com RSA de forma manual, utilizando
+	 * BigInteger.
 	 *
-	 * @param originalFilePath  Caminho para o arquivo original a ser criptografado.
-	 * @param encryptedFilePath Caminho onde o arquivo criptografado será salvo.
-	 * @param publicKey         Chave pública RSA usada para criptografar a chave
-	 *                          AES.
-	 * @throws Exception Se ocorrer erro em qualquer etapa da criptografia.
+	 * @param originalFilePath  Caminho do arquivo original que será criptografado.
+	 * @param encryptedFilePath Caminho onde o arquivo criptografado será
+	 *                          armazenado.
+	 * @param publicKey         Chave pública RSA utilizada para criptografar a
+	 *                          chave AES.
+	 * @throws IOException Se ocorrer um erro durante a leitura ou escrita dos
+	 *                     arquivos.
 	 */
 	public void encrypt(String originalFilePath, String encryptedFilePath, PublicKey publicKey) throws IOException {
 		try {
@@ -73,21 +78,21 @@ public class RSAHybridCryptography implements EncryptionSystem {
 
 			inputStream.close();
 			cipherOutputStream.close();
-
-			System.out.println("Arquivo criptografado com sucesso.");
 		} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	/**
-	 * Descriptografa um arquivo criptografado com AES e uma chave AES
-	 * que foi criptografada manualmente com RSA.
+	 * Descriptografa um arquivo que foi criptografado com AES, utilizando uma chave
+	 * AES que foi previamente criptografada manualmente com RSA.
 	 *
-	 * @param encryptedFilePath Caminho do arquivo criptografado de entrada.
-	 * @param outputFilePath    Caminho onde o arquivo restaurado será salvo.
-	 * @param privateKey        Chave privada RSA usada para recuperar a chave AES.
-	 * @throws Exception Se ocorrer erro durante o processo de descriptografia.
+	 * @param encryptedFilePath Caminho do arquivo criptografado que será lido.
+	 * @param outputFilePath    Caminho onde o arquivo descriptografado será salvo.
+	 * @param privateKey        Chave privada RSA utilizada para recuperar a chave
+	 *                          AES.
+	 * @throws IOException Se ocorrer um erro durante a leitura ou escrita dos
+	 *                     arquivos.
 	 */
 	public void decrypt(String encryptedFilePath, String outputFilePath, PrivateKey privateKey)
 			throws IOException {
@@ -122,21 +127,19 @@ public class RSAHybridCryptography implements EncryptionSystem {
 
 			cipherInputStream.close();
 			outputStream.close();
-
-			System.out.println("Arquivo descriptografado com sucesso.");
 		} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	/**
-	 * Realiza a criptografia da chave AES com a chave pública RSA de forma manual,
-	 * utilizando a operação de exponenciação modular: C = M^e mod n.
+	 * Criptografa a chave AES utilizando a chave pública RSA de forma manual,
+	 * através da operação de exponenciação modular: C = M^e mod n.
 	 *
-	 * @param aesKeyBytes Bytes da chave AES a ser criptografada.
-	 * @param publicKey   Chave pública RSA.
-	 * @return Chave AES criptografada com RSA.
-	 * @throws Exception Se ocorrer erro ao acessar os parâmetros da chave RSA.
+	 * @param aesKeyBytes Bytes da chave AES que será criptografada.
+	 * @param publicKey   Chave pública RSA utilizada para a criptografia.
+	 * @return Um array de bytes representando a chave AES criptografada com RSA.
+	 * @throws IOException Se ocorrer um erro ao acessar os parâmetros da chave RSA.
 	 */
 	public static byte[] encryptAESKeyWithRSA(byte[] aesKeyBytes, PublicKey publicKey) throws IOException {
 		try {
@@ -153,13 +156,13 @@ public class RSAHybridCryptography implements EncryptionSystem {
 	}
 
 	/**
-	 * Descriptografa a chave AES criptografada com RSA manualmente,
-	 * usando a operação de decodificação modular: M = C^d mod n.
+	 * Descriptografa a chave AES que foi criptografada manualmente com RSA,
+	 * utilizando a operação de decodificação modular: M = C^d mod n.
 	 *
-	 * @param encryptedAESKey Chave AES criptografada com RSA.
-	 * @param privateKey      Chave privada RSA.
-	 * @return Bytes da chave AES original.
-	 * @throws Exception Se ocorrer erro ao acessar os parâmetros da chave RSA.
+	 * @param encryptedAESKey Array de bytes da chave AES criptografada com RSA.
+	 * @param privateKey      Chave privada RSA utilizada para a descriptografia.
+	 * @return Um array de bytes representando a chave AES original.
+	 * @throws IOException Se ocorrer um erro ao acessar os parâmetros da chave RSA.
 	 */
 	public static byte[] decryptAESKeyWithRSA(byte[] encryptedAESKey, PrivateKey privateKey) throws IOException {
 		try {
@@ -176,12 +179,14 @@ public class RSAHybridCryptography implements EncryptionSystem {
 	}
 
 	/**
-	 * Garante que a chave AES tenha exatamente o tamanho esperado.
-	 * Se necessário, ajusta removendo ou preenchendo os bytes à esquerda.
+	 * Ajusta a chave AES para garantir que ela tenha exatamente o tamanho esperado.
+	 * Se necessário, remove ou preenche os bytes à esquerda para ajustar o tamanho.
 	 *
-	 * @param rawBytes       Chave em bytes após a descriptografia.
-	 * @param expectedLength Tamanho esperado (ex: 16 para AES-128).
-	 * @return Chave ajustada com tamanho correto.
+	 * @param rawBytes       Array de bytes da chave após a descriptografia.
+	 * @param expectedLength Tamanho esperado da chave (por exemplo, 16 para
+	 *                       AES-128).
+	 * @return Um array de bytes representando a chave ajustada com o tamanho
+	 *         correto.
 	 */
 	public static byte[] fixAESKeyLength(byte[] rawBytes, int expectedLength) {
 		if (rawBytes.length == expectedLength)
