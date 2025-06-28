@@ -869,6 +869,25 @@ public class CommandLineInterface {
 		 */
 		private Ansi rightPrompt = ansi().bold().bgBrightRed().a(" CRIPTOGRAFANDO ");
 
+		/**
+		 * Executa o comando para criptografar o arquivo TrackDB aberto ou arquivos externos.
+		 *
+		 * <p>
+		 * Este método realiza a compressão e criptografia dos arquivos especificados. Se nenhum
+		 * arquivo externo for fornecido, o arquivo TrackDB atualmente aberto será utilizado.
+		 * O método suporta diferentes sistemas de criptografia, como Vigenere e RSA, e permite
+		 * a especificação de um nome customizado para o arquivo de saída.
+		 * </p>
+		 *
+		 * <p>
+		 * Se a opção de deletar após criptografar for ativada, o arquivo original será removido
+		 * após a operação. Em caso de erro durante a compressão ou criptografia, mensagens de
+		 * erro apropriadas serão exibidas.
+		 * </p>
+		 *
+		 * @see EncryptionSystem
+		 * @see Compressor
+		 */
 		public void run() {
 			if (parent.db == null && standaloneFiles == null) {
 				parent.error("Não há nenhum arquivo aberto.");
@@ -1022,12 +1041,28 @@ public class CommandLineInterface {
 					String.format("Arquivos criptografados em: %s", ansi().bold().fgBrightYellow().a(encryptedDst)));
 		}
 
+		/**
+		 * Lê a entrada do usuário de maneira interativa.
+		 *
+		 * <p>
+		 * Este método exibe um prompt para o usuário e lê a entrada fornecida. Se a
+		 * opção de ocultar a entrada estiver ativada, os caracteres digitados serão
+		 * mascarados.
+		 * </p>
+		 *
+		 * @param prompt A mensagem a ser exibida ao usuário.
+		 * @param hide   Indica se a entrada do usuário deve ser mascarada.
+		 * @return A entrada fornecida pelo usuário.
+		 */
 		private String read(String prompt, boolean hide) {
 			return reader.readLine(ansi().bold().fgBrightMagenta().a(prompt + ": ").reset().toString(),
 					this.rightPrompt.toString(), hide ? '*' : null, null);
 		}
 	}
 
+	/**
+	 * Comando para descriptografar (e, se necessário, descomprimir) um arquivo especificado;
+	 */
 	@Command(name = "decrypt", mixinStandardHelpOptions = true, description = "Descriptografa um arquivo TrackDB.")
 	static class DecryptCommand implements Runnable {
 		/**
@@ -1079,6 +1114,30 @@ public class CommandLineInterface {
 		 */
 		private Ansi rightPrompt = ansi().bold().bgBrightGreen().a(" DESRIPTOGRAFANDO " + path + ' ');
 
+		/**
+		 * Executa o comando para descriptografar um arquivo TrackDB.
+		 *
+		 * <p>
+		 * Este método realiza a descriptografia de um arquivo TrackDB utilizando o
+		 * método de criptografia especificado. Se o método não for fornecido, ele tenta
+		 * determinar o método de criptografia a partir da extensão do arquivo.
+		 * Após a descriptografia, o arquivo pode ser opcionalmente deletado.
+		 * </p>
+		 *
+		 * <p>
+		 * Se a opção de abrir o arquivo após a descompressão for ativada, o banco de
+		 * dados será carregado automaticamente. Caso contrário, o arquivo será apenas
+		 * descomprimido e desempacotado.
+		 * </p>
+		 *
+		 * <p>
+		 * Em caso de erro durante a descriptografia ou descompressão, mensagens de erro
+		 * apropriadas serão exibidas.
+		 * </p>
+		 *
+		 * @see EncryptionSystem
+		 * @see Compressor
+		 */
 		public void run() {
 			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
 
@@ -1189,20 +1248,64 @@ public class CommandLineInterface {
 			}
 		}
 
+		/**
+		 * Lê a entrada do usuário de maneira interativa.
+		 *
+		 * <p>
+		 * Este método exibe um prompt para o usuário e lê a entrada fornecida. Se a
+		 * opção de ocultar a entrada estiver ativada, os caracteres digitados serão
+		 * mascarados.
+		 * </p>
+		 *
+		 * @param prompt A mensagem a ser exibida ao usuário.
+		 * @param hide   Indica se a entrada do usuário deve ser mascarada.
+		 * @return A entrada fornecida pelo usuário.
+		 */
 		private String read(String prompt, boolean hide) {
 			return reader.readLine(ansi().bold().fgBrightMagenta().a(prompt + ": ").reset().toString(),
 					this.rightPrompt.toString(), hide ? '*' : null, null);
 		}
 	}
 
+	/**
+	 * Comando responsável por gerar um par de chaves pública e privada para RSA.
+	 *
+	 * <p>
+	 * Este comando cria um par de chaves RSA e salva os arquivos de chave privada e
+	 * pública nos caminhos especificados. Se os arquivos já existirem, o comando
+	 * não sobrescreverá os arquivos existentes e exibirá uma mensagem de erro.
+	 * </p>
+	 *
+	 * <p>
+	 * Se o banco de dados não estiver aberto, o comando informará que não há
+	 * nenhum arquivo aberto.
+	 * </p>
+	 *
+	 * @see RSAKeyGenerator
+	 */
 	@Command(name = "keygen", mixinStandardHelpOptions = true, description = "Gera um par de chaves pública e privada para RSA.")
 	static class KeygenCommand implements Runnable {
+		/**
+		 * Caminho para o arquivo privado.
+		 * O caminho é passado como parâmetro ao executar o comando.
+		 */
 		@Parameters(paramLabel = "<path>", description = "Caminho para o arquivo privado.", completionCandidates = FileCompleter.class)
 		private String param;
 
+		/**
+		 * Comando pai que permite exibir mensagens.
+		 */
 		@ParentCommand
 		CliCommands parent;
 
+		/**
+		 * Executa a geração do par de chaves RSA.
+		 *
+		 * <p>
+		 * O comando verifica se os arquivos de chave já existem e, se não existirem,
+		 * gera um novo par de chaves RSA. Caso contrário, exibe uma mensagem de erro.
+		 * </p>
+		 */
 		public void run() {
 			if (new File(param).exists() || new File(param + ".pub").exists()) {
 				parent.error("Recusando a criar chave com caminho de arquivo já existente.");

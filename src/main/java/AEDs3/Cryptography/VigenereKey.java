@@ -6,10 +6,14 @@ import java.security.PublicKey;
 
 /**
  * A classe {@code VigenereKey} representa uma chave para o algoritmo de cifra
- * de Vigenère. Esta classe implementa a interface {@code Key} e fornece métodos
- * para obter a chave codificada e o formato da chave.
+ * de Vigenère. Esta classe implementa as interfaces {@link PublicKey} e
+ * {@link PrivateKey}, e fornece métodos para obter a chave codificada e o
+ * formato da chave.
  */
 public class VigenereKey implements PublicKey, PrivateKey {
+	/**
+	 * A chave Vigenère em formato de bytes.
+	 */
 	private byte[] keyBytes;
 
 	/**

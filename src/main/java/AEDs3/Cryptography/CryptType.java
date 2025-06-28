@@ -36,8 +36,10 @@ public enum CryptType {
 	/**
 	 * Construtor para o tipo de criptografia.
 	 *
-	 * @param description Descrição do tipo de criptografia.
-	 * @param extension   Extensão de arquivo esperada para esse tipo.
+	 * @param description     Descrição do tipo de criptografia.
+	 * @param encryptionClass Classe de interface {@link EncryptionSystem} que
+	 *                        implementa a compressão e a descompressão associadas.
+	 * @param extension       Extensão de arquivo esperada para esse tipo.
 	 */
 	CryptType(String description, Class<? extends EncryptionSystem> encryptionClass, String extension) {
 		this.description = description;
