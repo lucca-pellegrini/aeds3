@@ -7,6 +7,12 @@ import AEDs3.DataBase.BalancedMergeSort;
 import AEDs3.DataBase.CSVManager;
 import AEDs3.Compression.CompressionType;
 import AEDs3.Compression.Compressor;
+import AEDs3.Cryptography.CryptType;
+import AEDs3.Cryptography.EncryptionSystem;
+import AEDs3.Cryptography.Vigenere;
+import AEDs3.Cryptography.VigenereKey;
+import AEDs3.Cryptography.RSA.RSAHybridCryptography;
+import AEDs3.Cryptography.RSA.RSAKeyLoader;
 import AEDs3.DataBase.Track.Field;
 import AEDs3.DataBase.Track;
 import AEDs3.DataBase.TrackDB.TrackFilter;
@@ -26,6 +32,10 @@ import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,6 +51,7 @@ import java.util.regex.Pattern;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.builtins.ConfigurationPath;
+import org.jline.builtins.Completers.FilesCompleter;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
@@ -116,10 +127,11 @@ public class CommandLineInterface {
 			"" }, footer = { "",
 					"Para exibir ajuda sobre um comando, digite:\n@|magenta <comando> --help|@ e pressione @|magenta <ENTER>|@\n",
 					"Pressione @|magenta Ctrl-C|@ para sair." }, subcommands = { OpenCommand.class,
-							CloseCommand.class, InfoCommand.class, UsageCommand.class,
-							ImportCommand.class, ReadCommand.class, DeleteCommand.class, CreateCommand.class,
-							UpdateCommand.class, PlayCommand.class, SortCommand.class, IndexCommand.class,
-							CompressCommand.class, DecompressCommand.class, KeyBindingsCommand.class })
+							CloseCommand.class, InfoCommand.class, UsageCommand.class, ImportCommand.class,
+							ReadCommand.class, DeleteCommand.class, CreateCommand.class, UpdateCommand.class,
+							PlayCommand.class, SortCommand.class, IndexCommand.class, CompressCommand.class,
+							DecompressCommand.class, KeyBindingsCommand.class,
+							EncryptCommand.class, DecryptCommand.class })
 	static class CliCommands implements Runnable {
 		/**
 		 * Leitor de linha para entrada do usuário.
@@ -420,14 +432,16 @@ public class CommandLineInterface {
 		private boolean create;
 
 		/**
-		 * Opção que indica se a extensão padrão deve ser omitida ao criar um novo arquivo.
+		 * Opção que indica se a extensão padrão deve ser omitida ao criar um novo
+		 * arquivo.
 		 *
 		 * <p>
-		 * Quando esta opção é ativada, a extensão padrão não será adicionada automaticamente
+		 * Quando esta opção é ativada, a extensão padrão não será adicionada
+		 * automaticamente
 		 * ao nome do arquivo ao criar um novo arquivo TrackDB.
 		 * </p>
 		 */
-		@Option(names = {"--no-extension"}, description = "Não apende extensão padrão ao criar um novo arquivo." )
+		@Option(names = { "--no-extension" }, description = "Não apende extensão padrão ao criar um novo arquivo.")
 		private boolean omitExtension;
 
 		/**
@@ -475,7 +489,7 @@ public class CommandLineInterface {
 				if (parentDirName != null) {
 					File parentDir = new File(parentDirName);
 					if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs())
-							throw new RuntimeException("Falha ao criar diretórios para: " + name);
+						throw new RuntimeException("Falha ao criar diretórios para: " + name);
 				}
 
 				parent.setDb(name);
@@ -526,45 +540,44 @@ public class CommandLineInterface {
 		/**
 		 * Algoritmo de compressão a ser utilizado.
 		 */
-		@Option(names = { "-m", "--method" }, description =
-			"Algoritmo de compressão a ser utilizado.", required = true)
+		@Option(names = { "-m", "--method" }, description = "Algoritmo de compressão a ser utilizado.", required = true)
 		CompressionType method;
 
 		/**
 		 * Fechar e deletar arquivo após comprimir.
 		 */
-		@Option(names = { "-d", "--delete" }, description =
-			"Fechar e deletar arquivo após comprimir", defaultValue = "false")
+		@Option(names = { "-d",
+				"--delete" }, description = "Fechar e deletar arquivo após comprimir", defaultValue = "false")
 		boolean delete = false;
 
 		/**
 		 * Especifica um nome customizado para o arquivo comprimido.
 		 */
-		@Option(names = { "-n", "--name" }, description =
-				"Especifica um nome customizado para o arquivo comprimido",
-				defaultValue = "", completionCandidates = FileCompleter.class)
+		@Option(names = { "-n",
+				"--name" }, description = "Especifica um nome customizado para o arquivo comprimido", defaultValue = "", completionCandidates = FileCompleter.class)
 		String customName;
 
 		/**
 		 * Cria um backup do DB, incluindo data e hora no nome de arquivo.
 		 */
-		@Option(names = { "-b", "--backup" }, description =
-				"Cria um backup do DB, incluindo data e hora no nome de arquivo",
-				defaultValue = "false")
+		@Option(names = { "-b",
+				"--backup" }, description = "Cria um backup do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
 		boolean backup;
 
 		/**
-		 * Especifica arquivos externos a serem comprimidos, em vez do arquivo TrackDB atualmente aberto.
+		 * Especifica arquivos externos a serem comprimidos, em vez do arquivo TrackDB
+		 * atualmente aberto.
 		 *
 		 * <p>
-		 * Esta opção permite que o usuário comprima arquivos externos, fornecendo um ou mais caminhos
-		 * para os arquivos a serem comprimidos. Os arquivos especificados não devem ser arquivos TrackDB,
+		 * Esta opção permite que o usuário comprima arquivos externos, fornecendo um ou
+		 * mais caminhos
+		 * para os arquivos a serem comprimidos. Os arquivos especificados não devem ser
+		 * arquivos TrackDB,
 		 * pois esses devem ser manipulados diretamente pelo sistema.
 		 * </p>
 		 */
-		@Option(names = { "-f", "--file" }, description =
-				"Comprime um arquivo externo qualquer, e não o TrackDB aberto.",
-				completionCandidates = FileCompleter.class)
+		@Option(names = { "-f",
+				"--file" }, description = "Comprime um arquivo externo qualquer, e não o TrackDB aberto.", completionCandidates = FileCompleter.class)
 		String[] standaloneFiles;
 
 		/**
@@ -594,11 +607,11 @@ public class CommandLineInterface {
 						if (TrackDB.isTrackDB(file)) {
 							parent.error("Arquivo " + file + " é um arquivo TrackDB");
 							parent.error(ansi().render(
-								"Não é possível comprimi-lo isoladamente com @|cyan --file|@")
-								.toString());
+									"Não é possível comprimi-lo isoladamente com @|cyan --file|@")
+									.toString());
 							parent.error(ansi().render(
-								"Abra-o (@|magenta Ctrl-O|@) e use o comando @|magenta,bold compress|@ diretamente")
-								.toString());
+									"Abra-o (@|magenta Ctrl-O|@) e use o comando @|magenta,bold compress|@ diretamente")
+									.toString());
 							return;
 						}
 					}
@@ -615,7 +628,8 @@ public class CommandLineInterface {
 
 			StringBuilder dstBuilder = new StringBuilder(basename);
 			if (backup) // Se `--backup` foi passado, apende data e hora
-				dstBuilder.append('.').append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")));
+				dstBuilder.append('.')
+						.append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")));
 			dstBuilder.append('.').append(method.getExtension()); // Apende extensão
 			String dst = dstBuilder.toString();
 
@@ -781,6 +795,406 @@ public class CommandLineInterface {
 	}
 
 	/**
+	 * Comando para criptografar (e opcionalmente comprimir) o arquivo TrackDB
+	 * aberto.
+	 */
+	@Command(name = "encrypt", mixinStandardHelpOptions = true, description = "Comprime o arquivo TrackDB aberto.")
+	static class EncryptCommand implements Runnable {
+		/**
+		 * Sistema criptográfico a ser utilizado..
+		 */
+		@Parameters(paramLabel = "METHOD", description = "Método de criptografia a ser utilizado.")
+		CryptType encryptionMethod;
+
+		/**
+		 * Algoritmo de compressão a ser utilizado.
+		 */
+		@Option(names = { "-c",
+				"--compression-method" }, description = "Algoritmo de compressão a ser utilizado. (Padrão: nenhum)", defaultValue = "COPY")
+		CompressionType compressionMethod;
+
+		/**
+		 * Fechar e deletar arquivo após criptografar.
+		 */
+		@Option(names = { "-d",
+				"--delete" }, description = "Fechar e deletar arquivo após criptografar", defaultValue = "false")
+		boolean delete = false;
+
+		/**
+		 * Especifica um nome customizado para o arquivo criptografado.
+		 */
+		@Option(names = { "-n",
+				"--name" }, description = "Especifica um nome customizado para o arquivo criptografado", defaultValue = "", completionCandidates = FileCompleter.class)
+		String customName;
+
+		/**
+		 * Cria um backup criptografado do DB, incluindo data e hora no nome de arquivo.
+		 */
+		@Option(names = { "-b",
+				"--backup" }, description = "Cria um backup criptografado do DB, incluindo data e hora no nome de arquivo", defaultValue = "false")
+		boolean backup;
+
+		/**
+		 * Especifica arquivos externos a serem criptografados, em vez do arquivo
+		 * TrackDB atualmente
+		 * aberto.
+		 *
+		 * <p>
+		 * Esta opção permite que o usuário criptografe arquivos externos, fornecendo um
+		 * ou mais
+		 * caminhos para os arquivos a serem comprimidos. Os arquivos especificados não
+		 * devem ser
+		 * arquivos TrackDB, pois esses devem ser manipulados diretamente pelo sistema.
+		 * </p>
+		 */
+		@Option(names = { "-f",
+				"--file" }, description = "Criptografa um arquivo externo qualquer, e não o TrackDB aberto.", completionCandidates = FileCompleter.class)
+		String[] standaloneFiles;
+
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		/**
+		 * Leitor de linha para entrada do usuário.
+		 */
+		private LineReader reader;
+
+		/**
+		 * Prompt à direita exibido na linha de comando durante a operação.
+		 */
+		private Ansi rightPrompt = ansi().bold().bgBrightRed().a(" CRIPTOGRAFANDO ");
+
+		public void run() {
+			if (parent.db == null && standaloneFiles == null) {
+				parent.error("Não há nenhum arquivo aberto.");
+				return;
+			}
+
+			String[] files;
+			String baseFileName;
+
+			// Determina arquivos de origem e base do arquivo destino.
+			if (standaloneFiles == null) {
+				files = parent.db.listFilePaths();
+				baseFileName = files[0].replaceAll("\\." + TrackDB.getDefaultFileExtension() + "$", "");
+			} else {
+				// Verifica se algum dos arquivos é um TrackDB.
+				try {
+					for (String file : standaloneFiles) {
+						if (TrackDB.isTrackDB(file)) {
+							parent.error("Arquivo " + file + " é um arquivo TrackDB");
+							parent.error(ansi().render(
+									"Não é possível criptografá-lo isoladamente com @|cyan --file|@")
+									.toString());
+							parent.error(ansi().render(
+									"Abra-o (@|magenta Ctrl-O|@) e use o comando @|magenta,bold encrypt|@ diretamente")
+									.toString());
+							return;
+						}
+					}
+				} catch (IOException e) {
+					parent.error("Não foi possível verificar os arquivos: " + e.getMessage());
+					return;
+				}
+				files = standaloneFiles;
+				baseFileName = files[0];
+			}
+
+			// Usa nome customizado, se recebido.
+			String basename = (customName.isBlank()) ? baseFileName : customName;
+
+			StringBuilder compressedDstBuilder = new StringBuilder(basename);
+			if (backup) // Se `--backup` foi passado, apende data e hora
+				compressedDstBuilder.append('.')
+						.append(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss")));
+			compressedDstBuilder.append('.').append(compressionMethod.getExtension()); // Apende extensão
+			String compressedDst = compressedDstBuilder.toString();
+			String encryptedDst = new StringBuilder(compressedDst).append('.').append(encryptionMethod.getExtension())
+					.toString();
+
+			try {
+				// Calcula o tamanho total dos arquivos originais
+				long originalSize = 0;
+				parent.info("Empacotando e comprimindo os seguintes arquivos:");
+				for (String file : files) {
+					long len = new File(file).length();
+					originalSize += len;
+					parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
+							.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
+							.fgGreen().a(file).a(' ').reset());
+				}
+				parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", originalSize / 1000))
+						.a(" KB ").fgBrightBlue().a("(Total)").reset());
+				parent.out.flush();
+
+				// Marca o tempo de início
+				long startTime = System.currentTimeMillis();
+
+				// Realiza a compressão
+				Compressor.compress(files, compressedDst, compressionMethod);
+
+				// Marca o tempo de fim
+				long endTime = System.currentTimeMillis();
+
+				// Calcula o tempo de execução
+				long duration = endTime - startTime;
+				long minutes = (duration / 1000) / 60;
+				long seconds = (duration / 1000) % 60;
+				long milliseconds = duration % 1000;
+
+				// Calcula o tamanho do arquivo comprimido
+				long compressedSize = new File(compressedDst).length();
+
+				// Calcula a taxa de compressão
+				double compressionRate = (1 - ((double) compressedSize / originalSize)) * 100;
+
+				// Exibe as informações
+				parent.info(
+						String.format("Arquivos comprimidos em: %s", ansi().bold().fgBrightYellow().a(compressedDst)));
+				parent.info(String.format("Tamanho original: %dKB", originalSize / 1000));
+				parent.info(String.format("Tamanho comprimido: %dKB", compressedSize / 1000));
+				parent.info(String.format("Redução de %.2f%%", compressionRate));
+				parent.info(String.format("Tempo de execução: %02d:%02d.%03d", minutes, seconds, milliseconds));
+
+				if (delete && standaloneFiles == null) {
+					// Destrói os índices
+					parent.db.setBTreeIndex(false);
+					parent.db.setDynamicHashIndex(false);
+					parent.db.setInvertedListIndex(false);
+
+					// Fecha o arquivo de dados
+					parent.db.close();
+					parent.setDb(null);
+
+					// Deleta quaisquer arquivos restantes
+					for (String file : files)
+						if (new File(file).exists())
+							Files.delete(Paths.get(file));
+				}
+			} catch (FileSystemException e) {
+				parent.error("Erro ao deletar alguns arquivos: " + e.getMessage());
+				parent.hint("Recomendo deletá-los manualmente.");
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Erro ao comprimir " + compressedDst);
+			}
+
+			PublicKey encryptionKey;
+			EncryptionSystem system;
+
+			switch (encryptionMethod) {
+				case VIGENERE:
+					reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
+					system = new Vigenere();
+					encryptionKey = new VigenereKey(read("Digite a chave simétrica", true));
+					break;
+				case RSA:
+					reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal())
+							.completer(new FilesCompleter(new File("."))).build();
+					system = new RSAHybridCryptography();
+					String keyPath = read("Entre o caminho da chave pública", false);
+					try {
+						encryptionKey = RSAKeyLoader.loadPublicKey(keyPath);
+					} catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
+						parent.error("Erro fatal ao carregar chave pública " + keyPath + ": " + e.getMessage());
+						return;
+					}
+					break;
+				default:
+					parent.error("Sistema de criptografia inválido: " + encryptionMethod);
+					return;
+			}
+
+			try {
+				system.encrypt(compressedDst, encryptedDst, encryptionKey);
+				Files.delete(Paths.get(compressedDst));
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao criptografar arquivo.");
+			}
+
+			parent.info(
+					String.format("Arquivos criptografados em: %s", ansi().bold().fgBrightYellow().a(encryptedDst)));
+		}
+
+		private String read(String prompt, boolean hide) {
+			return reader.readLine(ansi().bold().fgBrightMagenta().a(prompt + ": ").reset().toString(),
+					this.rightPrompt.toString(), hide ? '*' : null, null);
+		}
+	}
+
+	@Command(name = "decrypt", mixinStandardHelpOptions = true, description = "Descriptografa um arquivo TrackDB.")
+	static class DecryptCommand implements Runnable {
+		/**
+		 * Sistema criptográfico a ser utilizado..
+		 */
+		@Option(names = { "-m", "--method" }, description = "Algoritmo de criptografia a ser utilizado.")
+		CryptType decryptionMethod;
+
+		/**
+		 * Algoritmo de compressão a ser utilizado.
+		 */
+		@Option(names = { "-c", "--compression-method" }, description = "Algoritmo de compressão a ser utilizado.")
+		CompressionType compressionMethod;
+
+		/**
+		 * Abrir arquivo após descomprimir.
+		 */
+		@Option(names = { "-o",
+				"--open" }, description = "Abrir arquivo após descriptografá-lo", defaultValue = "false")
+		boolean open;
+
+		/**
+		 * Deletar arquivo após descomprimir.
+		 */
+		@Option(names = { "-d",
+				"--delete" }, description = "Deletar arquivo após descriptografá-lo", defaultValue = "false")
+		boolean delete;
+
+		/**
+		 * Nome do arquivo a descomprimir.
+		 */
+		@Parameters(paramLabel = "<path>", description = "Nome do arquivo a descriptografar.", completionCandidates = FileCompleter.class)
+		String path;
+
+		/**
+		 * Referência para o comando pai, utilizado para acessar a instância do banco de
+		 * dados e outros recursos.
+		 */
+		@ParentCommand
+		CliCommands parent;
+
+		/**
+		 * Leitor de linha para entrada do usuário.
+		 */
+		private LineReader reader;
+
+		/**
+		 * Prompt à direita exibido na linha de comando durante a operação.
+		 */
+		private Ansi rightPrompt = ansi().bold().bgBrightGreen().a(" DESRIPTOGRAFANDO " + path + ' ');
+
+		public void run() {
+			reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal()).build();
+
+			if (decryptionMethod == null) {
+				try {
+					int dotIndex = path.lastIndexOf('.');
+					String extension = (dotIndex == -1) ? "" : path.substring(dotIndex + 1);
+					decryptionMethod = CryptType.fromExtension(extension);
+				} catch (NoSuchFieldException e) {
+					parent.error("Impossível determinar algoritmo pelo nome do arquivo.");
+					throw new IllegalArgumentException("Método de descriptografia indeterminado.", e);
+				}
+			}
+
+			int lastDotIndex = path.lastIndexOf('.');
+			String decryptedPath;
+
+			if (!(lastDotIndex == -1 || lastDotIndex == 0))
+				decryptedPath = path.substring(0, lastDotIndex);
+			else
+				decryptedPath = path + ".dec";
+
+			PrivateKey decryptionKey;
+			EncryptionSystem system;
+
+			switch (decryptionMethod) {
+				case VIGENERE:
+					system = new Vigenere();
+					decryptionKey = new VigenereKey(read("Digite a chave simétrica", true));
+					break;
+				case RSA:
+					reader = LineReaderBuilder.builder().terminal(parent.reader.getTerminal())
+							.completer(new FilesCompleter(new File("."))).build();
+					system = new RSAHybridCryptography();
+					String keyPath = read("Entre o caminho da chave privada", false).trim();
+					try {
+						decryptionKey = RSAKeyLoader.loadPrivateKey(keyPath);
+					} catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException e) {
+						parent.error("Erro fatal ao carregar chave privada " + keyPath + ": " + e.getMessage());
+						return;
+					}
+					break;
+				default:
+					parent.error("Sistema de criptografia inválido: " + decryptionMethod);
+					return;
+			}
+
+			try {
+				system.decrypt(path, decryptedPath, decryptionKey);
+				if (delete)
+					Files.delete(Paths.get(path));
+			} catch (IOException e) {
+				e.printStackTrace();
+				parent.error("Erro fatal de IO ao desriptografar arquivo.");
+			}
+
+			path = decryptedPath; // Reseta o `path` para a descompressão.
+
+			if (compressionMethod == null) {
+				try {
+					int dotIndex = path.lastIndexOf('.');
+					String extension = (dotIndex == -1) ? "" : path.substring(dotIndex + 1);
+					compressionMethod = CompressionType.fromExtension(extension);
+				} catch (NoSuchFieldException e) {
+					parent.error("Impossível determinar algoritmo pelo nome do arquivo.");
+					throw new IllegalArgumentException("Método de descompressão indeterminado.", e);
+				}
+			}
+
+			String[] files;
+			String dbPath;
+			try {
+				files = Compressor.decompress(path, compressionMethod);
+				dbPath = files[0];
+				Files.delete(Paths.get(path));
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException("Erro ao descomprimir " + path);
+			}
+
+			long totalSize = 0;
+			parent.info("Descomprimi e desempacotei os seguintes arquivos:");
+			for (String file : files) {
+				long len = new File(file).length();
+				totalSize += len;
+				parent.out.println(ansi().bold().a(String.format("% 6d", len / 1000)).a(" KB ").reset().fgBlue()
+						.a(file.equals(files[0]) ? "(Arquivo de dados)\t" : "(Arquivo de índice)\t").bold()
+						.fgGreen().a(file).a(' ').reset());
+			}
+			parent.out.println(ansi().bold().fgBrightYellow().a(String.format("% 6d", totalSize / 1000))
+					.a(" KB ").fgBrightBlue().a("(Total)").reset());
+			parent.out.flush();
+
+			if (open) {
+				parent.setDb(dbPath);
+				return;
+			} else if (parent.db == null) {
+				return;
+			}
+
+			try (TrackDB decompressed = new TrackDB(dbPath)) {
+				if (decompressed.getUUID().equals(parent.db.getUUID())) {
+					parent.warn("Recarregando arquivo.");
+					parent.setDb(dbPath);
+				}
+			} catch (IOException e) {
+				parent.error("Impossível verificar arquivo descomprimido.");
+			}
+		}
+
+		private String read(String prompt, boolean hide) {
+			return reader.readLine(ansi().bold().fgBrightMagenta().a(prompt + ": ").reset().toString(),
+					this.rightPrompt.toString(), hide ? '*' : null, null);
+		}
+	}
+
+	/**
 	 * Comando responsável por exibir os atalhos de teclado disponíveis no programa.
 	 *
 	 * <p>
@@ -808,58 +1222,71 @@ public class CommandLineInterface {
 
 		public void run() {
 			parent.out.println(
-				ansi().a('\n')
-					.fgBrightBlue().bold().a("Atalhos do Programa\n")
-					.a("━━━━━━━━━━━━━━━━━━━\n").reset()
-					.fgMagenta().a("Ctrl-Y\t").reset().bold().a("Exibe página de ajuda geral\n")
-					.fgMagenta().a("Ctrl-T\t").reset().bold().a("Alterna dicas de tailtip\n")
-					.fgMagenta().a("Ctrl-L\t").reset().bold().a("Limpa a tela, exibindo a banner").reset().a(" (se possível)\n")
-					.fgMagenta().a("Ctrl-K\t").reset().bold().a("Limpa a tela, sem exibir a banner\n")
-					.fgMagenta().a("Ctrl-O\t").reset().bold().a("Abre um arquivo TrackDB\n")
-					.fgMagenta().a("Ctrl-N\t").reset().bold().a("Cria um novo arquivo TrackDB\n")
-					.fgMagenta().a("Ctrl-X\t").reset().bold().a("Fecha o arquivo TrackDB aberto\n")
-					.fgMagenta().a("Ctrl-B\t").reset().bold().a("Exibe atalhos disponíveis").reset().a(" (o que você está lendo agora)\n")
-					.fgMagenta().a("Ctrl-Q\t").reset().bold().a("Termina o programa\n")
-					.a('\n')
-					.fgBrightBlue().bold().a("Atalhos do Arquivo de Dados\n")
-					.a("━━━━━━━━━━━━━━━━━━━━━━━━━━━\n").reset()
-					.fgMagenta().a(" Alt-N\t").reset().bold().a("Exibe informações sobre o arquivo TrackDB\n")
-					.fgMagenta().a(" Alt-M\t").reset().bold().a("Importa dados de um arquivo CSV para o arquivo TrackDB\n")
-					.fgMagenta().a(" Alt-C\t").reset().bold().a("Cria um novo registro").reset().fgYellow().a("\t(create)\n")
-					.fgMagenta().a(" Alt-R\t").reset().bold().a("Lê um registro").reset().fgYellow().a("\t\t(read)\n")
-					.fgMagenta().a(" Alt-U\t").reset().bold().a("Atualiza um registro").reset().fgYellow().a("\t(update)\n")
-					.fgMagenta().a(" Alt-D\t").reset().bold().a("Deleta um registro").reset().fgYellow().a("\t(delete)\n")
-					.fgMagenta().a(" Alt-P\t").reset().bold().a("Toca uma faixa no Spotify").reset().a(" (se presente)\n")
-					.fgMagenta().a(" Alt-S\t").reset().bold().a("Ordena o arquivo de dados\n")
-					.fgMagenta().a(" Alt-I\t").reset().bold().a("Gerencia índices do arquivo\n")
-					.fgMagenta().a(" Alt-H\t").reset().bold().a("Comprime o arquivo usando Huffman\n")
-					.fgMagenta().a(" Alt-L\t").reset().bold().a("Comprime o arquivo usando LZW\n")
-					.fgMagenta().a(" Alt-A\t").reset().bold().a("Comprime o arquivo e depois o deleta").reset().a(" (archive)\n")
-					.fgMagenta().a(" Alt-X\t").reset().bold().a("Extrai e abre um arquivo Huffman ou LZW\n")
-					.a('\n')
-					.fgBrightBlue().bold().a("Exemplo de uso\n")
-					.a("━━━━━━━━━━━━━━\n").reset()
-					.fgMagenta().a("Ctrl-N ").fgGreen().a("dados.db ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Cria um arquivo novo chamado ").fgGreen().a("dados.db\n")
-					.fgMagenta().a("Alt-M ").fgGreen().a("dataset.csv ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Importa os registros de um arquivo CSV chamado ").fgGreen().a("dataset.csv\n")
-					.fgMagenta().a("Alt-U ").fgGreen().a("NAME 10 ").fgMagenta().a("<ENTER> ").fgGreen().a("40s homecoming ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Atualiza o ").fgGreen().a("nome ").reset().a("da faixa de ID ").fgGreen().a("10 ").reset().a("para ").fgGreen().a("40s homecoming\n")
-					.fgMagenta().a("Alt-R ").fgGreen().a("KMP \"home\" ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Busca por todas as faixas contendo a string ").fgGreen().a("home ").reset().a("usando ").fgGreen().a("KMP\n")
-					.fgMagenta().a("Alt-D ").fgGreen().a("99881 ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Deleta o registro de ID ").fgGreen().a("99881\n")
-					.fgMagenta().a("Alt-S\n")
-					.reset().a("Reordena o arquivo usando intercalação balanceada ").fgBlue().a("(removendo lápides)\n")
-					.fgMagenta().a("Alt-I ").fgGreen().a("tree ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Cria e habilita um índice direto utilizando ").fgGreen().a("Árvore B\n")
-					.fgMagenta().a("Alt-N\n")
-					.reset().a("Exibe os dados no cabeçalho do arquivo\n")
-					.fgMagenta().a("Alt-A ").fgGreen().a("HUFFMAN ").fgMagenta().a("<ENTER>\n")
-					.reset().a("Comprime os arquivos (incluindo índices) com ").fgGreen().a("Huffman ").reset().a("e os deleta\n")
-					.fgMagenta().a("Ctrl-Q\n")
-					.reset().a("Fecha o programa\n")
-				);
+					ansi().a('\n')
+							.fgBrightBlue().bold().a("Atalhos do Programa\n")
+							.a("━━━━━━━━━━━━━━━━━━━\n").reset()
+							.fgMagenta().a("Ctrl-Y\t").reset().bold().a("Exibe página de ajuda geral\n")
+							.fgMagenta().a("Ctrl-T\t").reset().bold().a("Alterna dicas de tailtip\n")
+							.fgMagenta().a("Ctrl-L\t").reset().bold().a("Limpa a tela, exibindo a banner").reset()
+							.a(" (se possível)\n")
+							.fgMagenta().a("Ctrl-K\t").reset().bold().a("Limpa a tela, sem exibir a banner\n")
+							.fgMagenta().a("Ctrl-O\t").reset().bold().a("Abre um arquivo TrackDB\n")
+							.fgMagenta().a("Ctrl-N\t").reset().bold().a("Cria um novo arquivo TrackDB\n")
+							.fgMagenta().a("Ctrl-X\t").reset().bold().a("Fecha o arquivo TrackDB aberto\n")
+							.fgMagenta().a("Ctrl-B\t").reset().bold().a("Exibe atalhos disponíveis").reset()
+							.a(" (o que você está lendo agora)\n")
+							.fgMagenta().a("Ctrl-Q\t").reset().bold().a("Termina o programa\n")
+							.a('\n')
+							.fgBrightBlue().bold().a("Atalhos do Arquivo de Dados\n")
+							.a("━━━━━━━━━━━━━━━━━━━━━━━━━━━\n").reset()
+							.fgMagenta().a(" Alt-N\t").reset().bold().a("Exibe informações sobre o arquivo TrackDB\n")
+							.fgMagenta().a(" Alt-M\t").reset().bold()
+							.a("Importa dados de um arquivo CSV para o arquivo TrackDB\n")
+							.fgMagenta().a(" Alt-C\t").reset().bold().a("Cria um novo registro").reset().fgYellow()
+							.a("\t(create)\n")
+							.fgMagenta().a(" Alt-R\t").reset().bold().a("Lê um registro").reset().fgYellow()
+							.a("\t\t(read)\n")
+							.fgMagenta().a(" Alt-U\t").reset().bold().a("Atualiza um registro").reset().fgYellow()
+							.a("\t(update)\n")
+							.fgMagenta().a(" Alt-D\t").reset().bold().a("Deleta um registro").reset().fgYellow()
+							.a("\t(delete)\n")
+							.fgMagenta().a(" Alt-P\t").reset().bold().a("Toca uma faixa no Spotify").reset()
+							.a(" (se presente)\n")
+							.fgMagenta().a(" Alt-S\t").reset().bold().a("Ordena o arquivo de dados\n")
+							.fgMagenta().a(" Alt-I\t").reset().bold().a("Gerencia índices do arquivo\n")
+							.fgMagenta().a(" Alt-H\t").reset().bold().a("Comprime o arquivo usando Huffman\n")
+							.fgMagenta().a(" Alt-L\t").reset().bold().a("Comprime o arquivo usando LZW\n")
+							.fgMagenta().a(" Alt-A\t").reset().bold().a("Comprime o arquivo e depois o deleta").reset()
+							.a(" (archive)\n")
+							.fgMagenta().a(" Alt-X\t").reset().bold().a("Extrai e abre um arquivo Huffman ou LZW\n")
+							.a('\n')
+							.fgBrightBlue().bold().a("Exemplo de uso\n")
+							.a("━━━━━━━━━━━━━━\n").reset()
+							.fgMagenta().a("Ctrl-N ").fgGreen().a("dados.db ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Cria um arquivo novo chamado ").fgGreen().a("dados.db\n")
+							.fgMagenta().a("Alt-M ").fgGreen().a("dataset.csv ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Importa os registros de um arquivo CSV chamado ").fgGreen().a("dataset.csv\n")
+							.fgMagenta().a("Alt-U ").fgGreen().a("NAME 10 ").fgMagenta().a("<ENTER> ").fgGreen()
+							.a("40s homecoming ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Atualiza o ").fgGreen().a("nome ").reset().a("da faixa de ID ").fgGreen()
+							.a("10 ").reset().a("para ").fgGreen().a("40s homecoming\n")
+							.fgMagenta().a("Alt-R ").fgGreen().a("KMP \"home\" ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Busca por todas as faixas contendo a string ").fgGreen().a("home ").reset()
+							.a("usando ").fgGreen().a("KMP\n")
+							.fgMagenta().a("Alt-D ").fgGreen().a("99881 ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Deleta o registro de ID ").fgGreen().a("99881\n")
+							.fgMagenta().a("Alt-S\n")
+							.reset().a("Reordena o arquivo usando intercalação balanceada ").fgBlue()
+							.a("(removendo lápides)\n")
+							.fgMagenta().a("Alt-I ").fgGreen().a("tree ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Cria e habilita um índice direto utilizando ").fgGreen().a("Árvore B\n")
+							.fgMagenta().a("Alt-N\n")
+							.reset().a("Exibe os dados no cabeçalho do arquivo\n")
+							.fgMagenta().a("Alt-A ").fgGreen().a("HUFFMAN ").fgMagenta().a("<ENTER>\n")
+							.reset().a("Comprime os arquivos (incluindo índices) com ").fgGreen().a("Huffman ").reset()
+							.a("e os deleta\n")
+							.fgMagenta().a("Ctrl-Q\n")
+							.reset().a("Fecha o programa\n"));
 
 			parent.warn("Alguns atalhos podem não funcionar em todos os sistemas ou terminais.");
 		}
@@ -1851,7 +2278,8 @@ public class CommandLineInterface {
 		private final IndexType indexType = new IndexType();
 
 		/**
-		 * Classe interna que define o grupo de opções para escolher o tipo de índice a ser
+		 * Classe interna que define o grupo de opções para escolher o tipo de índice a
+		 * ser
 		 * gerenciado.
 		 */
 		@SuppressWarnings("CanBeFinal")
@@ -1883,8 +2311,7 @@ public class CommandLineInterface {
 			/**
 			 * Reindexa o arquivo inteiro, recriando o índice primário.
 			 */
-			@Option(names = "--reindex", description =
-				"Reindexa o arquivo inteiro, recriando o índice primário.", required = true)
+			@Option(names = "--reindex", description = "Reindexa o arquivo inteiro, recriando o índice primário.", required = true)
 			boolean reindex = false;
 		}
 
@@ -1935,7 +2362,9 @@ public class CommandLineInterface {
 				parent.warn("Indexando arquivo com muitos elementos. Isso pode demorar.");
 			} else if (indexType.invertedList && parent.db.getNumTracks() >= (1 << 13)) {
 				parent.warn("Muitos elementos para indexar com lista invertida!");
-				parent.warn(ansi().render("@|magenta,bold,italic Aumentando cache em memória temporariamente para acelerar|@").toString());
+				parent.warn(ansi()
+						.render("@|magenta,bold,italic Aumentando cache em memória temporariamente para acelerar|@")
+						.toString());
 			}
 
 			parent.out.flush();

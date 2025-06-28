@@ -1,5 +1,9 @@
 package AEDs3.Cryptography;
 
+import java.lang.reflect.InvocationTargetException;
+
+import AEDs3.Cryptography.RSA.RSAHybridCryptography;
+
 /**
  * Enumeração que representa os tipos de criptografia disponíveis.
  */
@@ -7,17 +11,22 @@ public enum CryptType {
 	/**
 	 * Criptografia por cifra de Vigenère.
 	 */
-	VIGENERE("Criptografia por cifra de Vigenère", "vig"),
+	VIGENERE("Criptografia por cifra de Vigenère", Vigenere.class, "vig"),
 
 	/**
 	 * Criptografia sistema criptográfico RSA.
 	 */
-	RSA("Criptografia sistema criptográfico RSA", "rsa");
+	RSA("Criptografia sistema criptográfico RSA", RSAHybridCryptography.class, "rsa");
 
 	/**
 	 * Descrição do tipo de criptografia.
 	 */
 	private final String description;
+
+	/**
+	 * Classe que implementa a criptografia associada.
+	 */
+	private final Class<? extends EncryptionSystem> encryptionClass;
 
 	/**
 	 * Extensão de arquivo esperada para esse tipo.
@@ -30,8 +39,9 @@ public enum CryptType {
 	 * @param description Descrição do tipo de criptografia.
 	 * @param extension   Extensão de arquivo esperada para esse tipo.
 	 */
-	CryptType(String description, String extension) {
+	CryptType(String description, Class<? extends EncryptionSystem> encryptionClass, String extension) {
 		this.description = description;
+		this.encryptionClass = encryptionClass;
 		this.extension = extension;
 	}
 
@@ -42,6 +52,21 @@ public enum CryptType {
 	 */
 	public String getDescription() {
 		return description;
+	}
+
+	/**
+	 * Cria uma instância do sistema criptográfico associado a este tipo de
+	 * criptografia.
+	 *
+	 * @return Uma instância de EncryptionSystem.
+	 */
+	public EncryptionSystem getEncryptionSystem() {
+		try {
+			return encryptionClass.getDeclaredConstructor().newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException
+				| NoSuchMethodException e) {
+			throw new RuntimeException("Falha ao instanciar sistema.", e);
+		}
 	}
 
 	/**

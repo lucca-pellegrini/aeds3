@@ -1,8 +1,10 @@
 package AEDs3.Cryptography.RSA;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Classe para gerar e salvar chaves RSA em arquivos binários.
@@ -17,31 +19,21 @@ public class RSAKeyGenerator {
 	 * @throws Exception Caso ocorra erro durante a geração ou salvamento das
 	 *                   chaves.
 	 */
-	public static void generateAndSaveKeys(String publicKeyPath, String privateKeyPath) throws Exception {
-		KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-		generator.initialize(2048);
-		KeyPair keyPair = generator.generateKeyPair();
+	public static void generateKeys(String publicKeyPath, String privateKeyPath) throws IOException {
+		try {
+			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+			generator.initialize(2048);
+			KeyPair keyPair = generator.generateKeyPair();
 
-		try (FileOutputStream out = new FileOutputStream(publicKeyPath)) {
-			out.write(keyPair.getPublic().getEncoded());
+			try (FileOutputStream out = new FileOutputStream(publicKeyPath)) {
+				out.write(keyPair.getPublic().getEncoded());
+			}
+
+			try (FileOutputStream out = new FileOutputStream(privateKeyPath)) {
+				out.write(keyPair.getPrivate().getEncoded());
+			}
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
 		}
-
-		try (FileOutputStream out = new FileOutputStream(privateKeyPath)) {
-			out.write(keyPair.getPrivate().getEncoded());
-		}
-
-		System.out.println("Chaves RSA salvas.");
-	}
-
-	/**
-	 * Método principal para gerar e salvar as chaves RSA com nomes padrão.
-	 *
-	 * @param args Argumentos da linha de comando (não utilizados).
-	 * @throws Exception Caso ocorra erro durante a geração ou salvamento das
-	 *                   chaves.
-	 */
-	public static void main(String[] args) throws Exception {
-		generateAndSaveKeys("src/main/java/AEDs3/Cryptography/RSA/publicKey.bin",
-				"src/main/java/AEDs3/Cryptography/RSA/privateKey.bin");
 	}
 }

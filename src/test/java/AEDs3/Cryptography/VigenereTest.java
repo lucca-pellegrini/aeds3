@@ -38,7 +38,7 @@ class VigenereTest {
 	 */
 	@Test
 	void testEncryptDecryptResourceFiles() throws IOException {
-		String key = generateRandomAsciiString(64);
+		VigenereKey key = new VigenereKey(generateRandomAsciiString(64));
 		String[] resources = {
 				"vigenereTextData.txt",
 				"vigenereRandomData.bin"
@@ -53,8 +53,8 @@ class VigenereTest {
 			generatedFiles.add(encrypted);
 			generatedFiles.add(decrypted);
 
-			Vigenere.encrypt(originalPath, encrypted.toString(), key);
-			Vigenere.decrypt(encrypted.toString(), decrypted.toString(), key);
+			new Vigenere().encrypt(originalPath, encrypted.toString(), key);
+			new Vigenere().decrypt(encrypted.toString(), decrypted.toString(), key);
 
 			long decryptedCrc = calculateCRC32(decrypted.toString());
 			assertEquals(
@@ -70,7 +70,7 @@ class VigenereTest {
 	 */
 	@Test
 	void testEncryptDecryptRandomFiles() throws IOException {
-		String key = generateRandomAsciiString(64);
+		VigenereKey key = new VigenereKey(generateRandomAsciiString(64));
 		Random rnd = new Random();
 
 		// Generate and test 5 random files of size between 100 and 1000 bytes
@@ -87,8 +87,8 @@ class VigenereTest {
 			generatedFiles.add(encrypted);
 			generatedFiles.add(decrypted);
 
-			Vigenere.encrypt(original.toString(), encrypted.toString(), key);
-			Vigenere.decrypt(encrypted.toString(), decrypted.toString(), key);
+			new Vigenere().encrypt(original.toString(), encrypted.toString(), key);
+			new Vigenere().decrypt(encrypted.toString(), decrypted.toString(), key);
 
 			long decryptedCrc = calculateCRC32(decrypted.toString());
 			assertEquals(
@@ -105,16 +105,11 @@ class VigenereTest {
 	@Test
 	void testInvalidKeyThrowsException() {
 		String invalidKey = "abcdéfg";
-		String originalPath = getResourcePath("vigenereTextData.txt");
 
 		assertThrows(
 				IllegalArgumentException.class,
-				() -> Vigenere.encrypt(originalPath, "out.enc", invalidKey),
-				"Expected encrypt() to throw for non-ASCII key");
-		assertThrows(
-				IllegalArgumentException.class,
-				() -> Vigenere.decrypt(originalPath, "out.dec", invalidKey),
-				"Expected decrypt() to throw for non-ASCII key");
+				() -> new VigenereKey(invalidKey),
+				"Expected new VigenereKey() to throw for non-ASCII key");
 	}
 
 	// Helper to write a file with random bytes
@@ -148,8 +143,7 @@ class VigenereTest {
 
 	private static String generateRandomAsciiString(int maxLen) {
 		Random random = new Random();
-		// Generate a random length between 0 and 64
-		int length = random.nextInt(maxLen + 1);
+		int length = random.nextInt(maxLen) + 1;
 		StringBuilder sb = new StringBuilder(length);
 
 		// Generate random ASCII characters
