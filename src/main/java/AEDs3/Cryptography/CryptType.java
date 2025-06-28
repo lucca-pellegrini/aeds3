@@ -2,8 +2,6 @@ package AEDs3.Cryptography;
 
 import java.lang.reflect.InvocationTargetException;
 
-import AEDs3.Cryptography.RSA.RSAHybridCryptography;
-
 /**
  * Enumeração que representa os tipos de criptografia disponíveis.
  */
