@@ -1112,7 +1112,7 @@ public class CommandLineInterface {
 		/**
 		 * Prompt à direita exibido na linha de comando durante a operação.
 		 */
-		private Ansi rightPrompt = ansi().bold().bgBrightGreen().a(" DESRIPTOGRAFANDO " + path + ' ');
+		private Ansi rightPrompt = ansi().bold().bgBrightGreen().a(" DESCRIPTOGRAFANDO " + path + ' ');
 
 		/**
 		 * Executa o comando para descriptografar um arquivo TrackDB.
