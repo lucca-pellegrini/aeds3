@@ -120,9 +120,8 @@ class FilePacker {
 				File outFile = new File(fileNames[i]);
 				// Verifica se há diretórios na estrutura de arquivo
 				File parentDirectory = outFile.getParentFile();
-				if (parentDirectory != null && !parentDirectory.exists())
-					if (!parentDirectory.mkdirs())
-						throw new RuntimeException("Falha ao criar diretórios para: " + outFile.getAbsolutePath());
+				if (parentDirectory != null && !parentDirectory.exists() && !parentDirectory.mkdirs())
+					throw new RuntimeException("Falha ao criar diretórios para: " + outFile.getAbsolutePath());
 
 				try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outFile))) {
 					// Ajusta o cursor do terminal para a barra de progresso interna
